@@ -10,21 +10,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-const dns = require('dns');
-
-// --- CRITICAL NETWORK FIX ---
-// Render sometimes defaults to IPv6 for Supabase domains, but fails to route them (ENETUNREACH).
-// We overwrite the native dns.lookup method to strictly FORCE IPv4 (family: 4).
-const originalLookup = dns.lookup;
-dns.lookup = (hostname, options, callback) => {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  options = options || {};
-  options.family = 4; // FORCE IPv4
-  return originalLookup(hostname, options, callback);
-};
 
 const app = express();
 // Use the PORT environment variable provided by the host (Render), or default to 3001
@@ -42,26 +27,25 @@ class DatabaseAdapter {
         console.log("----------------------------------------");
 
         if (this.type === 'postgres') {
-            console.log("Initializing PostgreSQL Connection (Supabase)...");
+            console.log("Initializing PostgreSQL Connection (Supabase) via postgres.js...");
             try {
-                const { Pool } = require('pg');
-                // The IPv4 fix is handled by the dns.lookup override above
-                this.client = new Pool({
-                    connectionString: process.env.DATABASE_URL.trim(),
-                    ssl: { rejectUnauthorized: false }, // Required for Supabase
-                    connectionTimeoutMillis: 10000, // Wait 10s before failing
+                const postgres = require('postgres');
+                this.client = postgres(process.env.DATABASE_URL.trim(), {
+                    ssl: 'require',
+                    max: 10, // Connection pool size
+                    idle_timeout: 20, // Idle connection timeout in seconds
+                    connect_timeout: 10, // Connect timeout in seconds
                 });
                 
                 // Test connection
-                this.client.connect((err) => {
-                    if (err) {
-                        console.error("CRITICAL: Failed to connect to PostgreSQL:", err.message);
-                    } else {
-                        console.log("SUCCESS: Connected to PostgreSQL DB.");
-                    }
+                this.client`SELECT 1`.then(() => {
+                    console.log("SUCCESS: Connected to PostgreSQL DB.");
+                }).catch(err => {
+                    console.error("CRITICAL: Failed to connect to PostgreSQL:", err.message);
                 });
+
             } catch (e) {
-                console.error("Missing 'pg' module. Install it with `npm install pg`.");
+                console.error("Missing 'postgres' module. Install it with `npm install postgres`.");
                 process.exit(1);
             }
         } else {
@@ -81,9 +65,10 @@ class DatabaseAdapter {
 
     run(sql, params = [], callback) {
         if (this.type === 'postgres') {
-            this.client.query(this._prepareSql(sql), params, (err, res) => {
-                if (callback) callback(err);
-            });
+            // postgres.js uses `unsafe` for raw SQL strings with parameters
+            this.client.unsafe(this._prepareSql(sql), params)
+                .then(() => { if (callback) callback(null); })
+                .catch((err) => { if (callback) callback(err); });
         } else {
             this.client.run(sql, params, function(err) {
                 if (callback) callback(err);
@@ -93,9 +78,9 @@ class DatabaseAdapter {
 
     all(sql, params = [], callback) {
         if (this.type === 'postgres') {
-            this.client.query(this._prepareSql(sql), params, (err, res) => {
-                if (callback) callback(err, res ? res.rows : []);
-            });
+            this.client.unsafe(this._prepareSql(sql), params)
+                .then((rows) => { if (callback) callback(null, rows); })
+                .catch((err) => { if (callback) callback(err, []); });
         } else {
             this.client.all(sql, params, (err, rows) => {
                 if (callback) callback(err, rows);
@@ -105,9 +90,9 @@ class DatabaseAdapter {
 
     get(sql, params = [], callback) {
         if (this.type === 'postgres') {
-            this.client.query(this._prepareSql(sql), params, (err, res) => {
-                if (callback) callback(err, res && res.rows.length > 0 ? res.rows[0] : null);
-            });
+            this.client.unsafe(this._prepareSql(sql), params)
+                .then((rows) => { if (callback) callback(null, rows.length > 0 ? rows[0] : null); })
+                .catch((err) => { if (callback) callback(err, null); });
         } else {
             this.client.get(sql, params, (err, row) => {
                 if (callback) callback(err, row);
