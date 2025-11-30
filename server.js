@@ -22,9 +22,19 @@ class DatabaseAdapter {
             console.log("Initializing PostgreSQL Connection (Supabase)...");
             try {
                 const { Pool } = require('pg');
+                // Force IPv4 to avoid ENETUNREACH on some Render instances
                 this.client = new Pool({
                     connectionString: process.env.DATABASE_URL,
-                    ssl: { rejectUnauthorized: false } // Required for Supabase
+                    ssl: { rejectUnauthorized: false }, // Required for Supabase
+                });
+                
+                // Test connection
+                this.client.connect((err) => {
+                    if (err) {
+                        console.error("CRITICAL: Failed to connect to PostgreSQL:", err.message);
+                    } else {
+                        console.log("SUCCESS: Connected to PostgreSQL DB.");
+                    }
                 });
             } catch (e) {
                 console.error("Missing 'pg' module. Install it with `npm install pg`.");
@@ -370,6 +380,54 @@ app.post('/api/admin/restore', upload.single('backupFile'), (req, res) => {
 
 function getDefaultSettingsAsArray() {
     return Object.entries(getDefaultSettings()).map(([key, value]) => ({ key, value }));
+}
+
+function getDefaultEmployees() {
+    return [
+        {
+            id: 'emp-001',
+            fullName: 'Ruaan Van Wyk',
+            email: 'ruaan@propesthunters.co.za', 
+            pin: '2024',            
+            loginName: 'ruaan',
+            jobTitle: 'Owner / Master Technician',
+            permissions: { isAdmin: true, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
+            idNumber: '8501015000080',
+            tel: '082 555 1234',
+            startDate: '2006-05-01',
+            doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400"
+        },
+        {
+            id: 'emp-002',
+            fullName: 'Sarah Johnson',
+            email: 'admin@test.com',
+            pin: '1234',            
+            loginName: 'sarah',
+            jobTitle: 'Office Manager',
+            permissions: { isAdmin: true, canDoAssessment: false, canCreateQuotes: true, canExecuteJob: false, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
+            idNumber: '9002020000080',
+            tel: '013 752 4899',
+            startDate: '2015-03-15',
+            doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
+        }
+    ];
+}
+
+function getDefaultLocations() {
+    return [
+      { id: 'loc-1', name: "Nelspruit HQ", address: "Unit 4, Rapid Falls Industrial Park", phone: "013 752 4899", email: "nelspruit@propesthunters.co.za", isHeadOffice: true, image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800" },
+      { id: 'loc-2', name: "White River Branch", address: "Shop 12, Casterbridge Lifestyle Centre", phone: "013 750 1234", email: "whiteriver@propesthunters.co.za", isHeadOffice: false, image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=800" }
+    ];
+}
+
+function getDefaultJobs() {
+    return [
+        { 
+            id: 'job-001', refNumber: 'JOB-24010', clientName: 'Mr. J. Smith', 
+            clientAddressDetails: { street: '12 Impala Street', suburb: 'West Acres', city: 'Nelspruit', province: 'MP', postalCode: '1200' },
+            contactNumber: '082 111 2222', email: 'john@gmail.com', propertyType: 'Residential', assessmentDate: new Date().toISOString(), technicianId: 'emp-001', selectedServices: ['srv-02'], checkpoints: [], isFirstTimeService: true, treatmentRecommendation: 'Cockroach flush needed in kitchen.', quote: { lineItems: [], subtotal: 950, vatRate: 0.15, total: 1092.50, notes: '' }, status: 'Job_Scheduled', history: [] 
+        }
+    ];
 }
 
 function getDefaultSettings() {
