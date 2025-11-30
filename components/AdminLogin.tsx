@@ -131,8 +131,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
                 type="text" 
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
-                className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown placeholder-gray-500"
-                placeholder="e.g. admin@test.com or John"
+                className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown"
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             </div>
@@ -144,8 +143,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
                 type="password" 
                 value={pin}
                 onChange={e => setPin(e.target.value)}
-                className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown placeholder-gray-500"
-                placeholder="Enter PIN"
+                className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown"
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             </div>

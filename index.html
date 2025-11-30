@@ -14,9 +14,9 @@
               pestBrown: '#3B2F2F',
               pestDarkGreen: '#1a2e18',
               pestGreen: '#4CAF50',
-              pestLight: '#eef2ee', // Darkened from F0F4F0
+              pestLight: '#eef2ee',
               pestStone: '#e6ede6',
-              pestWhite: '#E8EBE8', // UPDATED: Soft warm grey, no longer bright white
+              pestWhite: '#E8EBE8',
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
@@ -43,12 +43,9 @@
       body { 
         font-family: 'Inter', sans-serif; 
         background-color: #eef2ee;
-        /* PERFORMANCE FIX: Removed fixed attachment and blend mode which cause scroll lag */
         background-image: radial-gradient(#cbd5cb 0.5px, transparent 0.5px);
         background-size: 24px 24px;
       }
-      
-      /* Proportional Scaling Logic */
       @media (max-width: 768px) {
         html {
           font-size: 8px; 
@@ -59,7 +56,6 @@
           font-size: 16px;
         }
       }
-      
       .scrollbar-hide::-webkit-scrollbar {
           display: none;
       }
@@ -67,7 +63,6 @@
           -ms-overflow-style: none;
           scrollbar-width: none; 
       }
-
       .perspective-2000 {
         perspective: 2000px;
       }
@@ -84,17 +79,18 @@
   <script type="importmap">
 {
   "imports": {
+    "module": "https://aistudiocdn.com/module@^2.0.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
-    "module": "https://aistudiocdn.com/module@^2.0.0"
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24"
   }
 }
 </script>
 </head>
   <body class="text-pestBrown antialiased overflow-x-hidden selection:bg-pestGreen selection:text-white">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
