@@ -31,7 +31,7 @@ class DatabaseAdapter {
             try {
                 const postgres = require('postgres');
                 this.client = postgres(process.env.DATABASE_URL.trim(), {
-                    ssl: 'require',
+                    ssl: { rejectUnauthorized: false }, // Fix for Supabase/Render SSL handshake issues
                     max: 10, // Connection pool size
                     idle_timeout: 20, // Idle connection timeout in seconds
                     connect_timeout: 10, // Connect timeout in seconds
@@ -100,7 +100,7 @@ class DatabaseAdapter {
         }
     }
 
-    initSchema(callback) {
+    async initSchema() {
         const schema = [
             `CREATE TABLE IF NOT EXISTS settings (section TEXT PRIMARY KEY, data TEXT)`,
             `CREATE TABLE IF NOT EXISTS employees (id TEXT PRIMARY KEY, data TEXT)`,
@@ -109,14 +109,18 @@ class DatabaseAdapter {
             `CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, data TEXT)`
         ];
 
-        let completed = 0;
-        schema.forEach(query => {
-            this.run(query, [], (err) => {
-                if (err) console.error("Schema Error:", err);
-                completed++;
-                if (completed === schema.length && callback) callback();
+        console.log("[System] Verifying Database Schema...");
+        
+        // Execute sequentially to prevent race conditions on connection pool
+        for (const query of schema) {
+            await new Promise((resolve) => {
+                this.run(query, [], (err) => {
+                    if (err) console.error("Schema Error:", err);
+                    resolve();
+                });
             });
-        });
+        }
+        console.log("[System] Schema Verified.");
     }
 }
 
@@ -141,16 +145,6 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
-
-// --- SAFE DATABASE INITIALIZATION ---
-// This ensures that we only seed data if tables are empty.
-// It NEVER overwrites existing data on deployment.
-db.initSchema(() => {
-    checkAndSeed('settings', getDefaultSettingsAsArray());
-    checkAndSeed('employees', getDefaultEmployees());
-    checkAndSeed('locations', getDefaultLocations());
-    checkAndSeed('jobs', getDefaultJobs());
-});
 
 function checkAndSeed(tableName, dataItems) {
     db.get(`SELECT count(*) as count FROM ${tableName}`, [], (err, row) => {
@@ -202,7 +196,10 @@ app.post('/api/send-email', (req, res) => {
 app.get('/api/init', (req, res) => {
     const responseData = {};
     db.all("SELECT * FROM settings", [], (err, rows) => {
-        if(err) return res.status(500).json({error: err.message});
+        if(err) {
+            console.error("API Init Error:", err);
+            return res.status(500).json({error: err.message});
+        }
         if(rows) rows.forEach(r => responseData[r.section] = JSON.parse(r.data));
         
         db.all("SELECT * FROM employees", [], (err, emps) => {
@@ -692,6 +689,22 @@ function getDefaultSettings() {
     };
 }
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+// --- APP STARTUP ---
+// Initialize Schema sequentially before starting the server
+db.initSchema()
+    .then(() => {
+        // Once schema is ready, check for seed data
+        checkAndSeed('settings', getDefaultSettingsAsArray());
+        checkAndSeed('employees', getDefaultEmployees());
+        checkAndSeed('locations', getDefaultLocations());
+        checkAndSeed('jobs', getDefaultJobs());
+
+        // Start listening
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error("Failed to initialize database schema:", err);
+        process.exit(1);
+    });
