@@ -1,6 +1,13 @@
 
 import { createRequire } from 'module';
+import dns from 'node:dns';
 const require = createRequire(import.meta.url);
+
+// CRITICAL FIX: Force Node.js to use IPv4. 
+// Render often fails to connect to Supabase via IPv6 (ENETUNREACH), this forces the stable IPv4 route.
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 require('dotenv').config(); // Load environment variables from .env file
 
@@ -51,7 +58,9 @@ class DatabaseAdapter {
                 });
 
             } catch (e) {
-                console.error("Missing 'postgres' module. Install it with `npm install postgres`.");
+                console.error("CRITICAL ERROR: Failed to load 'postgres' library.");
+                console.error("Error Details:", e);
+                console.error("To fix: Run `npm install postgres` or check package.json");
                 process.exit(1);
             }
         } else {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -237,7 +238,7 @@ const DeploymentGuide = () => {
                                     <div className="flex flex-col gap-1 mb-2">
                                         <span className="text-purple-300 font-bold">Key:</span> <span>DATABASE_URL</span>
                                         <span className="text-purple-300 font-bold">Value:</span> <span className="text-green-400 text-xs break-all bg-green-500/10 p-1 rounded border border-green-500/20">postgresql://postgres:Ankeodendaal101@db.xgyopkivwfotoryhzviz.supabase.co:5432/postgres</span>
-                                        <div className="text-[9px] text-green-300 mt-1 uppercase font-bold">Updated with your custom password</div>
+                                        <div className="text-[9px] text-green-300 mt-1 uppercase font-bold">Updated with your exact connection string</div>
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-purple-300 font-bold">Key:</span> <span>GMAIL_USER / GMAIL_PASS</span>
