@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.75" />
     <meta name="theme-color" content="#4CAF50" />
     <meta name="description" content="Pro Pest Hunters - Premium local pest control services for the Lowveld area.">
     <title>Pro Pest Hunters</title>
@@ -53,7 +53,22 @@
         background-color: #eef2ee;
         background-image: radial-gradient(#cbd5cb 0.5px, transparent 0.5px);
         background-size: 24px 24px;
+        
+        /* Force 75% Zoom */
+        zoom: 0.75;
       }
+
+      /* Firefox Fallback for Zoom */
+      @supports (-moz-appearance:none) {
+        body {
+          transform: scale(0.75);
+          transform-origin: 0 0;
+          width: 133.33%;
+          height: 133.33%;
+          overflow-x: hidden;
+        }
+      }
+
       @media (max-width: 768px) {
         html {
           font-size: 8px; 

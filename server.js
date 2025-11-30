@@ -12,11 +12,19 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const dns = require('dns');
 
-// CRITICAL FIX: Force Node.js to use IPv4. 
-// Render sometimes defaults to IPv6 which causes 'ENETUNREACH' errors with Supabase.
-if (dns.setDefaultResultOrder) {
-    dns.setDefaultResultOrder('ipv4first');
-}
+// --- CRITICAL NETWORK FIX ---
+// Render sometimes defaults to IPv6 for Supabase domains, but fails to route them (ENETUNREACH).
+// We overwrite the native dns.lookup method to strictly FORCE IPv4 (family: 4).
+const originalLookup = dns.lookup;
+dns.lookup = (hostname, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  options.family = 4; // FORCE IPv4
+  return originalLookup(hostname, options, callback);
+};
 
 const app = express();
 // Use the PORT environment variable provided by the host (Render), or default to 3001
@@ -37,10 +45,11 @@ class DatabaseAdapter {
             console.log("Initializing PostgreSQL Connection (Supabase)...");
             try {
                 const { Pool } = require('pg');
-                // Force IPv4 to avoid ENETUNREACH on some Render instances
+                // The IPv4 fix is handled by the dns.lookup override above
                 this.client = new Pool({
                     connectionString: process.env.DATABASE_URL.trim(),
                     ssl: { rejectUnauthorized: false }, // Required for Supabase
+                    connectionTimeoutMillis: 10000, // Wait 10s before failing
                 });
                 
                 // Test connection
@@ -160,6 +169,9 @@ db.initSchema(() => {
 
 function checkAndSeed(tableName, dataItems) {
     db.get(`SELECT count(*) as count FROM ${tableName}`, [], (err, row) => {
+        // If error (e.g. table doesn't exist yet because schema init is async), just skip for now
+        if (err) return; 
+
         const count = row ? (row.count || row.COUNT) : 0;
         if (count == 0) {
             console.log(`[Safe Seed] Table '${tableName}' is empty. Seeding defaults...`);
