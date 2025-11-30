@@ -296,6 +296,7 @@ interface ContentContextType {
   clearSystem: () => Promise<void>;
   downloadBackup: () => void;
   restoreBackup: (file: File) => Promise<boolean>;
+  dbType: 'sqlite' | 'postgres' | 'unknown';
 }
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
@@ -316,6 +317,7 @@ const getApiHelper = () => ({
 export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [content, setContent] = useState<ContentState>(defaultState);
   const [apiUrl, setApiUrlState] = useState(getApiUrl());
+  const [dbType, setDbType] = useState<'sqlite' | 'postgres' | 'unknown'>('unknown');
   const api = getApiHelper(); // Helper for current render cycle
 
   // 1. LOAD DATA FROM SERVER ON MOUNT
@@ -326,6 +328,10 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
         .then(res => res.json())
         .then(serverData => {
             if(serverData) {
+                // UPDATE DB TYPE STATUS
+                if (serverData.meta) {
+                    setDbType(serverData.meta.databaseType);
+                }
                 setContent(prev => ({
                     ...prev,
                     ...serverData
@@ -511,7 +517,7 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
       updateProcessSteps, updateAboutItems, addEmployee, updateEmployee,
       deleteEmployee, updateLocations, updateFaqs,
       addBooking, updateBooking, addJobCard, updateJobCard, deleteJobCard,
-      resetSystem, clearSystem, downloadBackup, restoreBackup
+      resetSystem, clearSystem, downloadBackup, restoreBackup, dbType
     }}>
       {children}
     </ContentContext.Provider>

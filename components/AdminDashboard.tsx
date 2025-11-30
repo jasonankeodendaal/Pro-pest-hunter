@@ -10,7 +10,7 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -308,6 +308,29 @@ const DeploymentGuide = () => {
                     </div>
                 </div>
 
+                {/* Option D: Expert (VPS) */}
+                <div className="bg-blue-900/10 border border-blue-500/30 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Terminal size={100}/></div>
+                    <h3 className="text-2xl font-bold text-blue-400 mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-black text-sm font-bold">7</span>
+                        Option D (Expert): Self-Hosted VPS
+                    </h3>
+                    <div className="space-y-4 pl-4 border-l-2 border-blue-500/30">
+                        <p className="text-gray-300 text-sm">For advanced users who have their own Linux VPS (Ubuntu/Debian) and want to use SQLite permanently without external databases.</p>
+                        <ul className="list-disc list-inside text-sm text-gray-400 space-y-2 font-mono">
+                            <li><strong>Connect:</strong> SSH into your server.</li>
+                            <li><strong>Install Node:</strong> <code>curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs</code></li>
+                            <li><strong>Clone:</strong> <code>git clone [YOUR_REPO_URL]</code></li>
+                            <li><strong>Install PM2:</strong> <code>sudo npm install -g pm2</code></li>
+                            <li><strong>Enter Dir:</strong> <code>cd pest-control-app</code></li>
+                            <li><strong>Install Deps:</strong> <code>npm install</code></li>
+                            <li><strong>Start:</strong> <code>pm2 start server.js --name "pest-api"</code></li>
+                            <li><strong>Persist:</strong> <code>pm2 save && pm2 startup</code></li>
+                            <li><strong>Cloudflare:</strong> Set up a Tunnel to point to <code>localhost:3001</code> for SSL.</li>
+                        </ul>
+                    </div>
+                </div>
+
              </div>
          </div>
     </div>
@@ -315,7 +338,7 @@ const DeploymentGuide = () => {
 };
 
 const SystemGuide = () => {
-    const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup } = useContent();
+    const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType } = useContent();
     const [confirmClear, setConfirmClear] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -328,6 +351,8 @@ const SystemGuide = () => {
             }
         }
     };
+
+    const isRenderWithSqlite = dbType === 'sqlite' && !apiUrl.includes('localhost');
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -350,6 +375,26 @@ const SystemGuide = () => {
                         }} 
                     />
 
+                     {/* CRITICAL WARNING FOR RENDER USERS */}
+                     {isRenderWithSqlite && (
+                         <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-6 mb-8 animate-pulse">
+                             <div className="flex items-start gap-4">
+                                 <AlertTriangle className="text-red-500 shrink-0" size={32} />
+                                 <div>
+                                     <h3 className="text-xl font-black text-red-500 uppercase mb-2">CRITICAL: DATA LOSS RISK DETECTED</h3>
+                                     <p className="text-white font-bold mb-2">You are running on a Live Render Server using a Local SQLite Database.</p>
+                                     <p className="text-gray-300 text-sm mb-4">
+                                         Render deletes local files every time the server restarts (sleeps). Any content you upload will be DELETED automatically. 
+                                         You MUST connect Supabase (PostgreSQL) to save data permanently.
+                                     </p>
+                                     <a href="/?tab=deploymentGuide" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm inline-block">
+                                         View Deployment Guide (Phase 2) to Fix This
+                                     </a>
+                                 </div>
+                             </div>
+                         </div>
+                     )}
+
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                          <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                              <h4 className="font-bold text-white mb-2 flex items-center gap-2"><Link size={16} className="text-pestGreen"/> Connection Status</h4>
@@ -358,6 +403,28 @@ const SystemGuide = () => {
                                 <div className="w-2 h-2 bg-pestGreen rounded-full animate-pulse shadow-neon"></div>
                              </div>
                              <p className="text-[10px] text-gray-500">Connected via {apiUrl.includes('localhost') ? 'Local Environment' : 'Live Remote Server'}</p>
+                         </div>
+
+                         <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                             <h4 className="font-bold text-white mb-2 flex items-center gap-2"><Database size={16} className="text-blue-400"/> Database Mode</h4>
+                             <div className="flex items-center gap-3">
+                                 {dbType === 'postgres' ? (
+                                     <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-green-500/30 flex items-center gap-2">
+                                         <CheckCircle size={12} /> Supabase (PostgreSQL) - Safe
+                                     </span>
+                                 ) : dbType === 'sqlite' ? (
+                                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border flex items-center gap-2 ${isRenderWithSqlite ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                                         <AlertTriangle size={12} /> {isRenderWithSqlite ? 'SQLite (Ephemeral) - UNSAFE' : 'SQLite (Local) - Dev Mode'}
+                                     </span>
+                                 ) : (
+                                     <span className="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-500/30">Unknown</span>
+                                 )}
+                             </div>
+                             <p className="text-[10px] text-gray-500 mt-2">
+                                 {dbType === 'postgres' 
+                                    ? "Your data is safely stored in the cloud." 
+                                    : (isRenderWithSqlite ? "WARNING: Files will be deleted on restart." : "Data stored in local file.")}
+                             </p>
                          </div>
                      </div>
                      

@@ -13,9 +13,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // --- DATABASE ADAPTER (SQLite + PostgreSQL Support) ---
-// This adapter allows us to switch between local SQLite and cloud PostgreSQL (Supabase)
-// without changing the rest of the code.
-
 class DatabaseAdapter {
     constructor() {
         this.type = process.env.DATABASE_URL ? 'postgres' : 'sqlite';
@@ -40,7 +37,6 @@ class DatabaseAdapter {
         }
     }
 
-    // Helper to convert SQLite params (?) to Postgres params ($1, $2, etc.)
     _prepareSql(sql) {
         if (this.type === 'postgres') {
             let i = 1;
@@ -49,7 +45,6 @@ class DatabaseAdapter {
         return sql;
     }
 
-    // Execute a query (INSERT, UPDATE, DELETE)
     run(sql, params = [], callback) {
         if (this.type === 'postgres') {
             this.client.query(this._prepareSql(sql), params, (err, res) => {
@@ -62,7 +57,6 @@ class DatabaseAdapter {
         }
     }
 
-    // Fetch all rows (SELECT *)
     all(sql, params = [], callback) {
         if (this.type === 'postgres') {
             this.client.query(this._prepareSql(sql), params, (err, res) => {
@@ -75,7 +69,6 @@ class DatabaseAdapter {
         }
     }
 
-    // Fetch single row
     get(sql, params = [], callback) {
         if (this.type === 'postgres') {
             this.client.query(this._prepareSql(sql), params, (err, res) => {
@@ -88,7 +81,6 @@ class DatabaseAdapter {
         }
     }
 
-    // Initialize Schema
     initSchema(callback) {
         const schema = [
             `CREATE TABLE IF NOT EXISTS settings (section TEXT PRIMARY KEY, data TEXT)`,
@@ -112,7 +104,6 @@ class DatabaseAdapter {
 const db = new DatabaseAdapter();
 
 // --- MIDDLEWARE ---
-// Allow all origins (*) so Vercel frontend can talk to Render backend
 app.use(cors({
     origin: '*', 
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH', 'OPTIONS']
@@ -120,7 +111,6 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use('/uploads', express.static('uploads'));
 
-// --- STORAGE SETUP ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = './uploads';
@@ -133,75 +123,81 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Initialize Database Tables
+// --- SAFE DATABASE INITIALIZATION ---
+// This ensures that we only seed data if tables are empty.
+// It NEVER overwrites existing data on deployment.
 db.initSchema(() => {
-    // Check if we need to seed
-    db.get("SELECT count(*) as count FROM settings", [], (err, row) => {
-        // Postgres returns count as string sometimes, so we check loose equality or parse
+    checkAndSeed('settings', getDefaultSettingsAsArray());
+    checkAndSeed('employees', getDefaultEmployees());
+    checkAndSeed('locations', getDefaultLocations());
+    checkAndSeed('jobs', getDefaultJobs());
+});
+
+function checkAndSeed(tableName, dataItems) {
+    db.get(`SELECT count(*) as count FROM ${tableName}`, [], (err, row) => {
         const count = row ? (row.count || row.COUNT) : 0;
         if (count == 0) {
-            console.log("Database empty. Seeding dummy data...");
-            seedDatabase();
+            console.log(`[Safe Seed] Table '${tableName}' is empty. Seeding defaults...`);
+            if (tableName === 'settings') {
+                 dataItems.forEach(item => {
+                     db.run("INSERT INTO settings (section, data) VALUES (?, ?)", [item.key, JSON.stringify(item.value)]);
+                 });
+            } else if (tableName === 'jobs') {
+                 dataItems.forEach(item => {
+                     db.run("INSERT INTO jobs (id, technicianId, status, data) VALUES (?, ?, ?, ?)", [item.id, item.technicianId, item.status, JSON.stringify(item)]);
+                 });
+            } else {
+                 // employees, locations (id, data)
+                 dataItems.forEach(item => {
+                     db.run(`INSERT INTO ${tableName} (id, data) VALUES (?, ?)`, [item.id, JSON.stringify(item)]);
+                 });
+            }
         } else {
-            console.log("Database initialized.");
+            console.log(`[Safe Seed] Table '${tableName}' has data. Preserving existing data.`);
         }
     });
-});
+}
 
 // --- CONFIGURATION ---
 const GMAIL_USER = process.env.GMAIL_USER || 'your-email@gmail.com'; 
 const GMAIL_PASS = process.env.GMAIL_PASS || 'your-app-password';
 
-// --- EMAIL SERVICE ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-        user: GMAIL_USER,
-        pass: GMAIL_PASS
-    }
+    auth: { user: GMAIL_USER, pass: GMAIL_PASS }
 });
 
 app.post('/api/send-email', (req, res) => {
     const { to, subject, text, html } = req.body;
-    
-    const mailOptions = {
-        from: GMAIL_USER,
-        to,
-        subject,
-        text,
-        html
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error('Email error:', error);
-            return res.status(500).json({ error: error.toString() });
-        }
+    transporter.sendMail({ from: GMAIL_USER, to, subject, text, html }, (error, info) => {
+        if (error) return res.status(500).json({ error: error.toString() });
         res.json({ success: true, message: 'Email sent: ' + info.response });
     });
 });
 
 // --- API ENDPOINTS ---
 
-// 1. INITIAL LOAD
 app.get('/api/init', (req, res) => {
     const responseData = {};
-    
     db.all("SELECT * FROM settings", [], (err, rows) => {
         if(err) return res.status(500).json({error: err.message});
         if(rows) rows.forEach(r => responseData[r.section] = JSON.parse(r.data));
         
         db.all("SELECT * FROM employees", [], (err, emps) => {
             responseData.employees = emps ? emps.map(e => JSON.parse(e.data)) : [];
-            
             db.all("SELECT * FROM jobs", [], (err, jobs) => {
                 responseData.jobCards = jobs ? jobs.map(j => JSON.parse(j.data)) : [];
-                
                 db.all("SELECT * FROM bookings", [], (err, books) => {
                     responseData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
-                    
                     db.all("SELECT * FROM locations", [], (err, locs) => {
                         responseData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
+                        
+                        // INCLUDE DB META INFO
+                        responseData.meta = {
+                            databaseType: db.type,
+                            isRender: !!process.env.RENDER
+                        };
+                        
                         res.json(responseData);
                     });
                 });
@@ -210,8 +206,6 @@ app.get('/api/init', (req, res) => {
     });
 });
 
-// 2. GENERIC UPDATES
-// Note: ON CONFLICT syntax is compatible with both Postgres (9.5+) and SQLite (3.24+)
 app.post('/api/settings/:section', (req, res) => {
     const { section } = req.params;
     const data = JSON.stringify(req.body);
@@ -264,7 +258,6 @@ app.post('/api/locations', (req, res) => {
         if (err) return res.status(500).send(err.message);
         let completed = 0;
         if (locs.length === 0) return res.json({success: true});
-        
         locs.forEach(l => {
             db.run("INSERT INTO locations (id, data) VALUES (?, ?)", [l.id, JSON.stringify(l)], (err) => {
                 completed++;
@@ -274,7 +267,6 @@ app.post('/api/locations', (req, res) => {
     });
 });
 
-// 3. UPLOAD
 app.post('/api/upload', upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).send('No file uploaded.');
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -283,24 +275,29 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
     res.json({ url: fileUrl });
 });
 
-// 4. ADMIN TOOLS
+// --- ADMIN TOOLS ---
 
-// SEED (MOCK DATA)
+// RESET (Admin Button Click Only)
 app.post('/api/admin/seed', (req, res) => {
+    // This is the ONLY place where data is wiped.
     const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
     let completed = 0;
     tables.forEach(table => {
         db.run(`DELETE FROM ${table}`, [], () => {
             completed++;
             if (completed === tables.length) {
-                seedDatabase();
+                // Manually call seed logic again after wipe
+                checkAndSeed('settings', getDefaultSettingsAsArray());
+                checkAndSeed('employees', getDefaultEmployees());
+                checkAndSeed('locations', getDefaultLocations());
+                checkAndSeed('jobs', getDefaultJobs());
                 res.json({ success: true, message: "Database reset and seeded with mock data." });
             }
         });
     });
 });
 
-// NUKE (DELETE ALL)
+// NUKE (Delete All)
 app.post('/api/admin/nuke', (req, res) => {
     const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
     let completed = 0;
@@ -308,32 +305,18 @@ app.post('/api/admin/nuke', (req, res) => {
         db.run(`DELETE FROM ${table}`, [], () => {
             completed++;
             if (completed === tables.length) {
-                // Ensure at least one admin exists
-                const adminEmp = {
-                    id: 'admin-universal',
-                    fullName: 'System Admin',
-                    email: 'admin@test.com',
-                    pin: '1234',
-                    loginName: 'admin',
-                    jobTitle: 'System Administrator',
-                    permissions: { isAdmin: true, canEditSiteContent: true, canManageEmployees: true },
-                    profileImage: null, documents: [], doctorsNumbers: []
-                };
-                db.run("INSERT INTO employees (id, data) VALUES (?, ?)", ['admin-universal', JSON.stringify(adminEmp)]);
+                const adminEmp = getDefaultEmployees()[0]; // Restore at least the admin
+                db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [adminEmp.id, JSON.stringify(adminEmp)]);
                 res.json({ success: true, message: "Database completely cleared (Admin restored)." });
             }
         });
     });
 });
 
-// BACKUP (DOWNLOAD JSON)
 app.get('/api/admin/backup', (req, res) => {
     const backupData = { timestamp: new Date().toISOString() };
-    
     db.all("SELECT * FROM settings", [], (err, rows) => {
-        if(err) return res.status(500).json({error: err.message});
         if(rows) rows.forEach(r => backupData[r.section] = JSON.parse(r.data));
-        
         db.all("SELECT * FROM employees", [], (err, emps) => {
             backupData.employees = emps ? emps.map(e => JSON.parse(e.data)) : [];
             db.all("SELECT * FROM jobs", [], (err, jobs) => {
@@ -342,7 +325,6 @@ app.get('/api/admin/backup', (req, res) => {
                     backupData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
                     db.all("SELECT * FROM locations", [], (err, locs) => {
                         backupData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
-                        
                         res.setHeader('Content-Type', 'application/json');
                         res.setHeader('Content-Disposition', `attachment; filename=pro_pest_backup_${Date.now()}.json`);
                         res.send(JSON.stringify(backupData, null, 2));
@@ -353,52 +335,45 @@ app.get('/api/admin/backup', (req, res) => {
     });
 });
 
-// RESTORE (UPLOAD JSON)
 app.post('/api/admin/restore', upload.single('backupFile'), (req, res) => {
     if (!req.file) return res.status(400).send('No backup file uploaded.');
-    
     fs.readFile(req.file.path, 'utf8', (err, data) => {
         if (err) return res.status(500).send('Error reading backup file');
-        
         try {
             const backup = JSON.parse(data);
-            
             const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
             let cleared = 0;
-            
-            // Clear all tables first
             tables.forEach(table => {
                 db.run(`DELETE FROM ${table}`, [], () => {
                     cleared++;
                     if (cleared === tables.length) {
-                        // Restore Settings
                         const sections = ['company', 'hero', 'about', 'services', 'whyChooseUs', 'process', 'serviceArea', 'safety', 'bookCTA', 'bookingModal', 'contact', 'creatorWidget', 'faqs', 'testimonials', 'bankDetails', 'seo'];
                         sections.forEach(sec => {
                             if (backup[sec]) db.run("INSERT INTO settings (section, data) VALUES (?, ?)", [sec, JSON.stringify(backup[sec])]);
                         });
-
-                        // Restore Lists
                         if (backup.employees) backup.employees.forEach(i => db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [i.id, JSON.stringify(i)]));
                         if (backup.jobCards) backup.jobCards.forEach(i => db.run("INSERT INTO jobs (id, technicianId, status, data) VALUES (?, ?, ?, ?)", [i.id, i.technicianId, i.status, JSON.stringify(i)]));
                         if (backup.bookings) backup.bookings.forEach(i => db.run("INSERT INTO bookings (id, status, data) VALUES (?, ?, ?)", [i.id, i.status, JSON.stringify(i)]));
                         if (backup.locations) backup.locations.forEach(i => db.run("INSERT INTO locations (id, data) VALUES (?, ?)", [i.id, JSON.stringify(i)]));
-
-                        res.json({ success: true, message: 'System restored successfully from backup.' });
+                        res.json({ success: true, message: 'System restored successfully.' });
                         fs.unlink(req.file.path, () => {});
                     }
                 });
             });
-
         } catch (e) {
             res.status(500).send('Invalid backup file format.');
         }
     });
 });
 
+// --- DATA HELPERS ---
 
-// --- SEED DATA ---
-function seedDatabase() {
-    const defaults = {
+function getDefaultSettingsAsArray() {
+    return Object.entries(getDefaultSettings()).map(([key, value]) => ({ key, value }));
+}
+
+function getDefaultSettings() {
+    return {
         company: {
             name: "Pro Pest Hunters",
             regNumber: "2015/123456/07",
@@ -645,97 +620,6 @@ function seedDatabase() {
             }, null, 2)
         }
     };
-
-    for (const [key, value] of Object.entries(defaults)) {
-        db.run("INSERT INTO settings (section, data) VALUES (?, ?) ON CONFLICT(section) DO UPDATE SET data = ?", [key, JSON.stringify(value), JSON.stringify(value)]);
-    }
-
-    // 2. Locations
-    db.run("DELETE FROM locations", [], () => {
-        const locations = [
-            { id: 'loc-1', name: "Nelspruit HQ", address: "Unit 4, Rapid Falls Industrial Park, Riverside", phone: "013 752 4899", email: "nelspruit@propesthunters.co.za", isHeadOffice: true, image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800" },
-            { id: 'loc-2', name: "White River Branch", address: "Shop 12, Casterbridge Lifestyle Centre", phone: "013 750 1234", email: "whiteriver@propesthunters.co.za", isHeadOffice: false, image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=800" }
-        ];
-        locations.forEach(l => db.run("INSERT INTO locations (id, data) VALUES (?, ?)", [l.id, JSON.stringify(l)]));
-    });
-
-    // 3. Employees
-    db.run("DELETE FROM employees", [], () => {
-        const employees = [
-            {
-                id: 'emp-001',
-                fullName: 'Ruaan Van Wyk',
-                email: 'ruaan@propesthunters.co.za', 
-                pin: '2024',            
-                loginName: 'ruaan',
-                jobTitle: 'Owner / Master Technician',
-                permissions: { isAdmin: true, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
-                idNumber: '8501015000080',
-                tel: '082 555 1234',
-                startDate: '2006-05-01',
-                doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                id: 'emp-002',
-                fullName: 'Sarah Johnson',
-                email: 'admin@propesthunters.co.za', 
-                pin: '1234',            
-                loginName: 'sarah',
-                jobTitle: 'Office Manager',
-                permissions: { isAdmin: true, canDoAssessment: false, canCreateQuotes: true, canExecuteJob: false, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
-                idNumber: '9002020000080',
-                tel: '013 752 4899',
-                startDate: '2015-03-15',
-                doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                id: 'emp-003',
-                fullName: 'Sipho Nkosi',
-                email: 'sipho@propesthunters.co.za', 
-                pin: '1111',            
-                loginName: 'sipho',
-                jobTitle: 'Senior Technician',
-                permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: false, canExecuteJob: true, canInvoice: false, canViewReports: false, canManageEmployees: false, canEditSiteContent: false },
-                idNumber: '8805055000080',
-                tel: '072 123 4567',
-                startDate: '2018-01-10',
-                doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                id: 'emp-004',
-                fullName: 'David Miller',
-                email: 'david@propesthunters.co.za', 
-                pin: '2222',            
-                loginName: 'david',
-                jobTitle: 'Pest Control Operator',
-                permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: false, canExecuteJob: true, canInvoice: false, canViewReports: false, canManageEmployees: false, canEditSiteContent: false },
-                idNumber: '9508085000080',
-                tel: '083 987 6543',
-                startDate: '2021-06-01',
-                doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400"
-            }
-        ];
-        employees.forEach(e => db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [e.id, JSON.stringify(e)]));
-    });
-    
-    // 4. Job Cards (Sample Data)
-    db.run("DELETE FROM jobs", [], () => {
-        const jobs = [
-            { 
-                id: 'job-001', refNumber: 'JOB-24010', clientName: 'Mr. J. Smith', 
-                clientAddressDetails: { street: '12 Impala Street', suburb: 'West Acres', city: 'Nelspruit', province: 'MP', postalCode: '1200' },
-                contactNumber: '082 111 2222', email: 'john@gmail.com', propertyType: 'Residential', assessmentDate: new Date().toISOString(), technicianId: 'emp-003', selectedServices: ['srv-02'], checkpoints: [], isFirstTimeService: true, treatmentRecommendation: 'Cockroach flush needed in kitchen.', quote: { lineItems: [], subtotal: 950, vatRate: 0.15, total: 1092.50, notes: '' }, status: 'Job_Scheduled', history: [] 
-            },
-            { 
-                id: 'job-002', refNumber: 'JOB-24011', clientName: 'Spar Casterbridge', 
-                clientAddressDetails: { street: 'Main Road', suburb: 'White River', city: 'White River', province: 'MP', postalCode: '1240' },
-                contactNumber: '013 750 0000', email: 'manager@spar.co.za', propertyType: 'Business', assessmentDate: new Date().toISOString(), technicianId: 'emp-001', selectedServices: ['srv-06'], checkpoints: [], isFirstTimeService: false, treatmentRecommendation: 'Monthly hygiene service.', quote: { lineItems: [], subtotal: 1500, vatRate: 0.15, total: 1725, notes: '' }, status: 'Completed', history: [] 
-            }
-        ];
-        jobs.forEach(j => db.run("INSERT INTO jobs (id, technicianId, status, data) VALUES (?, ?, ?, ?)", [j.id, j.technicianId, j.status, JSON.stringify(j)]));
-    });
-
-    console.log("Database seeded with RICH mock data. Default Admin: admin@propesthunters.co.za / 1234");
 }
 
 app.listen(PORT, () => {
