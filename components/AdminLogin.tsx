@@ -50,18 +50,25 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
                 canEditSiteContent: true
             }
         };
-        // We will detect this specific email 'jstypme' in the dashboard to show the Guide tab
         onLogin(creatorUser);
         return;
     }
 
-    // --- TEMPORARY UNIVERSAL ACCESS (Backdoor) ---
-    if (identifier.toLowerCase() === 'admin@test.com' && pin === '1234') {
+    // --- ENVIRONMENT VARIABLE MASTER ADMIN ---
+    // This allows setting credentials in Vercel without hardcoding them
+    const envEmail = (import.meta as any).env.VITE_ADMIN_EMAIL;
+    const envPin = (import.meta as any).env.VITE_ADMIN_PIN;
+
+    // Fallback for development if env vars aren't set
+    const masterEmail = envEmail || 'admin@test.com'; 
+    const masterPin = envPin || '1234';
+
+    if (identifier.toLowerCase() === masterEmail.toLowerCase() && pin === masterPin) {
         const universalAdmin: Employee = {
             id: 'universal-admin',
-            fullName: 'System Admin (Universal)',
-            email: 'admin@test.com',
-            pin: '1234',
+            fullName: 'System Owner',
+            email: masterEmail,
+            pin: '****',
             loginName: 'admin',
             jobTitle: 'System Administrator',
             tel: '',
@@ -106,7 +113,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
     if (techUser) {
         onLogin(techUser);
     } else {
-        setError('Invalid Credentials. Use Email for Admin, Name for Tech.');
+        setError('Invalid Credentials.');
     }
   };
 
@@ -165,10 +172,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
             >
               Login
             </button>
-          </div>
-          
-          <div className="mt-4 text-center">
-             <p className="text-[10px] text-gray-400">Default Admin: admin@test.com / 1234</p>
           </div>
         </form>
       </div>

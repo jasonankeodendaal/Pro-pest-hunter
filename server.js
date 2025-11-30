@@ -1,3 +1,4 @@
+
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
@@ -38,7 +39,7 @@ class DatabaseAdapter {
                 const { Pool } = require('pg');
                 // Force IPv4 to avoid ENETUNREACH on some Render instances
                 this.client = new Pool({
-                    connectionString: process.env.DATABASE_URL,
+                    connectionString: process.env.DATABASE_URL.trim(),
                     ssl: { rejectUnauthorized: false }, // Required for Supabase
                 });
                 
@@ -654,7 +655,7 @@ function getDefaultSettings() {
         ],
         testimonials: [
              { id: 'test-1', name: "Sarah Jenkins", location: "White River", text: "Absolutely fantastic service. Had a terrible ant problem in the kitchen. The technician was polite, on time, and the ants were gone within 2 days. Highly recommend!", rating: 5 },
-             { id: 'test-2', name: "Mike Van Der Merwe", location: "Nelspruit", text: "Called them for a termite inspection. They were thorough and honest. Didn't try to upsell me on things I didn't need. Good local business.", rating: 5 },
+             { id: 'test-2', name: "Mike Van Der Merwe", location: "Nelspruit", text: "Called them for a termite inspection. Thorough and honest. Didn't try to upsell me on things I didn't need. Good local business.", rating: 5 },
              { id: 'test-3', name: "The Olive Garden B&B", location: "Barberton", text: "We use Pro Pest Hunters for our monthly hospitality contract. They are always professional and keep our paperwork for health inspections perfect.", rating: 5 },
              { id: 'test-4', name: "Thabo M", location: "Kanyamazane", text: "Quick response. They came on a Saturday to help with a wasps nest. Very brave guys!", rating: 4 },
              { id: 'test-5', name: "Elize Kotze", location: "West Acres", text: "Friendly staff and safe for my dogs. Will definitely use them again for my annual spray.", rating: 5 }

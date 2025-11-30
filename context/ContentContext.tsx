@@ -297,6 +297,9 @@ interface ContentContextType {
   downloadBackup: () => void;
   restoreBackup: (file: File) => Promise<boolean>;
   dbType: 'sqlite' | 'postgres' | 'unknown';
+  connectionError: string | null;
+  isConnecting: boolean;
+  retryConnection: () => void;
 }
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
@@ -318,14 +321,25 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [content, setContent] = useState<ContentState>(defaultState);
   const [apiUrl, setApiUrlState] = useState(getApiUrl());
   const [dbType, setDbType] = useState<'sqlite' | 'postgres' | 'unknown'>('unknown');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  
   const api = getApiHelper(); // Helper for current render cycle
 
   // 1. LOAD DATA FROM SERVER ON MOUNT
   const loadData = () => {
       const url = getApiUrl();
+      setIsConnecting(true);
+      setConnectionError(null);
       console.log(`Connecting to: ${url}`);
+      
       fetch(`${url}/api/init`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+        })
         .then(serverData => {
             if(serverData) {
                 // UPDATE DB TYPE STATUS
@@ -336,14 +350,23 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
                     ...prev,
                     ...serverData
                 }));
+                setIsConnecting(false);
             }
         })
-        .catch(e => console.error("FAILED TO CONNECT TO SERVER:", e));
+        .catch(e => {
+            console.error("FAILED TO CONNECT TO SERVER:", e);
+            setConnectionError(e.message || "Failed to fetch");
+            setIsConnecting(false);
+        });
   };
 
   useEffect(() => {
     loadData();
   }, [apiUrl]);
+
+  const retryConnection = () => {
+      loadData();
+  };
 
   const setApiUrl = (newUrl: string) => {
       let clean = newUrl.replace(/\/$/, "").trim();
@@ -517,7 +540,8 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
       updateProcessSteps, updateAboutItems, addEmployee, updateEmployee,
       deleteEmployee, updateLocations, updateFaqs,
       addBooking, updateBooking, addJobCard, updateJobCard, deleteJobCard,
-      resetSystem, clearSystem, downloadBackup, restoreBackup, dbType
+      resetSystem, clearSystem, downloadBackup, restoreBackup, dbType,
+      connectionError, isConnecting, retryConnection
     }}>
       {children}
     </ContentContext.Provider>

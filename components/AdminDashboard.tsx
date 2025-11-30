@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -10,7 +9,7 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -252,12 +251,26 @@ const DeploymentGuide = () => {
                             <li>Click <strong>Environment Variables</strong> to expand it.</li>
                          </ol>
 
-                         <div className="bg-black/40 p-4 rounded-xl border border-white/20">
-                            <h4 className="text-white font-bold text-sm mb-2">Crucial Step: Link Frontend to Backend</h4>
-                            <div className="grid grid-cols-1 gap-2 font-mono text-sm">
-                                <div><span className="text-gray-500">Key:</span> <span className="text-pestGreen">VITE_API_URL</span></div>
-                                <div><span className="text-gray-500">Value:</span> <span className="text-blue-300 break-all">https://pest-backend.onrender.com</span></div>
-                                <div className="text-[10px] text-red-400 mt-1 uppercase font-bold">Do NOT put a slash (/) at the end!</div>
+                         <div className="bg-black/40 p-4 rounded-xl border border-white/20 space-y-4">
+                            <div>
+                                <h4 className="text-white font-bold text-sm mb-2">1. Link Frontend to Backend</h4>
+                                <div className="grid grid-cols-1 gap-2 font-mono text-sm">
+                                    <div><span className="text-gray-500">Key:</span> <span className="text-pestGreen">VITE_API_URL</span></div>
+                                    <div><span className="text-gray-500">Value:</span> <span className="text-blue-300 break-all">https://pest-backend.onrender.com</span></div>
+                                    <div className="text-[10px] text-red-400 mt-1 uppercase font-bold">Do NOT put a slash (/) at the end!</div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 className="text-white font-bold text-sm mb-2">2. Secure Your Admin Access</h4>
+                                <p className="text-xs text-gray-400 mb-2">Set your custom login credentials here. This hides them from the source code.</p>
+                                <div className="grid grid-cols-1 gap-2 font-mono text-sm">
+                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Key:</span> <span className="text-pestGreen">VITE_ADMIN_EMAIL</span></div>
+                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Value:</span> <span className="text-white">your-email@gmail.com</span></div>
+                                    
+                                    <div className="flex gap-2 mt-2"><span className="text-gray-500 w-32">Key:</span> <span className="text-pestGreen">VITE_ADMIN_PIN</span></div>
+                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Value:</span> <span className="text-white">1234</span></div>
+                                </div>
                             </div>
                          </div>
                          
@@ -277,7 +290,7 @@ const DeploymentGuide = () => {
                         <p>You are now live for $0/month.</p>
                         <ol className="list-decimal list-inside space-y-2">
                             <li>Visit your new Vercel URL (e.g., <code>https://pest-control-app.vercel.app</code>).</li>
-                            <li>Log in to Admin (Email: <code>admin@test.com</code>, PIN: <code>1234</code>).</li>
+                            <li>Log in to Admin (Use the Email/PIN you set in Phase 4).</li>
                             <li>Go to <strong>System Guide</strong> tab in dashboard.</li>
                             <li>Check the "Connection Status" light. It should be <span className="text-green-400 font-bold">Green</span>.</li>
                         </ol>
@@ -339,7 +352,7 @@ const DeploymentGuide = () => {
 };
 
 const SystemGuide = () => {
-    const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType } = useContent();
+    const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType, connectionError, isConnecting, retryConnection } = useContent();
     const [confirmClear, setConfirmClear] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -398,12 +411,28 @@ const SystemGuide = () => {
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                          <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                             <h4 className="font-bold text-white mb-2 flex items-center gap-2"><Link size={16} className="text-pestGreen"/> Connection Status</h4>
-                             <div className="bg-black/30 p-3 rounded-lg border border-white/5 flex items-center justify-between mb-2">
-                                <code className="text-xs text-pestGreen font-mono break-all">{apiUrl}</code>
-                                <div className="w-2 h-2 bg-pestGreen rounded-full animate-pulse shadow-neon"></div>
+                             <h4 className="font-bold text-white mb-2 flex items-center gap-2">
+                                 <Link size={16} className={connectionError ? "text-red-500" : "text-pestGreen"}/> Connection Status
+                             </h4>
+                             <div className={`bg-black/30 p-3 rounded-lg border flex items-center justify-between mb-2 ${connectionError ? 'border-red-500/30 bg-red-500/10' : 'border-white/5'}`}>
+                                <div className="flex-1 mr-2 overflow-hidden">
+                                     <code className={`text-xs font-mono break-all block ${connectionError ? 'text-red-400' : 'text-pestGreen'}`}>{apiUrl}</code>
+                                     {connectionError && (
+                                         <span className="text-[10px] text-red-500 font-bold block mt-1 uppercase">Error: {connectionError}</span>
+                                     )}
+                                </div>
+                                <div className={`w-3 h-3 rounded-full shadow-neon flex-shrink-0 ${isConnecting ? 'bg-yellow-500 animate-ping' : (connectionError ? 'bg-red-500' : 'bg-pestGreen animate-pulse')}`}></div>
                              </div>
-                             <p className="text-[10px] text-gray-500">Connected via {apiUrl.includes('localhost') ? 'Local Environment' : 'Live Remote Server'}</p>
+                             <div className="flex justify-between items-center">
+                                 <p className="text-[10px] text-gray-500">
+                                     {connectionError 
+                                        ? "Cannot reach server. Check URL or Wake Up server." 
+                                        : `Connected via ${apiUrl.includes('localhost') ? 'Local Environment' : 'Live Remote Server'}`}
+                                 </p>
+                                 <button onClick={retryConnection} className="text-[10px] font-bold text-blue-400 hover:text-white flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded">
+                                     <RefreshCw size={10} className={isConnecting ? 'animate-spin' : ''} /> Retry
+                                 </button>
+                             </div>
                          </div>
 
                          <div className="bg-white/5 p-4 rounded-xl border border-white/5">
@@ -418,13 +447,15 @@ const SystemGuide = () => {
                                          <AlertTriangle size={12} /> {isRenderWithSqlite ? 'SQLite (Ephemeral) - UNSAFE' : 'SQLite (Local) - Dev Mode'}
                                      </span>
                                  ) : (
-                                     <span className="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-500/30">Unknown</span>
+                                     <span className="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-500/30 flex items-center gap-2">
+                                         <HelpCircle size={12} /> Unknown Status
+                                     </span>
                                  )}
                              </div>
                              <p className="text-[10px] text-gray-500 mt-2">
                                  {dbType === 'postgres' 
                                     ? "Your data is safely stored in the cloud." 
-                                    : (isRenderWithSqlite ? "WARNING: Files will be deleted on restart." : "Data stored in local file.")}
+                                    : (isRenderWithSqlite ? "WARNING: Files will be deleted on restart." : (dbType === 'unknown' ? "Check connection above." : "Data stored in local file."))}
                              </p>
                          </div>
                      </div>
