@@ -42,6 +42,12 @@ class DatabaseAdapter {
                     console.log("SUCCESS: Connected to PostgreSQL DB.");
                 }).catch(err => {
                     console.error("CRITICAL: Failed to connect to PostgreSQL:", err.message);
+                    if (err.message.includes("ENOTFOUND")) {
+                        console.error("---------------------------------------------------------------");
+                        console.error("POSSIBLE CAUSE: Supabase Project is PAUSED or still creating.");
+                        console.error("ACTION: Log in to Supabase and click 'Restore' or wait a few mins.");
+                        console.error("---------------------------------------------------------------");
+                    }
                 });
 
             } catch (e) {
