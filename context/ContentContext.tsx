@@ -340,7 +340,20 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [apiUrl]);
 
   const setApiUrl = (newUrl: string) => {
-      const clean = newUrl.replace(/\/$/, "");
+      let clean = newUrl.replace(/\/$/, "").trim();
+      // Auto-prefix if missing
+      if (!clean.startsWith('http')) {
+          clean = `https://${clean}`;
+      }
+      // If localhost but marked as https, fix it to http (optional safe-guard, though some use https locally)
+      // We will assume https for everything else
+      if (clean.includes('localhost') && clean.startsWith('https://')) {
+          // Allow https for localhost if user typed it, but if they just typed 'localhost:3000' we should prob default to http
+          // But strict replacing might be annoying. Let's just ensure protocol exists.
+      } else if (clean.includes('localhost') && !clean.startsWith('http')) {
+          clean = `http://${clean}`;
+      }
+
       localStorage.setItem('custom_api_url', clean);
       setApiUrlState(clean);
       window.location.reload(); // Force reload to ensure all components and hooks use new URL

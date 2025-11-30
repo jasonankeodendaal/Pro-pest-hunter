@@ -10,11 +10,11 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard } from '../types';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 import { JobCardManager } from './JobCardManager';
 
@@ -109,8 +109,8 @@ const DeploymentGuide = () => {
                      <Code2 size={40} className="text-white" />
                  </div>
                  <div>
-                     <h2 className="text-4xl font-black text-white leading-tight">Deployment Master Class</h2>
-                     <p className="text-gray-400 text-lg">The comprehensive, beginner-friendly guide to going live.</p>
+                     <h2 className="text-4xl font-black text-white leading-tight">Zero-to-Hero Masterclass</h2>
+                     <p className="text-gray-400 text-lg">The 100% Free, Full Stack Deployment Guide (GitHub + Supabase + Render + Vercel).</p>
                  </div>
              </div>
              
@@ -122,7 +122,7 @@ const DeploymentGuide = () => {
                     </div>
                     <div>
                         <h3 className="text-xl font-bold text-white">Live API Connection</h3>
-                        <p className="text-gray-400 text-xs">Enter your deployed server URL here to connect the dashboard.</p>
+                        <p className="text-gray-400 text-xs">Enter your deployed server URL (Phase 3) here to connect the dashboard.</p>
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -132,11 +132,11 @@ const DeploymentGuide = () => {
                             value={tempUrl} 
                             onChange={(e) => setTempUrl(e.target.value)}
                             className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-pestGreen outline-none font-mono text-sm"
-                            placeholder="https://your-api.onrender.com" 
+                            placeholder="https://pest-backend.onrender.com" 
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                              <span className={`w-2 h-2 rounded-full ${apiUrl.includes('localhost') ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                             <span className="text-[10px] uppercase font-bold text-gray-500">{apiUrl.includes('localhost') ? 'Local' : 'Live'}</span>
+                             <span className="text-[10px] uppercase font-bold text-gray-500">{apiUrl.includes('localhost') ? 'Localhost' : 'Live Remote'}</span>
                         </div>
                     </div>
                     <button 
@@ -147,236 +147,164 @@ const DeploymentGuide = () => {
                     </button>
                 </div>
              </div>
-
-             {/* INTRO */}
-             <div className="prose prose-invert max-w-none mb-12">
-                <p className="text-gray-300 text-lg leading-relaxed">
-                    Welcome, Architect. You are about to move your application from a "local simulation" to the real internet. 
-                    This requires setting up two separate servers: one for the <strong>Brain</strong> (Backend) and one for the <strong>Face</strong> (Frontend).
-                </p>
-             </div>
              
-             {/* STEP 1 */}
+             {/* PHASE 1: GITHUB */}
              <div className="space-y-12 relative z-10">
                 
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Server size={100}/></div>
-                    <h3 className="text-2xl font-bold text-pestGreen mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-pestGreen text-white text-sm font-bold">1</span>
-                        Prerequisites (The Luggage)
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><GitBranch size={100}/></div>
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black text-sm font-bold">1</span>
+                        Phase 1: Get Code on GitHub
                     </h3>
                     <div className="space-y-4 pl-4 border-l-2 border-white/10">
-                        <p className="text-gray-300">Before we fly, ensure you have these accounts ready. They all offer free tiers.</p>
-                        <ul className="list-disc list-inside text-gray-400 space-y-2">
-                            <li><strong className="text-white">GitHub Account:</strong> To store your code.</li>
-                            <li><strong className="text-white">Render.com Account:</strong> To host the Backend (Server).</li>
-                            <li><strong className="text-white">Vercel.com Account:</strong> To host the Frontend (Website).</li>
+                        <p className="text-gray-300">We need to move your files from your computer (or AI editor) to the cloud.</p>
+                        <ul className="list-disc list-inside text-sm text-gray-400 space-y-2">
+                            <li><strong>Create Account:</strong> Go to <a href="https://github.com" target="_blank" className="text-pestGreen hover:underline">github.com</a> and sign up.</li>
+                            <li><strong>New Repo:</strong> Click the <strong>+</strong> icon (top right) -> <strong>New repository</strong>.</li>
+                            <li><strong>Name It:</strong> Call it <code>pest-control-app</code>. Select <strong>Public</strong>. Click <strong>Create repository</strong>.</li>
+                            <li><strong>Upload:</strong> Click "uploading an existing file" on the next screen. Drag and drop ALL project files (including <code>server.js</code>, <code>index.html</code>, <code>package.json</code>, etc.).</li>
+                            <li><strong>Commit:</strong> Click "Commit changes" button at the bottom.</li>
                         </ul>
-                        <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl mt-4">
-                            <h4 className="text-blue-400 font-bold text-sm flex items-center gap-2 mb-2"><Info size={16}/> The "Split Stack" Concept</h4>
-                            <p className="text-xs text-blue-200/70">
-                                Beginners often ask: "Why two hosts?"<br/>
-                                1. <strong>Backend (Node.js):</strong> Needs a server that runs 24/7 to process logins and data. Vercel cannot do this easily.<br/>
-                                2. <strong>Frontend (React):</strong> Is just static files. Vercel is the fastest in the world at serving these.
-                            </p>
-                        </div>
                     </div>
                 </div>
 
-                {/* STEP 2 */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-                    <h3 className="text-2xl font-bold text-orange-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-400 text-black text-sm font-bold">2</span>
-                        Deploying the Backend (Render)
+                {/* PHASE 2: SUPABASE */}
+                <div className="bg-green-900/10 border border-green-500/30 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Database size={100}/></div>
+                    <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-black text-sm font-bold">2</span>
+                        Phase 2: The Database (Supabase)
+                    </h3>
+                    <div className="space-y-4 pl-4 border-l-2 border-green-500/30">
+                        <p className="text-gray-300 text-sm">Free servers like Render will delete your local files when they sleep. We need a real database to keep your data safe.</p>
+                        <ol className="list-decimal list-inside text-sm text-gray-400 space-y-3">
+                            <li>Go to <a href="https://supabase.com" target="_blank" className="text-green-400 hover:underline">supabase.com</a> and sign up.</li>
+                            <li>Click <strong>New Project</strong>. Give it a name (e.g., <code>pest-db</code>) and a strong password.</li>
+                            <li>Wait ~2 minutes for it to setup.</li>
+                            <li>Go to <strong>Project Settings</strong> (Cog Icon) -> <strong>Database</strong>.</li>
+                            <li>Scroll to <strong>Connection String</strong> and click <strong>Node.js</strong>.</li>
+                            <li><strong>COPY THIS STRING.</strong> It looks like: <code>postgres://postgres.user...</code></li>
+                            <li className="bg-black/30 p-2 rounded text-xs text-green-300">Tip: You must manually replace <code>[YOUR-PASSWORD]</code> in that string with the password you created in step 2.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                {/* PHASE 3: RENDER */}
+                <div className="bg-purple-900/10 border border-purple-500/30 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Server size={100}/></div>
+                    <h3 className="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500 text-black text-sm font-bold">3</span>
+                        Phase 3: The Backend (Render)
                     </h3>
                     <div className="space-y-6">
+                        <p className="text-gray-300 text-sm">This runs your Node.js server (the brain).</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <div>
-                                <h4 className="text-white font-bold mb-2">A. Create the Service</h4>
+                                <h4 className="text-white font-bold mb-2 text-sm uppercase">A. Setup Service</h4>
                                 <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
-                                    <li>Log in to <strong>Render.com</strong>.</li>
+                                    <li>Go to <a href="https://render.com" target="_blank" className="text-purple-400 hover:underline">render.com</a>. Sign up with GitHub.</li>
                                     <li>Click <strong>New +</strong> -> <strong>Web Service</strong>.</li>
-                                    <li>Connect your GitHub repository.</li>
-                                    <li>Give it a name (e.g., <code className="text-orange-300">propest-backend</code>).</li>
+                                    <li>Select your <code>pest-control-app</code> repo.</li>
+                                    <li><strong>Name:</strong> <code>pest-backend</code></li>
+                                    <li><strong>Runtime:</strong> <code>Node</code></li>
+                                    <li><strong>Build Command:</strong> <code>npm install</code></li>
+                                    <li><strong>Start Command:</strong> <code>node server.js</code></li>
+                                    <li>Select <strong>Free</strong> instance type.</li>
                                 </ol>
                              </div>
                              <div>
-                                <h4 className="text-white font-bold mb-2">B. Configure Settings</h4>
-                                <p className="text-xs text-gray-500 mb-2">Copy these exactly. Case sensitive.</p>
-                                <ul className="space-y-2 text-sm bg-black/40 p-4 rounded-xl border border-white/10 font-mono">
-                                    <li className="flex justify-between"><span>Runtime:</span> <span className="text-green-400">Node</span></li>
-                                    <li className="flex justify-between"><span>Build Command:</span> <span className="text-green-400">npm install</span></li>
-                                    <li className="flex justify-between"><span>Start Command:</span> <span className="text-green-400">node server.js</span></li>
-                                </ul>
+                                <h4 className="text-white font-bold mb-2 text-sm uppercase">B. Environment Variables</h4>
+                                <p className="text-xs text-gray-500 mb-2">Scroll down to "Environment Variables" section.</p>
+                                <div className="space-y-2 text-sm bg-black/40 p-4 rounded-xl border border-white/10 font-mono">
+                                    <div className="flex flex-col gap-1 mb-2">
+                                        <span className="text-purple-300 font-bold">Key:</span> <span>DATABASE_URL</span>
+                                        <span className="text-purple-300 font-bold">Value:</span> <span className="text-gray-400 text-xs break-all">[Paste your Supabase String from Phase 2 here]</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-purple-300 font-bold">Key:</span> <span>GMAIL_USER / GMAIL_PASS</span>
+                                        <span className="text-gray-400 text-xs">(Optional: For email sending)</span>
+                                    </div>
+                                </div>
                              </div>
                         </div>
-
-                        <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
-                            <h4 className="text-orange-400 font-bold text-sm mb-2">C. Environment Variables</h4>
-                            <p className="text-xs text-gray-400 mb-2">Scroll down to "Environment Variables" and add these keys:</p>
-                            <div className="space-y-2 font-mono text-xs">
-                                <div className="flex gap-4 border-b border-white/5 pb-1">
-                                    <span className="text-orange-300 w-32">GMAIL_USER</span>
-                                    <span className="text-gray-500">your-email@gmail.com</span>
-                                </div>
-                                <div className="flex gap-4">
-                                    <span className="text-orange-300 w-32">GMAIL_PASS</span>
-                                    <span className="text-gray-500">your-app-password (Not your normal password!)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <button className="bg-orange-500 text-black font-bold px-4 py-2 rounded-lg text-sm w-full md:w-auto">
-                                Click "Create Web Service" on Render
-                            </button>
-                            <p className="text-xs text-gray-500 mt-2">Wait 2-3 minutes. Once it says "Live", copy the URL (e.g., <code>https://propest-backend.onrender.com</code>). You need this for the next step.</p>
+                        <div className="bg-purple-500/20 p-4 rounded-lg border border-purple-500/30">
+                            <strong className="text-white text-sm">Action:</strong> <span className="text-gray-300 text-sm">Click <strong>Create Web Service</strong>. Wait for it to say "Live". Copy the URL at the top (e.g. <code>https://pest-backend.onrender.com</code>).</span>
                         </div>
                     </div>
                 </div>
 
-                {/* STEP 3 */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-                    <h3 className="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-400 text-black text-sm font-bold">3</span>
-                        Deploying the Frontend (Vercel)
+                {/* PHASE 4: VERCEL */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Globe2 size={100}/></div>
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black text-sm font-bold">4</span>
+                        Phase 4: The Frontend (Vercel)
                     </h3>
                     <div className="space-y-6">
-                         <div>
-                            <h4 className="text-white font-bold mb-2">A. Import Project</h4>
-                            <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
-                                <li>Log in to <strong>Vercel.com</strong>.</li>
-                                <li>Click <strong>Add New...</strong> -> <strong>Project</strong>.</li>
-                                <li>Select the SAME GitHub repository as before.</li>
-                                <li>Framework Preset: Vercel usually detects <strong>Vite</strong> automatically. If not, select it.</li>
-                            </ol>
-                         </div>
+                         <p className="text-gray-300 text-sm">This hosts the visual website.</p>
+                         <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
+                            <li>Go to <a href="https://vercel.com" target="_blank" className="text-pestGreen hover:underline">vercel.com</a>. Sign up with GitHub.</li>
+                            <li>Click <strong>Add New...</strong> -> <strong>Project</strong>.</li>
+                            <li>Import <code>pest-control-app</code>.</li>
+                            <li><strong>Framework Preset:</strong> Select <strong>Vite</strong>.</li>
+                            <li>Click <strong>Environment Variables</strong> to expand it.</li>
+                         </ol>
 
-                         <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
-                            <h4 className="text-purple-300 font-bold text-sm mb-2">B. The Critical Connection</h4>
-                            <p className="text-xs text-gray-300 mb-3">
-                                This is where beginners fail. You must tell the frontend where the backend lives.
-                            </p>
-                            <div className="bg-black/40 p-3 rounded-lg border border-purple-500/30">
-                                <p className="text-xs font-bold text-gray-500 uppercase mb-1">Environment Variable Name</p>
-                                <p className="text-green-400 font-mono text-sm mb-3">VITE_API_URL</p>
-                                
-                                <p className="text-xs font-bold text-gray-500 uppercase mb-1">Value (Example)</p>
-                                <p className="text-blue-300 font-mono text-sm mb-1">https://propest-backend.onrender.com</p>
-                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">DO NOT ADD A TRAILING SLASH ( / ) AT THE END!</p>
+                         <div className="bg-black/40 p-4 rounded-xl border border-white/20">
+                            <h4 className="text-white font-bold text-sm mb-2">Crucial Step: Link Frontend to Backend</h4>
+                            <div className="grid grid-cols-1 gap-2 font-mono text-sm">
+                                <div><span className="text-gray-500">Key:</span> <span className="text-pestGreen">VITE_API_URL</span></div>
+                                <div><span className="text-gray-500">Value:</span> <span className="text-blue-300 break-all">https://pest-backend.onrender.com</span></div>
+                                <div className="text-[10px] text-red-400 mt-1 uppercase font-bold">Do NOT put a slash (/) at the end!</div>
                             </div>
-                        </div>
+                         </div>
+                         
+                         <button className="bg-white text-black font-bold px-6 py-3 rounded-lg text-sm w-full md:w-auto">
+                            Click "Deploy"
+                         </button>
+                    </div>
+                </div>
 
-                         <div>
-                            <button className="bg-purple-500 text-white font-bold px-4 py-2 rounded-lg text-sm w-full md:w-auto">
-                                Click "Deploy" on Vercel
-                            </button>
+                {/* PHASE 5: CONNECT */}
+                <div className="bg-pestGreen/20 border border-pestGreen/30 rounded-2xl p-8">
+                    <h3 className="text-2xl font-bold text-pestGreen mb-4 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-pestGreen text-white text-sm font-bold">5</span>
+                        Phase 5: Launch & Connect
+                    </h3>
+                    <div className="space-y-4 text-sm text-gray-300">
+                        <p>You are now live for $0/month.</p>
+                        <ol className="list-decimal list-inside space-y-2">
+                            <li>Visit your new Vercel URL (e.g., <code>https://pest-control-app.vercel.app</code>).</li>
+                            <li>Log in to Admin (Email: <code>admin@test.com</code>, PIN: <code>1234</code>).</li>
+                            <li>Go to <strong>System Guide</strong> tab in dashboard.</li>
+                            <li>Check the "Connection Status" light. It should be <span className="text-green-400 font-bold">Green</span>.</li>
+                        </ol>
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl mt-4">
+                            <h4 className="text-yellow-400 font-bold flex items-center gap-2 mb-1"><AlertCircle size={16}/> Note on Free Tier</h4>
+                            <p className="text-xs text-yellow-200/70">
+                                The Render free server "sleeps" after 15 minutes of inactivity. The first time you visit the site after a break, the backend might take 50 seconds to wake up. This is normal.
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* STEP 4 */}
-                <div className="bg-red-900/10 border border-red-500/30 rounded-2xl p-8">
-                    <h3 className="text-2xl font-bold text-red-400 mb-4 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-red-400 text-black text-sm font-bold"><AlertCircle size={20}/></span>
-                        The "Data Wipe" Warning & Solutions
+                {/* PHASE 6: THE HACK */}
+                <div className="bg-orange-900/10 border border-orange-500/30 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Zap size={100}/></div>
+                    <h3 className="text-2xl font-bold text-orange-400 mb-6 flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-black text-sm font-bold">6</span>
+                        Bonus Phase: The "No-Sleep" Hack
                     </h3>
-                    <div className="text-sm text-gray-300 space-y-6">
-                        <div>
-                            <p>
-                                By default, this app uses <strong>SQLite</strong> (a file-based database).
-                                Cloud services like Render Free Tier treat the file system as "Ephemeral" (Temporary).
-                            </p>
-                            <div className="bg-black/40 p-4 rounded-xl border border-red-500/20 mt-2">
-                                <strong className="text-white block mb-2">What this means:</strong>
-                                <ul className="list-disc list-inside space-y-1 text-gray-400">
-                                    <li>Every time you deploy new code... <strong>The database resets.</strong></li>
-                                    <li>If the free server "sleeps" due to inactivity... <strong>The database resets.</strong></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-white/10 pt-6">
-                            <h4 className="text-lg font-bold text-white mb-4">Choose Your Solution:</h4>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                                    <h5 className="font-bold text-white mb-2">Option A: Paid Render Disk (Easy)</h5>
-                                    <p className="text-xs text-gray-400 mb-2">Upgrade Render to "Starter" plan ($7/mo) and attach a Persistent Disk. No code changes needed.</p>
-                                </div>
-                                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                                    <h5 className="font-bold text-white mb-2">Option B: Free Demo Mode</h5>
-                                    <p className="text-xs text-gray-400 mb-2">Accept that data wipes. Good for showing the client, bad for actual use.</p>
-                                </div>
-                            </div>
-
-                            {/* OPTION C - SUPABASE */}
-                            <div className="mt-6 bg-green-900/10 border border-green-500/30 p-6 rounded-xl">
-                                <h5 className="font-bold text-green-400 text-lg mb-4 flex items-center gap-2">
-                                    <Database size={20} /> Option C (Advanced): External Database (Supabase)
-                                </h5>
-                                <p className="text-sm text-gray-300 mb-4">
-                                    The server code has been updated to support PostgreSQL! If you provide a connection string, it will automatically switch from SQLite to Postgres.
-                                </p>
-                                <ol className="list-decimal list-inside space-y-3 text-sm text-gray-400">
-                                    <li>Go to <strong>Supabase.com</strong> and create a free project.</li>
-                                    <li>Go to Project Settings -> Database -> Connection String (Node.js).</li>
-                                    <li>It looks like: <code>postgres://postgres.user:pass@host:5432/postgres</code></li>
-                                    <li>Copy this string (replace the password placeholder with your actual DB password).</li>
-                                    <li>Go to <strong>Render Dashboard</strong> -> Your Web Service -> Environment Variables.</li>
-                                    <li>Add a new variable:
-                                        <div className="bg-black/40 p-2 rounded border border-green-500/20 mt-1 font-mono text-green-300">
-                                            Key: DATABASE_URL<br/>
-                                            Value: [Paste your Supabase string here]
-                                        </div>
-                                    </li>
-                                    <li><strong>Important:</strong> You must add <code>"pg": "^8.11.0"</code> to your <code>package.json</code> dependencies manually in GitHub, or run <code>npm install pg</code> locally and push.</li>
-                                </ol>
-                            </div>
-
-                            {/* OPTION D - VPS/PM2 */}
-                            <div className="mt-6 bg-cyan-900/10 border border-cyan-500/30 p-6 rounded-xl">
-                                <h5 className="font-bold text-cyan-400 text-lg mb-4 flex items-center gap-2">
-                                    <Terminal size={20} /> Option D (Expert): The "Forever" Server (VPS + PM2)
-                                </h5>
-                                <p className="text-sm text-gray-300 mb-4">
-                                   This is for users who want to keep using <strong>SQLite</strong> but want data to persist. 
-                                   You will rent a small server ($5/mo), giving you full control over the file system.
-                                </p>
-                                <div className="space-y-4">
-                                     {/* Step 1 */}
-                                     <div>
-                                        <strong className="text-white text-sm block mb-1">1. Get a VPS (Ubuntu)</strong>
-                                        <p className="text-xs text-gray-400">Rent a small Ubuntu server from DigitalOcean, Hetzner, or Linode. You'll get an IP address.</p>
-                                     </div>
-                                     {/* Step 2 */}
-                                     <div>
-                                        <strong className="text-white text-sm block mb-1">2. Install Node.js & PM2 (Process Manager)</strong>
-                                        <div className="bg-black/40 p-3 rounded border border-cyan-500/20 font-mono text-xs text-cyan-300">
-                                            sudo apt update<br/>
-                                            sudo apt install nodejs npm<br/>
-                                            sudo npm install -g pm2
-                                        </div>
-                                     </div>
-                                     {/* Step 3 */}
-                                     <div>
-                                        <strong className="text-white text-sm block mb-1">3. Deploy & Run</strong>
-                                        <p className="text-xs text-gray-400 mb-2">Clone your repo onto the VPS, install dependencies, then use PM2 to keep the server alive forever:</p>
-                                        <code className="bg-black/40 px-2 py-1 rounded text-cyan-300 text-xs">pm2 start server.js --name "api"</code>
-                                        <p className="text-xs text-gray-500 mt-1">PM2 automatically restarts the app if it crashes. Your SQLite file stays safe on the disk.</p>
-                                     </div>
-                                     {/* Step 4 */}
-                                     <div>
-                                        <strong className="text-white text-sm block mb-1">4. Cloudflare (The Security Layer)</strong>
-                                        <p className="text-xs text-gray-400">
-                                            Don't expose your IP directly. Create a <strong>Cloudflare Account</strong>.<br/>
-                                            Go to DNS -> Add Record -> Type: <strong>A</strong>, Name: <strong>api</strong>, Content: <strong>[Your VPS IP]</strong>.<br/>
-                                            Set SSL/TLS mode to "Flexible". Your API URL is now <code>https://api.yourdomain.com</code>.
-                                        </p>
-                                     </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="space-y-4 pl-4 border-l-2 border-orange-500/30">
+                        <p className="text-gray-300 text-sm">Free servers go to "sleep" after 15 mins. The first visitor waits 50 seconds. Let's fix that.</p>
+                        <ol className="list-decimal list-inside text-sm text-gray-400 space-y-3">
+                            <li>Go to <a href="https://uptimerobot.com" target="_blank" className="text-orange-400 hover:underline">UptimeRobot.com</a> (Free).</li>
+                            <li>Create a new <strong>HTTP(s)</strong> monitor.</li>
+                            <li><strong>URL:</strong> Paste your Render Backend URL + <code>/api/init</code> (e.g., <code>https://...onrender.com/api/init</code>).</li>
+                            <li><strong>Interval:</strong> Set to <strong>5 or 10 minutes</strong>.</li>
+                            <li><strong>Start:</strong> This robot will now "poke" your server 24/7 so it never sleeps.</li>
+                        </ol>
                     </div>
                 </div>
 
@@ -1180,4 +1108,228 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                             tips: "Listing individual towns (e.g., 'Nelspruit', 'White River') is better for SEO than just saying 'Lowveld'." 
                                         }} 
                                     />
-                                    <div className="bg-[#161
+                                    <div className="bg-[#161817] border border-white/5 rounded-2xl p-6">
+                                        <Input label="Section Title" value={content.serviceArea.title} onChange={(v: string) => updateContent('serviceArea', { title: v })} />
+                                        <TextArea label="Description" value={content.serviceArea.description} onChange={(v: string) => updateContent('serviceArea', { description: v })} />
+                                        <div className="mt-4">
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Covered Towns</label>
+                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                {content.serviceArea.towns.map((town, idx) => (
+                                                    <span key={idx} className="bg-white/10 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                                                        {town}
+                                                        <button onClick={() => {
+                                                            const newTowns = content.serviceArea.towns.filter((_, i) => i !== idx);
+                                                            updateContent('serviceArea', { towns: newTowns });
+                                                        }} className="hover:text-red-500"><X size={12}/></button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input id="newTownInput" type="text" placeholder="Add Town..." className="bg-black/20 border border-white/10 rounded px-3 py-2 text-sm text-white" />
+                                                <button onClick={() => {
+                                                    const input = document.getElementById('newTownInput') as HTMLInputElement;
+                                                    if (input.value) {
+                                                        updateContent('serviceArea', { towns: [...content.serviceArea.towns, input.value] });
+                                                        input.value = '';
+                                                    }
+                                                }} className="bg-pestGreen text-white px-3 py-2 rounded text-sm font-bold">Add</button>
+                                            </div>
+                                        </div>
+                                        <div className="mt-6">
+                                            <FileUpload label="Map Image" value={content.serviceArea.mapImage} onChange={(v: string) => updateContent('serviceArea', { mapImage: v })} onClear={() => updateContent('serviceArea', { mapImage: null })} />
+                                        </div>
+                                        <SavePageButton />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* OTHER TABS */}
+                            {(subTab === 'safety' || subTab === 'inquiriesContact' || subTab === 'seo') && (
+                                <div className="space-y-6">
+                                    <InfoBlock title="Under Construction" text="This section is fully functional in the database but the UI form is being refined. You can use the 'System Guide' > 'Load Mock Data' to populate it for now." />
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* BOOKINGS & JOBS TABS */}
+                    {mainTab === 'bookings' && permissions.canViewReports && (
+                        <>
+                             {subTab === 'inquiries' && (
+                                 <div className="space-y-8 animate-in fade-in">
+                                     <SectionHeader title="Inquiries & Online Bookings" icon={MessageSquare} />
+                                     <div className="grid grid-cols-1 gap-4">
+                                         {content.bookings.length === 0 ? (
+                                             <div className="text-center py-20 bg-[#161817] rounded-2xl border border-white/5">
+                                                 <Inbox size={48} className="mx-auto text-gray-600 mb-4" />
+                                                 <h3 className="text-xl font-bold text-gray-500">No Inquiries Yet</h3>
+                                                 <p className="text-gray-600">New website bookings will appear here.</p>
+                                             </div>
+                                         ) : (
+                                             content.bookings.map(booking => (
+                                                 <div key={booking.id} className="bg-[#161817] border-l-4 border-l-pestGreen border-y border-r border-white/5 rounded-r-xl p-6 relative">
+                                                     <div className="flex justify-between items-start mb-2">
+                                                         <div>
+                                                             <h4 className="text-xl font-bold text-white">{booking.clientName}</h4>
+                                                             <span className="text-xs text-pestGreen font-bold uppercase tracking-wider">{booking.serviceName} • {new Date(booking.date).toLocaleDateString()}</span>
+                                                         </div>
+                                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${booking.status === 'New' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>{booking.status}</span>
+                                                     </div>
+                                                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-400 mb-4">
+                                                         <div className="flex items-center gap-2"><Phone size={14}/> <a href={`tel:${booking.clientPhone}`} className="hover:text-white">{booking.clientPhone}</a></div>
+                                                         <div className="flex items-center gap-2"><Mail size={14}/> <a href={`mailto:${booking.clientEmail}`} className="hover:text-white">{booking.clientEmail}</a></div>
+                                                         <div className="col-span-2 flex items-center gap-2"><MapPin size={14}/> {booking.clientAddress}</div>
+                                                     </div>
+                                                     <div className="flex gap-2">
+                                                         <button onClick={() => updateBooking(booking.id, { status: 'Contacted' })} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold text-white">Mark Contacted</button>
+                                                         <button 
+                                                            onClick={() => {
+                                                                // Convert to Job Card
+                                                                const newJob: JobCard = {
+                                                                    id: Date.now().toString(),
+                                                                    refNumber: `JOB-${Date.now().toString().slice(-5)}`,
+                                                                    bookingId: booking.id,
+                                                                    clientName: booking.clientName,
+                                                                    clientAddressDetails: { street: booking.clientAddress, suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '' },
+                                                                    contactNumber: booking.clientPhone,
+                                                                    email: booking.clientEmail,
+                                                                    propertyType: 'Residential',
+                                                                    assessmentDate: new Date().toISOString(),
+                                                                    technicianId: '',
+                                                                    selectedServices: [booking.serviceId],
+                                                                    checkpoints: [],
+                                                                    isFirstTimeService: true,
+                                                                    treatmentRecommendation: '',
+                                                                    quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' },
+                                                                    status: 'Assessment',
+                                                                    history: [{ date: new Date().toISOString(), action: 'Created from Booking', user: loggedInUser?.fullName || 'Admin' }]
+                                                                };
+                                                                addJobCard(newJob);
+                                                                updateBooking(booking.id, { status: 'Converted' });
+                                                                setSubTab('jobs');
+                                                            }}
+                                                            className="px-4 py-2 bg-pestGreen hover:bg-white hover:text-pestGreen rounded-lg text-xs font-bold text-white transition-colors"
+                                                         >
+                                                             Convert to Job
+                                                         </button>
+                                                     </div>
+                                                 </div>
+                                             ))
+                                         )}
+                                     </div>
+                                 </div>
+                             )}
+
+                             {subTab === 'jobs' && (
+                                 <div className="space-y-8 animate-in fade-in">
+                                     <div className="flex justify-between items-center">
+                                         <SectionHeader title="Job Workflow" icon={Clipboard} />
+                                         <button 
+                                            onClick={() => {
+                                                const newJob: JobCard = {
+                                                    id: Date.now().toString(),
+                                                    refNumber: `JOB-${Date.now().toString().slice(-5)}`,
+                                                    clientName: 'New Client',
+                                                    clientAddressDetails: { street: '', suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '' },
+                                                    contactNumber: '',
+                                                    email: '',
+                                                    propertyType: 'Residential',
+                                                    assessmentDate: new Date().toISOString(),
+                                                    technicianId: '',
+                                                    selectedServices: [],
+                                                    checkpoints: [],
+                                                    isFirstTimeService: true,
+                                                    treatmentRecommendation: '',
+                                                    quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' },
+                                                    status: 'Assessment',
+                                                    history: [{ date: new Date().toISOString(), action: 'Manual Creation', user: loggedInUser?.fullName || 'Admin' }]
+                                                };
+                                                addJobCard(newJob);
+                                                setSelectedJobId(newJob.id);
+                                            }}
+                                            className="bg-pestGreen text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2"
+                                         >
+                                             <PlusCircle size={16}/> New Job Card
+                                         </button>
+                                     </div>
+                                     
+                                     {/* Job List */}
+                                     <div className="grid grid-cols-1 gap-4">
+                                         {content.jobCards.map(job => (
+                                             <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] border border-white/5 rounded-xl p-4 cursor-pointer hover:border-pestGreen/50 transition-colors group">
+                                                 <div className="flex justify-between items-center mb-2">
+                                                     <div className="flex items-center gap-3">
+                                                         <div className={`w-3 h-3 rounded-full ${job.status === 'Completed' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
+                                                         <span className="font-mono text-gray-500 text-xs">{job.refNumber}</span>
+                                                         <h4 className="font-bold text-white group-hover:text-pestGreen transition-colors">{job.clientName}</h4>
+                                                     </div>
+                                                     <span className="text-[10px] uppercase font-bold text-gray-500 bg-white/5 px-2 py-1 rounded">{job.status.replace(/_/g, ' ')}</span>
+                                                 </div>
+                                                 <div className="flex justify-between items-center text-xs text-gray-500">
+                                                     <span>{job.clientAddressDetails.suburb || 'No Address'}</span>
+                                                     <span>{new Date(job.assessmentDate).toLocaleDateString()}</span>
+                                                 </div>
+                                             </div>
+                                         ))}
+                                     </div>
+                                 </div>
+                             )}
+                        </>
+                    )}
+
+                    {/* EMPLOYEES TAB */}
+                    {mainTab === 'employees' && permissions.canManageEmployees && subTab === 'employeeDirectory' && (
+                        <div className="space-y-6 animate-in fade-in">
+                            <div className="flex justify-between items-center">
+                                <SectionHeader title="Employee Directory" icon={Users} />
+                                <button onClick={() => setEditingEmployee({ id: '', fullName: '', email: '', pin: '', loginName: '', jobTitle: 'Technician', permissions: { isAdmin: false, canExecuteJob: true }, profileImage: null } as any)} className="bg-pestGreen text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2"><Plus size={16}/> Add Employee</button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {content.employees.map(emp => (
+                                    <div key={emp.id} className="bg-[#161817] border border-white/5 rounded-2xl p-6 relative group">
+                                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => setEditingEmployee(emp)} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white"><Edit size={14}/></button>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="w-20 h-20 bg-white/5 rounded-full mb-4 overflow-hidden">
+                                                {emp.profileImage ? <img src={emp.profileImage} className="w-full h-full object-cover" /> : <User className="w-full h-full p-4 text-gray-600"/>}
+                                            </div>
+                                            <h3 className="font-bold text-white text-lg">{emp.fullName}</h3>
+                                            <p className="text-pestGreen text-xs font-bold uppercase mb-4">{emp.jobTitle}</p>
+                                            <div className="w-full space-y-2 text-sm text-gray-400">
+                                                <div className="flex justify-between border-b border-white/5 pb-1"><span>Login:</span> <span className="text-white">{emp.loginName}</span></div>
+                                                <div className="flex justify-between border-b border-white/5 pb-1"><span>PIN:</span> <span className="text-white">****</span></div>
+                                                <div className="flex justify-between"><span>Role:</span> <span className="text-white">{emp.permissions.isAdmin ? 'Admin' : 'Tech'}</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                </motion.div>
+            </AnimatePresence>
+         </div>
+      </main>
+
+      {/* Modals */}
+      {iconPickerOpen && <IconPickerModal onClose={() => setIconPickerOpen(null)} onSelect={(iconName: string) => { iconPickerOpen.callback(iconName); setIconPickerOpen(null); }} />}
+      {editingEmployee && <EmployeeEditModal employee={editingEmployee} onSave={handleSaveEmployee} onClose={() => setEditingEmployee(null)} canDelete={true} onDelete={handleDeleteEmployee} isSelfEdit={loggedInUser?.id === editingEmployee.id} />}
+      {selectedJobId && <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />}
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {showSaveToast && (
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="fixed bottom-8 right-8 bg-pestGreen text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-[200]">
+                <CheckCircle size={24} />
+                <div>
+                    <h4 className="font-bold">Changes Saved</h4>
+                    <p className="text-xs text-white/80">Your updates are live.</p>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
