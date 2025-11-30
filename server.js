@@ -1,12 +1,21 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
+require('dotenv').config(); // Load environment variables from .env file
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+// CRITICAL FIX: Force Node.js to use IPv4. 
+// Render sometimes defaults to IPv6 which causes 'ENETUNREACH' errors with Supabase.
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 const app = express();
 // Use the PORT environment variable provided by the host (Render), or default to 3001
@@ -18,6 +27,11 @@ class DatabaseAdapter {
         this.type = process.env.DATABASE_URL ? 'postgres' : 'sqlite';
         this.client = null;
         
+        console.log("----------------------------------------");
+        console.log(`[System] Initializing Database Mode: ${this.type.toUpperCase()}`);
+        console.log(`[System] Env DATABASE_URL Found: ${!!process.env.DATABASE_URL}`);
+        console.log("----------------------------------------");
+
         if (this.type === 'postgres') {
             console.log("Initializing PostgreSQL Connection (Supabase)...");
             try {
