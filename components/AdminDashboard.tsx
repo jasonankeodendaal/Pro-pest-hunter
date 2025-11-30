@@ -161,7 +161,7 @@ const DeploymentGuide = () => {
                         <p className="text-gray-300">We need to move your files from your computer (or AI editor) to the cloud.</p>
                         <ul className="list-disc list-inside text-sm text-gray-400 space-y-2">
                             <li><strong>Create Account:</strong> Go to <a href="https://github.com" target="_blank" className="text-pestGreen hover:underline">github.com</a> and sign up.</li>
-                            <li><strong>New Repo:</strong> Click the <strong>+</strong> icon (top right) -> <strong>New repository</strong>.</li>
+                            <li><strong>New Repo:</strong> Click the <strong>+</strong> icon (top right) &rarr; <strong>New repository</strong>.</li>
                             <li><strong>Name It:</strong> Call it <code>pest-control-app</code>. Select <strong>Public</strong>. Click <strong>Create repository</strong>.</li>
                             <li><strong>Upload:</strong> Click "uploading an existing file" on the next screen. Drag and drop ALL project files (including <code>server.js</code>, <code>index.html</code>, <code>package.json</code>, etc.).</li>
                             <li><strong>Commit:</strong> Click "Commit changes" button at the bottom.</li>
@@ -182,7 +182,7 @@ const DeploymentGuide = () => {
                             <li>Go to <a href="https://supabase.com" target="_blank" className="text-green-400 hover:underline">supabase.com</a> and sign up.</li>
                             <li>Click <strong>New Project</strong>. Give it a name (e.g., <code>pest-db</code>) and a strong password.</li>
                             <li>Wait ~2 minutes for it to setup.</li>
-                            <li>Go to <strong>Project Settings</strong> (Cog Icon) -> <strong>Database</strong>.</li>
+                            <li>Go to <strong>Project Settings</strong> (Cog Icon) &rarr; <strong>Database</strong>.</li>
                             <li>Scroll to <strong>Connection String</strong> and click <strong>Node.js</strong>.</li>
                             <li><strong>COPY THIS STRING.</strong> It looks like: <code>postgres://postgres.user...</code></li>
                             <li className="bg-black/30 p-2 rounded text-xs text-green-300">Tip: You must manually replace <code>[YOUR-PASSWORD]</code> in that string with the password you created in step 2.</li>
@@ -204,7 +204,7 @@ const DeploymentGuide = () => {
                                 <h4 className="text-white font-bold mb-2 text-sm uppercase">A. Setup Service</h4>
                                 <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
                                     <li>Go to <a href="https://render.com" target="_blank" className="text-purple-400 hover:underline">render.com</a>. Sign up with GitHub.</li>
-                                    <li>Click <strong>New +</strong> -> <strong>Web Service</strong>.</li>
+                                    <li>Click <strong>New +</strong> &rarr; <strong>Web Service</strong>.</li>
                                     <li>Select your <code>pest-control-app</code> repo.</li>
                                     <li><strong>Name:</strong> <code>pest-backend</code></li>
                                     <li><strong>Runtime:</strong> <code>Node</code></li>
@@ -245,7 +245,7 @@ const DeploymentGuide = () => {
                          <p className="text-gray-300 text-sm">This hosts the visual website.</p>
                          <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
                             <li>Go to <a href="https://vercel.com" target="_blank" className="text-pestGreen hover:underline">vercel.com</a>. Sign up with GitHub.</li>
-                            <li>Click <strong>Add New...</strong> -> <strong>Project</strong>.</li>
+                            <li>Click <strong>Add New...</strong> &rarr; <strong>Project</strong>.</li>
                             <li>Import <code>pest-control-app</code>.</li>
                             <li><strong>Framework Preset:</strong> Select <strong>Vite</strong>.</li>
                             <li>Click <strong>Environment Variables</strong> to expand it.</li>
