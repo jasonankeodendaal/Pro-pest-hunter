@@ -64,31 +64,40 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
     const masterPin = envPin || '1234';
 
     if (identifier.toLowerCase() === masterEmail.toLowerCase() && pin === masterPin) {
-        const universalAdmin: Employee = {
-            id: 'universal-admin',
-            fullName: 'System Owner',
-            email: masterEmail,
-            pin: '****',
-            loginName: 'admin',
-            jobTitle: 'System Administrator',
-            tel: '',
-            idNumber: '',
-            startDate: new Date().toISOString(),
-            profileImage: null,
-            documents: [],
-            doctorsNumbers: [],
-            permissions: {
-                isAdmin: true,
-                canDoAssessment: true,
-                canCreateQuotes: true,
-                canExecuteJob: true,
-                canInvoice: true,
-                canViewReports: true,
-                canManageEmployees: true,
-                canEditSiteContent: true
-            }
-        };
-        onLogin(universalAdmin);
+        // Try to find the existing Owner profile in the DB to allow editing details
+        // We look for 'emp-001' (default owner) or any admin matching the email
+        const dbOwner = content.employees.find(e => e.id === 'emp-001' || (e.permissions.isAdmin && e.email.toLowerCase() === masterEmail.toLowerCase()));
+        
+        if (dbOwner) {
+             onLogin(dbOwner);
+        } else {
+             // Fallback: Create a temporary admin session if DB is empty or corrupted
+             const universalAdmin: Employee = {
+                id: 'universal-admin',
+                fullName: 'System Owner',
+                email: masterEmail,
+                pin: '****',
+                loginName: 'admin',
+                jobTitle: 'System Administrator',
+                tel: '',
+                idNumber: '',
+                startDate: new Date().toISOString(),
+                profileImage: null,
+                documents: [],
+                doctorsNumbers: [],
+                permissions: {
+                    isAdmin: true,
+                    canDoAssessment: true,
+                    canCreateQuotes: true,
+                    canExecuteJob: true,
+                    canInvoice: true,
+                    canViewReports: true,
+                    canManageEmployees: true,
+                    canEditSiteContent: true
+                }
+            };
+            onLogin(universalAdmin);
+        }
         return;
     }
 
