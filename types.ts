@@ -221,6 +221,8 @@ export interface JobCard {
   selectedServices: string[]; // IDs of services
   checkpoints: Checkpoint[];
   isFirstTimeService: boolean; // NEW: Toggle to show codes for sticker setup
+  siteAccessCodes?: string; // NEW: For gate codes etc
+  billingNotes?: string; // NEW: Internal billing notes
   
   // Stages Data
   treatmentRecommendation: string;
