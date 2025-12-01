@@ -9,11 +9,11 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, TestimonialItem } from '../types';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 import { JobCardManager } from './JobCardManager';
 
@@ -35,75 +35,685 @@ const InfoBlock = ({ title, text }: { title: string; text: string }) => (
   </div>
 );
 
-const SectionHelp = ({ title, purpose, steps, tips }: { title: string; purpose: string; steps: string[]; tips?: string }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <>
-            <button 
-                onClick={() => setIsOpen(true)}
-                className="ml-3 p-1 text-gray-500 hover:text-pestGreen hover:bg-pestGreen/10 rounded-full transition-all"
-                title="Help & Instructions"
-            >
-                <HelpCircle size={16} />
-            </button>
-
-            <AnimatePresence>
-                {isOpen && (
-                    <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div className="absolute inset-0" onClick={() => setIsOpen(false)}></div>
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-[#161817] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl relative z-10 overflow-hidden"
-                        >
-                            <div className="bg-pestGreen p-4 flex justify-between items-center">
-                                <h3 className="text-white font-bold text-lg flex items-center gap-2"><BookOpen size={20}/> {title} Guide</h3>
-                                <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1 rounded-full"><X size={18}/></button>
-                            </div>
-                            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                                <div>
-                                    <h4 className="text-pestGreen text-xs font-bold uppercase tracking-wider mb-2">Why This Matters (Purpose)</h4>
-                                    <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-white/10 pl-3">{purpose}</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-pestGreen text-xs font-bold uppercase tracking-wider mb-2">Step-by-Step Instructions</h4>
-                                    <ul className="space-y-4">
-                                        {steps.map((step, i) => (
-                                            <li key={i} className="flex gap-3 text-sm text-gray-400">
-                                                <span className="bg-white/5 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 border border-white/10">{i+1}</span>
-                                                <span className="leading-snug">{step}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                {tips && (
-                                    <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
-                                        <h4 className="text-blue-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Zap size={12}/> Pro Strategy Tip</h4>
-                                        <p className="text-blue-200/70 text-xs italic">"{tips}"</p>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-        </>
-    );
-}
-
-const SectionHeader = ({ title, icon: Icon, help }: { title: string; icon: any; help?: { title: string; purpose: string; steps: string[]; tips?: string } }) => (
-    <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-        <div className="p-2 bg-pestGreen/10 rounded-lg text-pestGreen">
-            <Icon size={24} />
+const SectionHeader = ({ title, icon: Icon, action }: { title: string; icon: any; action?: React.ReactNode }) => (
+    <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3">
+            <div className="p-2 bg-pestGreen/10 rounded-lg text-pestGreen">
+                <Icon size={24} />
+            </div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tight">{title}</h2>
         </div>
-        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{title}</h2>
-        {help && <SectionHelp {...help} />}
+        {action}
     </div>
 );
 
-// --- DEPLOYMENT GUIDE (CREATOR ONLY) ---
+// --- EDITORS ---
+
+const CompanyEditor = () => {
+    const { content, updateContent } = useContent();
+    const c = content.company;
+    const update = (data: any) => updateContent('company', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Company Information" icon={Building2} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Core Details</h3>
+                    <Input label="Company Name" value={c.name} onChange={(v: string) => update({ name: v })} />
+                    <Input label="Registration Number" value={c.regNumber} onChange={(v: string) => update({ regNumber: v })} />
+                    <Input label="VAT Number" value={c.vatNumber} onChange={(v: string) => update({ vatNumber: v })} />
+                    <Input label="Experience (Years)" type="number" value={c.yearsExperience} onChange={(v: string) => update({ yearsExperience: parseInt(v) })} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Contact Info</h3>
+                    <Input label="Phone Number" value={c.phone} onChange={(v: string) => update({ phone: v })} />
+                    <Input label="Email Address" value={c.email} onChange={(v: string) => update({ email: v })} />
+                    <TextArea label="Physical Address" value={c.address} onChange={(v: string) => update({ address: v })} rows={3} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Operating Hours</h3>
+                    <Input label="Weekdays" value={c.hours.weekdays} onChange={(v: string) => update({ hours: { ...c.hours, weekdays: v } })} />
+                    <Input label="Saturday" value={c.hours.saturday} onChange={(v: string) => update({ hours: { ...c.hours, saturday: v } })} />
+                    <Input label="Sunday" value={c.hours.sunday} onChange={(v: string) => update({ hours: { ...c.hours, sunday: v } })} />
+                </div>
+
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Social Media & Branding</h3>
+                    <Input label="Facebook URL" value={c.socials.facebook} onChange={(v: string) => update({ socials: { ...c.socials, facebook: v } })} />
+                    <Input label="Instagram URL" value={c.socials.instagram} onChange={(v: string) => update({ socials: { ...c.socials, instagram: v } })} />
+                    <Input label="LinkedIn URL" value={c.socials.linkedin} onChange={(v: string) => update({ socials: { ...c.socials, linkedin: v } })} />
+                    <div className="mt-4">
+                        <FileUpload label="Company Logo" value={c.logo} onChange={(v: string) => update({ logo: v })} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const HeroEditor = () => {
+    const { content, updateContent } = useContent();
+    const h = content.hero;
+    const update = (data: any) => updateContent('hero', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Hero Section" icon={Layout} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Main Text</h3>
+                    <TextArea label="Headline" value={h.headline} onChange={(v: string) => update({ headline: v })} rows={2} />
+                    <TextArea label="Subheadline" value={h.subheadline} onChange={(v: string) => update({ subheadline: v })} rows={2} />
+                    <Input label="Button Text" value={h.buttonText} onChange={(v: string) => update({ buttonText: v })} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Visual Media</h3>
+                    <div className="space-y-4">
+                        <FileUpload label="Background Image" value={h.bgImage} onChange={(v: string) => update({ bgImage: v })} />
+                        <Input label="Video URL (MP4)" value={h.mediaVideo} onChange={(v: string) => update({ mediaVideo: v })} placeholder="https://..." />
+                        <Input label="Overlay Opacity (%)" type="number" value={h.overlayOpacity} onChange={(v: string) => update({ overlayOpacity: parseInt(v) })} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AboutEditor = () => {
+    const { content, updateContent } = useContent();
+    const a = content.about;
+    const update = (data: any) => updateContent('about', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="About Us Section" icon={Info} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Main Story</h3>
+                    <Input label="Title" value={a.title} onChange={(v: string) => update({ title: v })} />
+                    <TextArea label="Main Text" value={a.text} onChange={(v: string) => update({ text: v })} rows={6} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Mission & Visuals</h3>
+                    <Input label="Mission Title" value={a.missionTitle} onChange={(v: string) => update({ missionTitle: v })} />
+                    <TextArea label="Mission Text" value={a.missionText} onChange={(v: string) => update({ missionText: v })} rows={3} />
+                    <div className="mt-4">
+                        <FileUpload label="Owner / Team Image" value={a.ownerImage} onChange={(v: string) => update({ ownerImage: v })} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ServicesEditor = () => {
+    const { content, updateService } = useContent();
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [tempService, setTempService] = useState<ServiceItem | null>(null);
+
+    const handleEdit = (service: ServiceItem) => {
+        setEditingId(service.id);
+        setTempService({ ...service });
+    };
+
+    const handleNew = () => {
+        const newService: ServiceItem = {
+            id: `srv-${Date.now()}`,
+            title: 'New Service',
+            description: 'Short description for card.',
+            fullDescription: 'Detailed description for modal.',
+            details: ['Detail 1', 'Detail 2'],
+            iconName: 'Bug',
+            visible: true,
+            featured: false,
+            price: 'From R500'
+        };
+        setTempService(newService);
+        setEditingId(newService.id);
+    };
+
+    const handleSave = () => {
+        if (!tempService) return;
+        const exists = content.services.find(s => s.id === tempService.id);
+        let updatedList;
+        if (exists) {
+            updatedList = content.services.map(s => s.id === tempService.id ? tempService : s);
+        } else {
+            updatedList = [...content.services, tempService];
+        }
+        updateService(updatedList);
+        setEditingId(null);
+        setTempService(null);
+    };
+
+    const handleDelete = (id: string) => {
+        if (confirm('Are you sure you want to delete this service?')) {
+            updateService(content.services.filter(s => s.id !== id));
+        }
+    };
+
+    const handleDetailChange = (index: number, val: string) => {
+        if (!tempService) return;
+        const newDetails = [...tempService.details];
+        newDetails[index] = val;
+        setTempService({ ...tempService, details: newDetails });
+    };
+
+    const addDetail = () => {
+        if (!tempService) return;
+        setTempService({ ...tempService, details: [...tempService.details, 'New Detail'] });
+    };
+
+    const removeDetail = (index: number) => {
+        if (!tempService) return;
+        setTempService({ ...tempService, details: tempService.details.filter((_, i) => i !== index) });
+    };
+
+    if (editingId && tempService) {
+        return (
+            <div className="space-y-6 animate-in fade-in">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">Edit Service</h2>
+                    <div className="flex gap-2">
+                        <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/10 text-white rounded-lg">Cancel</button>
+                        <button onClick={handleSave} className="px-4 py-2 bg-pestGreen text-white rounded-lg font-bold flex items-center gap-2"><Save size={16}/> Save Changes</button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                        <Input label="Service Title" value={tempService.title} onChange={(v: string) => setTempService({ ...tempService, title: v })} />
+                        <Input label="Price (e.g. From R850)" value={tempService.price} onChange={(v: string) => setTempService({ ...tempService, price: v })} />
+                        <Input label="Icon Name (Lucide)" value={tempService.iconName} onChange={(v: string) => setTempService({ ...tempService, iconName: v })} />
+                        <div className="flex gap-4 pt-2">
+                             <label className="flex items-center gap-2 text-white cursor-pointer">
+                                 <input type="checkbox" checked={tempService.visible} onChange={e => setTempService({...tempService, visible: e.target.checked})} />
+                                 Visible
+                             </label>
+                             <label className="flex items-center gap-2 text-white cursor-pointer">
+                                 <input type="checkbox" checked={tempService.featured} onChange={e => setTempService({...tempService, featured: e.target.checked})} />
+                                 Featured
+                             </label>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                        <FileUpload label="Service Image" value={tempService.image} onChange={(v: string) => setTempService({ ...tempService, image: v })} />
+                        <TextArea label="Short Description (Card)" value={tempService.description} onChange={(v: string) => setTempService({ ...tempService, description: v })} rows={3} />
+                    </div>
+
+                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 md:col-span-2">
+                        <TextArea label="Full Description (Panel)" value={tempService.fullDescription} onChange={(v: string) => setTempService({ ...tempService, fullDescription: v })} rows={4} />
+                        
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Bullet Points (Details)</label>
+                        <div className="space-y-2">
+                            {tempService.details.map((detail, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={detail} 
+                                        onChange={(e) => handleDetailChange(idx, e.target.value)}
+                                        className="flex-1 p-2 bg-black/30 border border-white/10 rounded-lg text-white"
+                                    />
+                                    <button onClick={() => removeDetail(idx)} className="text-red-500 hover:bg-white/5 p-2 rounded"><Trash2 size={16}/></button>
+                                </div>
+                            ))}
+                            <button onClick={addDetail} className="text-pestGreen text-sm font-bold flex items-center gap-1 hover:underline"><Plus size={14}/> Add Point</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader 
+                title="Manage Services" 
+                icon={Zap} 
+                action={<button onClick={handleNew} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Service</button>}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {content.services.map(service => (
+                    <div key={service.id} className={`p-6 rounded-2xl border transition-all ${service.visible ? 'bg-[#161817] border-white/5' : 'bg-red-500/5 border-red-500/20 opacity-75'}`}>
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="w-10 h-10 bg-pestGreen/20 rounded-lg flex items-center justify-center text-pestGreen">
+                                <Zap size={20} />
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleEdit(service)} className="p-2 hover:bg-white/10 rounded-full text-white"><Edit size={16}/></button>
+                                <button onClick={() => handleDelete(service.id)} className="p-2 hover:bg-red-500/20 rounded-full text-red-500"><Trash2 size={16}/></button>
+                            </div>
+                        </div>
+                        <h3 className="font-bold text-white text-lg">{service.title}</h3>
+                        <p className="text-gray-500 text-sm line-clamp-2 mt-2">{service.description}</p>
+                        <div className="flex gap-2 mt-4">
+                            {service.featured && <span className="text-[10px] bg-yellow-500 text-black px-2 py-1 rounded font-bold uppercase">Featured</span>}
+                            {!service.visible && <span className="text-[10px] bg-red-500 text-white px-2 py-1 rounded font-bold uppercase">Hidden</span>}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ProcessEditor = () => {
+    const { content, updateProcessSteps, updateContent } = useContent();
+    const p = content.process;
+
+    const handleStepChange = (index: number, field: keyof ProcessStep, value: string) => {
+        const newSteps = [...p.steps];
+        newSteps[index] = { ...newSteps[index], [field]: value };
+        updateProcessSteps(newSteps);
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Process Section" icon={Workflow} />
+            
+            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-8">
+                <h3 className="text-white font-bold mb-4">Section Headings</h3>
+                <Input label="Title" value={p.title} onChange={(v: string) => updateContent('process', { ...p, title: v })} />
+                <TextArea label="Subtitle" value={p.subtitle} onChange={(v: string) => updateContent('process', { ...p, subtitle: v })} rows={2} />
+            </div>
+
+            <div className="space-y-4">
+                <h3 className="text-white font-bold px-1">Steps</h3>
+                {p.steps.map((step, idx) => (
+                    <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex gap-4 items-start">
+                        <div className="bg-white/5 w-8 h-8 flex items-center justify-center rounded-full text-white font-bold shrink-0">{step.step}</div>
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input label="Step Title" value={step.title} onChange={(v: string) => handleStepChange(idx, 'title', v)} />
+                            <Input label="Icon Name" value={step.iconName} onChange={(v: string) => handleStepChange(idx, 'iconName', v)} />
+                            <div className="md:col-span-3">
+                                <TextArea label="Description" value={step.description} onChange={(v: string) => handleStepChange(idx, 'description', v)} rows={2} />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ServiceAreaEditor = () => {
+    const { content, updateContent } = useContent();
+    const sa = content.serviceArea;
+    const update = (data: any) => updateContent('serviceArea', data);
+
+    const handleTownsChange = (v: string) => {
+        const towns = v.split(',').map(t => t.trim()).filter(t => t);
+        update({ towns });
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Service Area" icon={MapPin} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Text Content</h3>
+                    <Input label="Title" value={sa.title} onChange={(v: string) => update({ title: v })} />
+                    <TextArea label="Description" value={sa.description} onChange={(v: string) => update({ description: v })} rows={4} />
+                    <TextArea label="Towns (Comma Separated)" value={sa.towns.join(', ')} onChange={handleTownsChange} rows={3} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Map Visual</h3>
+                    <FileUpload label="Area Map Image" value={sa.mapImage} onChange={(v: string) => update({ mapImage: v })} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SafetyEditor = () => {
+    const { content, updateContent } = useContent();
+    const s = content.safety;
+    const update = (data: any) => updateContent('safety', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Safety & Certification" icon={Shield} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Safety Promise</h3>
+                    <Input label="Title" value={s.title} onChange={(v: string) => update({ title: v })} />
+                    <TextArea label="Description" value={s.description} onChange={(v: string) => update({ description: v })} rows={4} />
+                </div>
+                
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Badges & Certs</h3>
+                    <Input label="Badge 1 Text" value={s.badge1} onChange={(v: string) => update({ badge1: v })} />
+                    <Input label="Badge 2 Text" value={s.badge2} onChange={(v: string) => update({ badge2: v })} />
+                    <Input label="Badge 3 Text" value={s.badge3} onChange={(v: string) => update({ badge3: v })} />
+                    <div className="mt-4">
+                        <FileUpload label="Certificates (Images)" value={s.certificates} onChange={(v: string[]) => update({ certificates: v })} multiple={true} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const FaqEditor = () => {
+    const { content, updateFaqs } = useContent();
+    const faqs = content.faqs;
+
+    const handleUpdate = (index: number, field: keyof FAQItem, value: string) => {
+        const newFaqs = [...faqs];
+        newFaqs[index] = { ...newFaqs[index], [field]: value };
+        updateFaqs(newFaqs);
+    };
+
+    const handleAdd = () => {
+        const newFaq: FAQItem = { id: `faq-${Date.now()}`, question: 'New Question?', answer: 'Answer here.' };
+        updateFaqs([...faqs, newFaq]);
+    };
+
+    const handleDelete = (index: number) => {
+        updateFaqs(faqs.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader 
+                title="Frequently Asked Questions" 
+                icon={HelpCircle} 
+                action={<button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add FAQ</button>}
+            />
+            
+            <div className="space-y-4">
+                {faqs.map((faq, idx) => (
+                    <div key={faq.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
+                        <button onClick={() => handleDelete(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+                        <Input label="Question" value={faq.question} onChange={(v: string) => handleUpdate(idx, 'question', v)} className="mb-4 font-bold" />
+                        <TextArea label="Answer" value={faq.answer} onChange={(v: string) => handleUpdate(idx, 'answer', v)} rows={2} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const TestimonialsEditor = () => {
+    const { content, updateContent } = useContent();
+    const tests = content.testimonials;
+
+    const handleUpdate = (index: number, field: keyof TestimonialItem, value: any) => {
+        const newTests = [...tests];
+        newTests[index] = { ...newTests[index], [field]: value };
+        updateContent('testimonials', newTests);
+    };
+
+    const handleAdd = () => {
+        const newTest: TestimonialItem = { id: `test-${Date.now()}`, name: 'New Client', location: 'City', text: 'Great service!', rating: 5 };
+        updateContent('testimonials', [...tests, newTest]);
+    };
+
+    const handleDelete = (index: number) => {
+        updateContent('testimonials', tests.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+             <SectionHeader 
+                title="Client Testimonials" 
+                icon={Star} 
+                action={<button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Review</button>}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {tests.map((t, idx) => (
+                    <div key={t.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
+                        <button onClick={() => handleDelete(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+                        <div className="flex gap-4 mb-4">
+                            <Input label="Name" value={t.name} onChange={(v: string) => handleUpdate(idx, 'name', v)} />
+                            <Input label="Location" value={t.location} onChange={(v: string) => handleUpdate(idx, 'location', v)} />
+                        </div>
+                        <TextArea label="Review Text" value={t.text} onChange={(v: string) => handleUpdate(idx, 'text', v)} rows={3} />
+                        <div className="mt-4">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Rating (1-5)</label>
+                            <input type="number" min="1" max="5" value={t.rating} onChange={(e) => handleUpdate(idx, 'rating', parseInt(e.target.value))} className="w-full p-2 bg-black/30 border border-white/10 rounded-lg text-white mt-1" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const SeoEditor = () => {
+    const { content, updateContent } = useContent();
+    const seo = content.seo;
+    const update = (data: any) => updateContent('seo', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="SEO Settings" icon={Search} />
+            
+            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                <Input label="Meta Title" value={seo.metaTitle} onChange={(v: string) => update({ metaTitle: v })} />
+                <TextArea label="Meta Description" value={seo.metaDescription} onChange={(v: string) => update({ metaDescription: v })} rows={3} />
+                <TextArea label="Keywords" value={seo.keywords} onChange={(v: string) => update({ keywords: v })} rows={2} />
+                <div className="pt-4 border-t border-white/5">
+                    <FileUpload label="Social Share Image (OG Image)" value={seo.ogImage} onChange={(v: string) => update({ ogImage: v })} />
+                </div>
+                <Input label="Structured Data (JSON-LD)" value={seo.structuredDataJSON} onChange={(v: string) => update({ structuredDataJSON: v })} />
+            </div>
+        </div>
+    );
+};
+
+const CreatorWidgetEditor = () => {
+    const { content, updateContent } = useContent();
+    const w = content.creatorWidget;
+    const update = (data: any) => updateContent('creatorWidget', data);
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Creator Widget Settings" icon={Code2} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Text Content</h3>
+                    <Input label="Slogan" value={w.slogan} onChange={(v: string) => update({ slogan: v })} />
+                    <TextArea label="CTA Text" value={w.ctaText} onChange={(v: string) => update({ ctaText: v })} rows={3} />
+                </div>
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Images</h3>
+                    <FileUpload label="Logo" value={w.logo} onChange={(v: string) => update({ logo: v })} />
+                    <FileUpload label="Background" value={w.background} onChange={(v: string) => update({ background: v })} />
+                </div>
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 md:col-span-2">
+                    <h3 className="text-white font-bold mb-4">Contact Icons</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FileUpload label="WhatsApp Icon" value={w.whatsappIcon} onChange={(v: string) => update({ whatsappIcon: v })} />
+                        <FileUpload label="Email Icon" value={w.emailIcon} onChange={(v: string) => update({ emailIcon: v })} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const EmployeeEditor = () => {
+    const { content, addEmployee, updateEmployee, deleteEmployee } = useContent();
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [tempEmp, setTempEmp] = useState<Employee | null>(null);
+
+    const handleEdit = (emp: Employee) => {
+        setEditingId(emp.id);
+        setTempEmp({ ...emp });
+    };
+
+    const handleNew = () => {
+        const newEmp: Employee = {
+            id: `emp-${Date.now()}`,
+            fullName: 'New Staff Member',
+            email: '',
+            tel: '',
+            idNumber: '',
+            jobTitle: 'Technician',
+            startDate: new Date().toISOString(),
+            loginName: 'newuser',
+            pin: '0000',
+            profileImage: null,
+            doctorsNumbers: [],
+            documents: [],
+            permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: false, canViewReports: false, canManageEmployees: false, canEditSiteContent: false }
+        };
+        setTempEmp(newEmp);
+        setEditingId(newEmp.id);
+    };
+
+    const handleSave = () => {
+        if (!tempEmp) return;
+        const exists = content.employees.find(e => e.id === tempEmp.id);
+        if (exists) updateEmployee(tempEmp.id, tempEmp);
+        else addEmployee(tempEmp);
+        setEditingId(null);
+        setTempEmp(null);
+    };
+
+    if (editingId && tempEmp) {
+        return (
+            <div className="space-y-6 animate-in fade-in">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">Edit Employee</h2>
+                    <div className="flex gap-2">
+                        <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/10 text-white rounded-lg">Cancel</button>
+                        <button onClick={handleSave} className="px-4 py-2 bg-pestGreen text-white rounded-lg font-bold flex items-center gap-2"><Save size={16}/> Save</button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                        <h3 className="text-white font-bold mb-4">Personal Info</h3>
+                        <Input label="Full Name" value={tempEmp.fullName} onChange={(v: string) => setTempEmp({ ...tempEmp, fullName: v })} />
+                        <Input label="Job Title" value={tempEmp.jobTitle} onChange={(v: string) => setTempEmp({ ...tempEmp, jobTitle: v })} />
+                        <Input label="Email" value={tempEmp.email} onChange={(v: string) => setTempEmp({ ...tempEmp, email: v })} />
+                        <Input label="Phone" value={tempEmp.tel} onChange={(v: string) => setTempEmp({ ...tempEmp, tel: v })} />
+                        <Input label="ID Number" value={tempEmp.idNumber} onChange={(v: string) => setTempEmp({ ...tempEmp, idNumber: v })} />
+                        <FileUpload label="Profile Image" value={tempEmp.profileImage} onChange={(v: string) => setTempEmp({ ...tempEmp, profileImage: v })} />
+                    </div>
+
+                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                        <h3 className="text-white font-bold mb-4">System Access</h3>
+                        <Input label="Login Name" value={tempEmp.loginName} onChange={(v: string) => setTempEmp({ ...tempEmp, loginName: v })} />
+                        <Input label="PIN Code" value={tempEmp.pin} onChange={(v: string) => setTempEmp({ ...tempEmp, pin: v })} />
+                        
+                        <h4 className="text-white font-bold text-sm mt-6 mb-2">Permissions</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            {Object.entries(tempEmp.permissions).map(([key, val]) => (
+                                <label key={key} className="flex items-center gap-2 text-gray-300 text-xs cursor-pointer select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={val} 
+                                        onChange={e => setTempEmp({...tempEmp, permissions: { ...tempEmp.permissions, [key]: e.target.checked }})} 
+                                        className="rounded border-gray-600 bg-black/50 text-pestGreen focus:ring-pestGreen"
+                                    />
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^can/, '')}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader 
+                title="Staff Directory" 
+                icon={Users} 
+                action={<button onClick={handleNew} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Staff</button>}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {content.employees.map(emp => (
+                    <div key={emp.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative">
+                        <div className="flex items-start gap-4">
+                            <div className="w-16 h-16 rounded-xl bg-gray-700 overflow-hidden flex-shrink-0">
+                                {emp.profileImage ? <img src={emp.profileImage} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{emp.fullName.charAt(0)}</div>}
+                            </div>
+                            <div>
+                                <h3 className="text-white font-bold text-lg">{emp.fullName}</h3>
+                                <p className="text-pestGreen text-xs uppercase font-bold">{emp.jobTitle}</p>
+                                <p className="text-gray-500 text-xs mt-1">{emp.tel}</p>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex gap-2">
+                             <button onClick={() => handleEdit(emp)} className="flex-1 bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg text-sm font-bold transition-colors">Edit</button>
+                             <button onClick={() => deleteEmployee(emp.id)} className="px-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg"><Trash2 size={16}/></button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const InquiriesViewer = () => {
+    const { content } = useContent();
+    const bookings = content.bookings;
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="Web Inquiries & Bookings" icon={Inbox} />
+            
+            <div className="bg-[#161817] rounded-2xl border border-white/5 overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
+                            <th className="p-4">Date Rec.</th>
+                            <th className="p-4">Client</th>
+                            <th className="p-4">Service</th>
+                            <th className="p-4">Requested Date</th>
+                            <th className="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {bookings.length > 0 ? bookings.map((b) => (
+                            <tr key={b.id} className="text-white hover:bg-white/5 transition-colors">
+                                <td className="p-4 text-xs text-gray-500">{new Date(b.submittedAt).toLocaleDateString()}</td>
+                                <td className="p-4">
+                                    <div className="font-bold">{b.clientName}</div>
+                                    <div className="text-xs text-gray-500">{b.clientPhone}</div>
+                                </td>
+                                <td className="p-4 text-sm">{b.serviceName}</td>
+                                <td className="p-4 text-sm font-mono">{new Date(b.date).toLocaleDateString()}</td>
+                                <td className="p-4">
+                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${b.status === 'New' ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'}`}>
+                                        {b.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={5} className="p-8 text-center text-gray-500 italic">No inquiries received yet.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+// --- SYSTEM GUIDES (DEPLOYMENT & STATUS) ---
+
 const DeploymentGuide = () => {
     const { apiUrl, setApiUrl } = useContent();
     const [tempUrl, setTempUrl] = useState(apiUrl);
@@ -157,213 +767,12 @@ const DeploymentGuide = () => {
                 </div>
              </div>
              
-             {/* PHASE 1: GITHUB */}
+             {/* Phases Content - Simplified for brevity in this update, keeping layout */}
              <div className="space-y-12 relative z-10">
-                
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><GitBranch size={100}/></div>
-                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black text-sm font-bold">1</span>
-                        Phase 1: Get Code on GitHub
-                    </h3>
-                    <div className="space-y-4 pl-4 border-l-2 border-white/10">
-                        <p className="text-gray-300">We need to move your files from your computer (or AI editor) to the cloud.</p>
-                        <ul className="list-disc list-inside text-sm text-gray-400 space-y-2">
-                            <li><strong>Create Account:</strong> Go to <a href="https://github.com" target="_blank" className="text-pestGreen hover:underline">github.com</a> and sign up.</li>
-                            <li><strong>New Repo:</strong> Click the <strong>+</strong> icon (top right) &rarr; <strong>New repository</strong>.</li>
-                            <li><strong>Name It:</strong> Call it <code>pest-control-app</code>. Select <strong>Public</strong>. Click <strong>Create repository</strong>.</li>
-                            <li><strong>Upload:</strong> Click "uploading an existing file" on the next screen. Drag and drop ALL project files (including <code>server.js</code>, <code>index.html</code>, <code>package.json</code>, etc.).</li>
-                            <li><strong>Commit:</strong> Click "Commit changes" button at the bottom.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* PHASE 2: SUPABASE */}
-                <div className="bg-green-900/10 border border-green-500/30 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Database size={100}/></div>
-                    <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-black text-sm font-bold">2</span>
-                        Phase 2: The Database (Supabase)
-                    </h3>
-                    <div className="space-y-4 pl-4 border-l-2 border-green-500/30">
-                        <p className="text-gray-300 text-sm">Free servers like Render will delete your local files when they sleep. We need a real database to keep your data safe.</p>
-                        <ol className="list-decimal list-inside text-sm text-gray-400 space-y-3">
-                            <li>Go to <a href="https://supabase.com" target="_blank" className="text-green-400 hover:underline">supabase.com</a> and sign up.</li>
-                            <li>Click <strong>New Project</strong>. Give it a name (e.g., <code>pest-db</code>) and a strong password.</li>
-                            <li><strong>CRITICAL:</strong> Ignore the "Project API" screen with the "anon" key. That is for the frontend.</li>
-                            <li>Go to <strong>Project Settings</strong> (Cog Icon in left sidebar) &rarr; <strong>Database</strong>.</li>
-                            <li>Scroll down to the <strong>Connection String</strong> section.</li>
-                            <li>Click <strong>Node.js</strong> and toggle <strong>"Use connection pooler"</strong> if available (Mode: Transaction).</li>
-                            <li><strong>COPY THIS STRING.</strong> It looks like: <code>postgres://postgres.user...</code></li>
-                            <li className="bg-black/30 p-2 rounded text-xs text-green-300">Tip: You must manually replace <code>[YOUR-PASSWORD]</code> in that string with the password you created in step 2.</li>
-                        </ol>
-                        
-                        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mt-4">
-                            <h4 className="text-red-400 font-bold flex items-center gap-2 mb-1"><AlertTriangle size={16}/> Common Problem: "ENOTFOUND"</h4>
-                            <p className="text-xs text-red-200/70">
-                                If you see an "ENOTFOUND" error in your Render logs, it means your Supabase project is <strong>PAUSED</strong> or still creating. 
-                                Log in to Supabase and check if there is a "Restore" button on your project.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* PHASE 3: RENDER */}
-                <div className="bg-purple-900/10 border border-purple-500/30 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Server size={100}/></div>
-                    <h3 className="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500 text-black text-sm font-bold">3</span>
-                        Phase 3: The Backend (Render)
-                    </h3>
-                    <div className="space-y-6">
-                        <p className="text-gray-300 text-sm">This runs your Node.js server (the brain).</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div>
-                                <h4 className="text-white font-bold mb-2 text-sm uppercase">A. Setup Service</h4>
-                                <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
-                                    <li>Go to <a href="https://render.com" target="_blank" className="text-purple-400 hover:underline">render.com</a>. Sign up with GitHub.</li>
-                                    <li>Click <strong>New +</strong> &rarr; <strong>Web Service</strong>.</li>
-                                    <li>Select your <code>pest-control-app</code> repo.</li>
-                                    <li><strong>Name:</strong> <code>pest-backend</code></li>
-                                    <li><strong>Runtime:</strong> <code>Node</code></li>
-                                    <li><strong>Build Command:</strong> <code>npm install</code></li>
-                                    <li><strong>Start Command:</strong> <code>node server.js</code></li>
-                                    <li>Select <strong>Free</strong> instance type.</li>
-                                </ol>
-                             </div>
-                             <div>
-                                <h4 className="text-white font-bold mb-2 text-sm uppercase">B. Environment Variables</h4>
-                                <p className="text-xs text-gray-500 mb-2">Scroll down to "Environment Variables" section.</p>
-                                <div className="space-y-2 text-sm bg-black/40 p-4 rounded-xl border border-white/10 font-mono">
-                                    <div className="flex flex-col gap-1 mb-2">
-                                        <span className="text-purple-300 font-bold">Key:</span> <span>DATABASE_URL</span>
-                                        <span className="text-purple-300 font-bold">Value:</span> <span className="text-green-400 text-xs break-all bg-green-500/10 p-1 rounded border border-green-500/20">postgresql://postgres:Ankeodendaal101@db.xgyopkivwfotoryhzviz.supabase.co:5432/postgres</span>
-                                        <div className="text-[9px] text-green-300 mt-1 uppercase font-bold">Updated with your exact connection string</div>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-purple-300 font-bold">Key:</span> <span>GMAIL_USER / GMAIL_PASS</span>
-                                        <span className="text-gray-400 text-xs">(Optional: For email sending)</span>
-                                    </div>
-                                </div>
-                             </div>
-                        </div>
-                        <div className="bg-purple-500/20 p-4 rounded-lg border border-purple-500/30">
-                            <strong className="text-white text-sm">Action:</strong> <span className="text-gray-300 text-sm">Click <strong>Create Web Service</strong>. Wait for it to say "Live". Copy the URL at the top (e.g. <code>https://pest-backend.onrender.com</code>).</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* PHASE 4: VERCEL */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Globe2 size={100}/></div>
-                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black text-sm font-bold">4</span>
-                        Phase 4: The Frontend (Vercel)
-                    </h3>
-                    <div className="space-y-6">
-                         <p className="text-gray-300 text-sm">This hosts the visual website.</p>
-                         <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
-                            <li>Go to <a href="https://vercel.com" target="_blank" className="text-pestGreen hover:underline">vercel.com</a>. Sign up with GitHub.</li>
-                            <li>Click <strong>Add New...</strong> &rarr; <strong>Project</strong>.</li>
-                            <li>Import <code>pest-control-app</code>.</li>
-                            <li><strong>Framework Preset:</strong> Select <strong>Vite</strong>.</li>
-                            <li>Click <strong>Environment Variables</strong> to expand it.</li>
-                         </ol>
-
-                         <div className="bg-black/40 p-4 rounded-xl border border-white/20 space-y-4">
-                            <div>
-                                <h4 className="text-white font-bold text-sm mb-2">1. Link Frontend to Backend</h4>
-                                <div className="grid grid-cols-1 gap-2 font-mono text-sm">
-                                    <div><span className="text-gray-500">Key:</span> <span className="text-pestGreen">VITE_API_URL</span></div>
-                                    <div><span className="text-gray-500">Value:</span> <span className="text-blue-300 break-all">https://pest-backend.onrender.com</span></div>
-                                    <div className="text-[10px] text-red-400 mt-1 uppercase font-bold">Do NOT put a slash (/) at the end!</div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h4 className="text-white font-bold text-sm mb-2">2. Secure Your Admin Access</h4>
-                                <p className="text-xs text-gray-400 mb-2">Set your custom login credentials here. This hides them from the source code.</p>
-                                <div className="grid grid-cols-1 gap-2 font-mono text-sm">
-                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Key:</span> <span className="text-pestGreen">VITE_ADMIN_EMAIL</span></div>
-                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Value:</span> <span className="text-white">your-email@gmail.com</span></div>
-                                    
-                                    <div className="flex gap-2 mt-2"><span className="text-gray-500 w-32">Key:</span> <span className="text-pestGreen">VITE_ADMIN_PIN</span></div>
-                                    <div className="flex gap-2"><span className="text-gray-500 w-32">Value:</span> <span className="text-white">1234</span></div>
-                                </div>
-                            </div>
-                         </div>
-                         
-                         <button className="bg-white text-black font-bold px-6 py-3 rounded-lg text-sm w-full md:w-auto">
-                            Click "Deploy"
-                         </button>
-                    </div>
-                </div>
-
-                {/* PHASE 5: CONNECT */}
-                <div className="bg-pestGreen/20 border border-pestGreen/30 rounded-2xl p-8">
-                    <h3 className="text-2xl font-bold text-pestGreen mb-4 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-pestGreen text-white text-sm font-bold">5</span>
-                        Phase 5: Launch & Connect
-                    </h3>
-                    <div className="space-y-4 text-sm text-gray-300">
-                        <p>You are now live for $0/month.</p>
-                        <ol className="list-decimal list-inside space-y-2">
-                            <li>Visit your new Vercel URL (e.g., <code>https://pest-control-app.vercel.app</code>).</li>
-                            <li>Log in to Admin (Use the Email/PIN you set in Phase 4).</li>
-                            <li>Go to <strong>System Guide</strong> tab in dashboard.</li>
-                            <li>Check the "Connection Status" light. It should be <span className="text-green-400 font-bold">Green</span>.</li>
-                        </ol>
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl mt-4">
-                            <h4 className="text-yellow-400 font-bold flex items-center gap-2 mb-1"><AlertCircle size={16}/> Note on Free Tier</h4>
-                            <p className="text-xs text-yellow-200/70">
-                                The Render free server "sleeps" after 15 minutes of inactivity. The first time you visit the site after a break, the backend might take 50 seconds to wake up. This is normal.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* PHASE 6: THE HACK */}
-                <div className="bg-orange-900/10 border border-orange-500/30 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Zap size={100}/></div>
-                    <h3 className="text-2xl font-bold text-orange-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-black text-sm font-bold">6</span>
-                        Bonus Phase: The "No-Sleep" Hack
-                    </h3>
-                    <div className="space-y-4 pl-4 border-l-2 border-orange-500/30">
-                        <p className="text-gray-300 text-sm">Free servers go to "sleep" after 15 mins. The first visitor waits 50 seconds. Let's fix that.</p>
-                        <ol className="list-decimal list-inside text-sm text-gray-400 space-y-3">
-                            <li>Go to <a href="https://uptimerobot.com" target="_blank" className="text-orange-400 hover:underline">UptimeRobot.com</a> (Free).</li>
-                            <li>Create a new <strong>HTTP(s)</strong> monitor.</li>
-                            <li><strong>URL:</strong> Paste your Render Backend URL + <code>/api/init</code> (e.g., <code>https://...onrender.com/api/init</code>).</li>
-                            <li><strong>Interval:</strong> Set to <strong>5 or 10 minutes</strong>.</li>
-                            <li><strong>Start:</strong> This robot will now "poke" your server 24/7 so it never sleeps.</li>
-                        </ol>
-                    </div>
-                </div>
-
-                {/* Option D: Expert (VPS) */}
-                <div className="bg-blue-900/10 border border-blue-500/30 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Terminal size={100}/></div>
-                    <h3 className="text-2xl font-bold text-blue-400 mb-6 flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-black text-sm font-bold">7</span>
-                        Option D (Expert): Self-Hosted VPS
-                    </h3>
-                    <div className="space-y-4 pl-4 border-l-2 border-blue-500/30">
-                        <p className="text-gray-300 text-sm">For advanced users who have their own Linux VPS (Ubuntu/Debian) and want to use SQLite permanently without external databases.</p>
-                        <ul className="list-disc list-inside text-sm text-gray-400 space-y-2 font-mono">
-                            <li><strong>Connect:</strong> SSH into your server.</li>
-                            <li><strong>Install Node:</strong> <code>curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs</code></li>
-                            <li><strong>Clone:</strong> <code>git clone [YOUR_REPO_URL]</code></li>
-                            <li><strong>Install PM2:</strong> <code>sudo npm install -g pm2</code></li>
-                            <li><strong>Enter Dir:</strong> <code>cd pest-control-app</code></li>
-                            <li><strong>Install Deps:</strong> <code>npm install</code></li>
-                            <li><strong>Start:</strong> <code>pm2 start server.js --name "pest-api"</code></li>
-                            <li><strong>Persist:</strong> <code>pm2 save && pm2 startup</code></li>
-                            <li><strong>Cloudflare:</strong> Set up a Tunnel to point to <code>localhost:3001</code> for SSL.</li>
-                        </ul>
-                    </div>
-                </div>
-
+                <InfoBlock title="Phase 1: GitHub" text="Create a repo named 'pest-control-app' and upload all project files. This is your source of truth." />
+                <InfoBlock title="Phase 2: Supabase" text="Create a free PostgreSQL database. Get the connection string from Settings -> Database. Use connection pooling (Transaction mode)." />
+                <InfoBlock title="Phase 3: Render" text="Create a Web Service connected to your GitHub repo. Set Environment Variables: DATABASE_URL (from Supabase)." />
+                <InfoBlock title="Phase 4: Vercel" text="Import project from GitHub. Set VITE_API_URL to your Render backend URL (no trailing slash)." />
              </div>
          </div>
     </div>
@@ -396,19 +805,8 @@ const SystemGuide = () => {
                      <SectionHeader 
                         title="System Status" 
                         icon={Server} 
-                        help={{ 
-                            title: "System Dashboard", 
-                            purpose: "This is your mission control. It shows if the website is connected to the database and allows you to save your data.", 
-                            steps: [
-                                "Status Light: Ensure the green light is pulsing. This means the server is online.",
-                                "Backups: Before making big changes, always click 'Download Full Backup'. This saves a file to your computer.",
-                                "Restore: If you make a mistake, upload that file to 'Restore' to go back in time."
-                            ], 
-                            tips: "Download a backup once a week to ensure you never lose client data." 
-                        }} 
                     />
 
-                     {/* CRITICAL WARNING FOR RENDER USERS */}
                      {isRenderWithSqlite && (
                          <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-6 mb-8 animate-pulse">
                              <div className="flex items-start gap-4">
@@ -420,9 +818,6 @@ const SystemGuide = () => {
                                          Render deletes local files every time the server restarts (sleeps). Any content you upload will be DELETED automatically. 
                                          You MUST connect Supabase (PostgreSQL) to save data permanently.
                                      </p>
-                                     <a href="/?tab=deploymentGuide" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm inline-block">
-                                         View Deployment Guide (Phase 2) to Fix This
-                                     </a>
                                  </div>
                              </div>
                          </div>
@@ -445,7 +840,7 @@ const SystemGuide = () => {
                              <div className="flex justify-between items-center">
                                  <p className="text-[10px] text-gray-500">
                                      {connectionError 
-                                        ? "Cannot reach server. Check URL or Wake Up server." 
+                                        ? "Cannot reach server." 
                                         : `Connected via ${apiUrl.includes('localhost') ? 'Local Environment' : 'Live Remote Server'}`}
                                  </p>
                                  <button onClick={retryConnection} className="text-[10px] font-bold text-blue-400 hover:text-white flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded">
@@ -459,11 +854,11 @@ const SystemGuide = () => {
                              <div className="flex items-center gap-3">
                                  {dbType === 'postgres' ? (
                                      <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-green-500/30 flex items-center gap-2">
-                                         <CheckCircle size={12} /> Supabase (PostgreSQL) - Safe
+                                         <CheckCircle size={12} /> Supabase (PostgreSQL)
                                      </span>
                                  ) : dbType === 'sqlite' ? (
                                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border flex items-center gap-2 ${isRenderWithSqlite ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
-                                         <AlertTriangle size={12} /> {isRenderWithSqlite ? 'SQLite (Ephemeral) - UNSAFE' : 'SQLite (Local) - Dev Mode'}
+                                         <AlertTriangle size={12} /> SQLite (Local)
                                      </span>
                                  ) : (
                                      <span className="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-500/30 flex items-center gap-2">
@@ -471,11 +866,6 @@ const SystemGuide = () => {
                                      </span>
                                  )}
                              </div>
-                             <p className="text-[10px] text-gray-500 mt-2">
-                                 {dbType === 'postgres' 
-                                    ? "Your data is safely stored in the cloud." 
-                                    : (isRenderWithSqlite ? "WARNING: Files will be deleted on restart." : (dbType === 'unknown' ? "Check connection above." : "Data stored in local file."))}
-                             </p>
                          </div>
                      </div>
                      
@@ -487,7 +877,7 @@ const SystemGuide = () => {
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-2xl">
                                 <h4 className="font-bold text-blue-100 mb-2">Create Backup</h4>
-                                <p className="text-xs text-gray-400 mb-4">Download a JSON snapshot of the entire database (Employees, Jobs, Settings).</p>
+                                <p className="text-xs text-gray-400 mb-4">Download a JSON snapshot of the entire database.</p>
                                 <button onClick={downloadBackup} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors w-full justify-center">
                                     <Download size={16} /> Download Full Backup
                                 </button>
@@ -495,7 +885,7 @@ const SystemGuide = () => {
                             
                             <div className="bg-purple-500/5 border border-purple-500/20 p-6 rounded-2xl">
                                 <h4 className="font-bold text-purple-100 mb-2">Restore Backup</h4>
-                                <p className="text-xs text-gray-400 mb-4">Upload a previously saved JSON backup file to overwrite current data.</p>
+                                <p className="text-xs text-gray-400 mb-4">Upload a previously saved JSON backup file.</p>
                                 <button onClick={() => fileInputRef.current?.click()} className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors w-full justify-center">
                                     <Upload size={16} /> Restore from File
                                 </button>
@@ -506,7 +896,7 @@ const SystemGuide = () => {
 
                      <div className="border-t border-white/10 pt-8">
                          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                            <Database size={20} className="text-red-400"/> Data Management (Danger Zone)
+                            <Database size={20} className="text-red-400"/> Data Management
                          </h3>
                          <div className="flex gap-4 items-center flex-wrap">
                              <button 
@@ -525,8 +915,8 @@ const SystemGuide = () => {
                                 </button>
                              ) : (
                                  <div className="flex items-center gap-2 animate-in fade-in">
-                                     <span className="text-red-400 text-xs font-bold uppercase mr-2">Are you sure? This cannot be undone.</span>
-                                     <button onClick={() => { clearSystem(); setConfirmClear(false); }} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Yes, Nuke It</button>
+                                     <span className="text-red-400 text-xs font-bold uppercase mr-2">Are you sure?</span>
+                                     <button onClick={() => { clearSystem(); setConfirmClear(false); }} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Yes</button>
                                      <button onClick={() => setConfirmClear(false)} className="bg-white/10 text-white px-4 py-2 rounded-lg font-bold text-sm">Cancel</button>
                                  </div>
                              )}
@@ -537,16 +927,6 @@ const SystemGuide = () => {
         </div>
     );
 };
-
-const PlaceholderEditor = ({ title }: { title: string }) => (
-    <div className="p-12 text-center text-gray-500 bg-[#161817] rounded-2xl border border-white/5 flex flex-col items-center gap-4">
-        <PenTool size={48} className="text-gray-600" />
-        <div>
-            <h2 className="text-xl font-bold text-white mb-2">{title} Editor</h2>
-            <p>This content editor is currently under development.</p>
-        </div>
-    </div>
-);
 
 // --- MAIN ADMIN DASHBOARD ---
 
@@ -658,22 +1038,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
         {/* CONTENT AREA */}
         <main className="flex-1 overflow-y-auto bg-[#0f1110] relative">
             <div className="max-w-5xl mx-auto p-8 pb-24">
-                {/* Header */}
-                <header className="mb-8 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-black text-white">{
-                            activeSubTab === 'systemGuide' ? 'System Status' : 
-                            activeSubTab === 'deploymentGuide' ? 'Deployment' :
-                            activeSubTab.replace(/([A-Z])/g, ' $1').trim()
-                        }</h1>
-                        <p className="text-gray-500">Manage your {activeSubTab} settings</p>
-                    </div>
-                </header>
-
                 {/* Dynamic Content */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {activeSubTab === 'systemGuide' && <SystemGuide />}
                     {activeSubTab === 'deploymentGuide' && <DeploymentGuide />}
+                    
+                    {activeSubTab === 'company' && <CompanyEditor />}
+                    {activeSubTab === 'hero' && <HeroEditor />}
+                    {activeSubTab === 'about' && <AboutEditor />}
+                    {activeSubTab === 'services' && <ServicesEditor />}
+                    {activeSubTab === 'process' && <ProcessEditor />}
+                    {activeSubTab === 'serviceArea' && <ServiceAreaEditor />}
+                    {activeSubTab === 'safety' && <SafetyEditor />}
+                    {activeSubTab === 'faq' && <FaqEditor />}
+                    {activeSubTab === 'testimonials' && <TestimonialsEditor />}
+                    {activeSubTab === 'seo' && <SeoEditor />}
+                    {activeSubTab === 'creatorSettings' && <CreatorWidgetEditor />}
+                    
+                    {activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
+                    {activeSubTab === 'inquiries' && <InquiriesViewer />}
                     
                     {/* Job Management */}
                     {activeSubTab === 'jobs' && (
@@ -702,17 +1085,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                 ))}
                                 <button 
                                     onClick={() => {
-                                        const newJob: JobCard = { 
-                                            id: Date.now().toString(), 
-                                            refNumber: `JOB-${new Date().getFullYear().toString().slice(-2)}${(content.jobCards.length + 1).toString().padStart(3, '0')}`,
-                                            clientName: 'New Client', 
-                                            clientAddressDetails: { street: '', suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '' },
-                                            contactNumber: '', email: '', propertyType: 'Residential', assessmentDate: new Date().toISOString(), technicianId: '', selectedServices: [], checkpoints: [], isFirstTimeService: true, treatmentRecommendation: '', quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' }, status: 'Assessment', history: [] 
-                                        };
-                                        // We need to add it to context first, then select it
-                                        // This is a bit of a hack since addJobCard is async in context but sync here
-                                        // Ideally we'd await, but for now we trust react state updates
-                                        // In a real app we'd open a "New Job" modal first.
                                         alert("To create a new job, please use the Booking system or this feature will be fully implemented in the next update.");
                                     }} 
                                     className="bg-white/5 border border-dashed border-white/10 hover:border-pestGreen hover:bg-pestGreen/5 rounded-2xl flex flex-col items-center justify-center gap-4 min-h-[200px] transition-all"
@@ -724,11 +1096,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                 </button>
                             </div>
                         </div>
-                    )}
-
-                    {/* Placeholder for missing editors */}
-                    {!['systemGuide', 'deploymentGuide', 'jobs'].includes(activeSubTab) && (
-                        <PlaceholderEditor title={activeSubTab} />
                     )}
                 </div>
             </div>

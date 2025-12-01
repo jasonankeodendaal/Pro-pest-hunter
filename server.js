@@ -52,6 +52,10 @@ class DatabaseAdapter {
                     max: 10, // Connection pool size
                     idle_timeout: 20, // Idle connection timeout in seconds
                     connect_timeout: 10, // Connect timeout in seconds
+                    // Explicitly request IPv4 socket connection
+                    // This helps if an A-record exists but is being ignored.
+                    // If Supabase has removed the A-record entirely, this will fail with ENOTFOUND, prompt user to use Pooler.
+                    family: 4 
                 });
                 
                 // Test connection
@@ -59,11 +63,19 @@ class DatabaseAdapter {
                     console.log("SUCCESS: Connected to PostgreSQL DB.");
                 }).catch(err => {
                     console.error("CRITICAL: Failed to connect to PostgreSQL:", err.message);
-                    if (err.message.includes("ENOTFOUND")) {
-                        console.error("---------------------------------------------------------------");
-                        console.error("POSSIBLE CAUSE: Supabase Project is PAUSED or still creating.");
-                        console.error("ACTION: Log in to Supabase and click 'Restore' or wait a few mins.");
-                        console.error("---------------------------------------------------------------");
+                    
+                    if (err.message.includes("ENOTFOUND") || err.message.includes("ENETUNREACH") || err.code === 'ENETUNREACH') {
+                        console.error("\n/****************************************************\\");
+                        console.error(" CRITICAL CONNECTION ERROR: IPV6 / NETWORK ISSUE DETECTED");
+                        console.error("------------------------------------------------------");
+                        console.error(" Your network cannot reach the IPv6 address of the database.");
+                        console.error(" Supabase direct connections (port 5432) are often IPv6-only.");
+                        console.error("");
+                        console.error(" REQUIRED FIX:");
+                        console.error(" 1. Go to Supabase Dashboard -> Settings -> Database.");
+                        console.error(" 2. Find the 'Connection Pooler' URL (Port 6543).");
+                        console.error(" 3. Update your DATABASE_URL in .env to use this Pooler URL.");
+                        console.error("\\****************************************************/\n");
                     }
                 });
 
