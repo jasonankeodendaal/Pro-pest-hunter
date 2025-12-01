@@ -357,5 +357,5 @@ export interface ContentState {
 export type AdminMainTab = 'siteContent' | 'employees' | 'bookings';
 export type AdminSubTab = 
   'systemGuide' | 'company' | 'locations' | 'hero' | 'about' | 'services' | 'whyChooseUs' | 
-  'process' | 'serviceArea' | 'safety' | 'faq' | 'inquiriesContact' | 'seo' |
+  'process' | 'serviceArea' | 'safety' | 'faq' | 'contact' | 'seo' |
   'employeeDirectory' | 'inquiries' | 'jobs' | 'deploymentGuide' | 'creatorSettings' | 'testimonials'; // Added testimonials and creatorSettings

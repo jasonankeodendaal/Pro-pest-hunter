@@ -3,13 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
     Save, Image as ImageIcon, X, Plus, Trash2, LogOut, CheckCircle, 
-    Layout, Info, Briefcase, Star, List, MapPin, Shield, Megaphone, 
-    Phone, Settings, Globe, Clock, Eye, EyeOff, MoveUp, MoveDown,
+    Layout, Info, Briefcase, List, MapPin, Shield,
+    Phone, Globe, Clock, 
     BarChart3, Users, Calendar, AlertCircle, Search, ChevronRight, Video, Youtube, Image,
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -19,19 +19,26 @@ import { JobCardManager } from './JobCardManager';
 
 // --- HELPER COMPONENTS ---
 
-const InfoBlock = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 mb-6 flex items-start gap-4 shadow-sm">
-      <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400 shrink-0 mt-0.5">
-        <Info size={20} />
-      </div>
-      <div>
-        <h4 className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
-            {title}
-        </h4>
-        <p className="text-blue-100/80 text-xs leading-relaxed font-medium tracking-wide">
-            {text}
-        </p>
-      </div>
+const InfoBlock = ({ title, text, code }: { title: string; text: string, code?: string }) => (
+  <div className="bg-[#0f1110] border border-white/10 rounded-xl p-4 mb-6 shadow-sm">
+      <h4 className="text-pestGreen font-bold text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
+          {title}
+      </h4>
+      <p className="text-gray-400 text-xs leading-relaxed font-medium tracking-wide mb-3">
+          {text}
+      </p>
+      {code && (
+          <div className="bg-black p-3 rounded-lg border border-white/5 relative group">
+              <code className="text-blue-300 font-mono text-xs break-all">{code}</code>
+              <button 
+                onClick={() => navigator.clipboard.writeText(code)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-white"
+                title="Copy"
+              >
+                  <Copy size={12} />
+              </button>
+          </div>
+      )}
   </div>
 );
 
@@ -62,7 +69,7 @@ const EditorLayout = ({ title, icon, helpText, onSave, children }: { title: stri
     const [showHelp, setShowHelp] = useState(false);
 
     return (
-        <div className="space-y-6 animate-in fade-in relative">
+        <div className="space-y-6 animate-in fade-in relative pb-20">
             <SectionHeader title={title} icon={icon} onHelp={() => setShowHelp(!showHelp)} />
             
             <AnimatePresence>
@@ -86,13 +93,12 @@ const EditorLayout = ({ title, icon, helpText, onSave, children }: { title: stri
 
             {children}
 
-            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between bg-[#0f1110] sticky bottom-0 z-10 py-4">
-                <span className="text-xs text-gray-500 italic flex items-center gap-1"><Info size={12}/> Changes are local until saved.</span>
+            <div className="fixed bottom-6 right-6 z-40">
                 <button 
                     onClick={onSave}
-                    className="bg-pestGreen hover:bg-white hover:text-pestGreen text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+                    className="bg-pestGreen hover:bg-white hover:text-pestGreen text-white px-6 py-4 rounded-full font-bold transition-all shadow-3d hover:shadow-neon flex items-center gap-2"
                 >
-                    <Save size={18} /> Save Changes
+                    <Save size={20} /> <span className="hidden md:inline">Save Changes</span>
                 </button>
             </div>
         </div>
@@ -104,19 +110,26 @@ const EditorLayout = ({ title, icon, helpText, onSave, children }: { title: stri
 const CompanyEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.company);
+    const [bankData, setBankData] = useState(content.bankDetails);
     
     const update = (updates: any) => setLocalData(prev => ({ ...prev, ...updates }));
+    const updateBank = (updates: any) => setBankData(prev => ({ ...prev, ...updates }));
+
+    const handleSave = () => {
+        updateContent('company', localData);
+        updateContent('bankDetails', bankData);
+    };
 
     return (
         <EditorLayout
             title="Company Information"
             icon={Building2}
-            helpText="This section controls the core business details displayed across the header, footer, and contact pages. Ensure your Phone, Email, and Address are accurate as these are used for the 'Call Now' buttons and Google Maps integration."
-            onSave={() => updateContent('company', localData)}
+            helpText="Manage core business details. 'Bank Details' are used on invoices generated by the system."
+            onSave={handleSave}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Core Details</h3>
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Core Details</h3>
                     <Input label="Company Name" value={localData.name} onChange={(v: string) => update({ name: v })} />
                     <Input label="Registration Number" value={localData.regNumber} onChange={(v: string) => update({ regNumber: v })} />
                     <Input label="VAT Number" value={localData.vatNumber} onChange={(v: string) => update({ vatNumber: v })} />
@@ -124,27 +137,80 @@ const CompanyEditor = () => {
                 </div>
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Contact Info</h3>
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Contact Info</h3>
                     <Input label="Phone Number" value={localData.phone} onChange={(v: string) => update({ phone: v })} />
                     <Input label="Email Address" value={localData.email} onChange={(v: string) => update({ email: v })} />
                     <TextArea label="Physical Address" value={localData.address} onChange={(v: string) => update({ address: v })} rows={3} />
                 </div>
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Operating Hours</h3>
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Operating Hours</h3>
                     <Input label="Weekdays" value={localData.hours.weekdays} onChange={(v: string) => update({ hours: { ...localData.hours, weekdays: v } })} />
                     <Input label="Saturday" value={localData.hours.saturday} onChange={(v: string) => update({ hours: { ...localData.hours, saturday: v } })} />
                     <Input label="Sunday" value={localData.hours.sunday} onChange={(v: string) => update({ hours: { ...localData.hours, sunday: v } })} />
                 </div>
 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Social Media & Branding</h3>
-                    <Input label="Facebook URL" value={localData.socials.facebook} onChange={(v: string) => update({ socials: { ...localData.socials, facebook: v } })} />
-                    <Input label="Instagram URL" value={localData.socials.instagram} onChange={(v: string) => update({ socials: { ...localData.socials, instagram: v } })} />
-                    <Input label="LinkedIn URL" value={localData.socials.linkedin} onChange={(v: string) => update({ socials: { ...localData.socials, linkedin: v } })} />
-                    <div className="mt-4">
-                        <FileUpload label="Company Logo" value={localData.logo} onChange={(v: string) => update({ logo: v })} />
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Branding & Socials</h3>
+                    <FileUpload label="Company Logo" value={localData.logo} onChange={(v: string) => update({ logo: v })} />
+                    <div className="pt-4 space-y-2">
+                        <Input label="Facebook URL" value={localData.socials.facebook} onChange={(v: string) => update({ socials: { ...localData.socials, facebook: v } })} />
+                        <Input label="Instagram URL" value={localData.socials.instagram} onChange={(v: string) => update({ socials: { ...localData.socials, instagram: v } })} />
                     </div>
+                </div>
+
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 md:col-span-2">
+                    <h3 className="text-pestGreen font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2"><CreditCard size={18}/> Bank Details (For Invoices)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input label="Bank Name" value={bankData.bankName} onChange={(v: string) => updateBank({ bankName: v })} />
+                        <Input label="Account Name" value={bankData.accountName} onChange={(v: string) => updateBank({ accountName: v })} />
+                        <Input label="Account Number" value={bankData.accountNumber} onChange={(v: string) => updateBank({ accountNumber: v })} />
+                        <Input label="Branch Code" value={bankData.branchCode} onChange={(v: string) => updateBank({ branchCode: v })} />
+                    </div>
+                </div>
+            </div>
+        </EditorLayout>
+    );
+};
+
+const ContactEditor = () => {
+    const { content, updateContent } = useContent();
+    const [localData, setLocalData] = useState(content.contact);
+    const [bookData, setBookData] = useState(content.bookCTA);
+
+    const handleSave = () => {
+        updateContent('contact', localData);
+        updateContent('bookCTA', bookData);
+    };
+
+    return (
+        <EditorLayout
+            title="Contact & CTA"
+            icon={Phone}
+            helpText="Edit the contact page map and the 'Book Now' banner found on the home page."
+            onSave={handleSave}
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Contact Page Details</h3>
+                    <Input label="Header Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
+                    <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
+                    <Input label="Form Title" value={localData.formTitle} onChange={(v: string) => setLocalData({ ...localData, formTitle: v })} />
+                    <TextArea 
+                        label="Google Maps Embed URL (iframe src)" 
+                        value={localData.mapEmbedUrl} 
+                        onChange={(v: string) => setLocalData({ ...localData, mapEmbedUrl: v })} 
+                        rows={3} 
+                        placeholder="https://www.google.com/maps/embed?..."
+                    />
+                </div>
+
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold mb-4">Book Now Banner (CTA)</h3>
+                    <Input label="Banner Title" value={bookData.title} onChange={(v: string) => setBookData({ ...bookData, title: v })} />
+                    <TextArea label="Banner Subtitle" value={bookData.subtitle} onChange={(v: string) => setBookData({ ...bookData, subtitle: v })} rows={2} />
+                    <Input label="Button Text" value={bookData.buttonText} onChange={(v: string) => setBookData({ ...bookData, buttonText: v })} />
+                    <FileUpload label="Banner Background Image" value={bookData.bgImage} onChange={(v: string) => setBookData({ ...bookData, bgImage: v })} />
                 </div>
             </div>
         </EditorLayout>
@@ -160,12 +226,12 @@ const HeroEditor = () => {
         <EditorLayout
             title="Hero Section"
             icon={Layout}
-            helpText="The Hero section is the first thing visitors see. Use a high-quality background video (MP4) or image. The 'Headline' should be punchy and value-driven. The 'Overlay Opacity' controls how dark the background is behind the text (0-100)."
+            helpText="The Hero section is the first thing visitors see. Choose between a Static Image, a Video Loop (MP4), or an Image Carousel."
             onSave={() => updateContent('hero', localData)}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Main Text</h3>
+                    <h3 className="text-white font-bold mb-4">Text Content</h3>
                     <TextArea label="Headline" value={localData.headline} onChange={(v: string) => update({ headline: v })} rows={2} />
                     <TextArea label="Subheadline" value={localData.subheadline} onChange={(v: string) => update({ subheadline: v })} rows={2} />
                     <Input label="Button Text" value={localData.buttonText} onChange={(v: string) => update({ buttonText: v })} />
@@ -173,11 +239,34 @@ const HeroEditor = () => {
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Visual Media</h3>
-                    <div className="space-y-4">
-                        <FileUpload label="Background Image" value={localData.bgImage} onChange={(v: string) => update({ bgImage: v })} />
+                    <Select 
+                        label="Media Type" 
+                        value={localData.mediaType || 'video'} 
+                        options={[{label:'Video Loop', value:'video'}, {label:'Static Image', value:'static'}, {label:'Image Carousel', value:'imageCarousel'}]}
+                        onChange={(v: string) => update({ mediaType: v })} 
+                    />
+                    
+                    {localData.mediaType === 'video' && (
                         <FileUpload label="Video File (MP4)" value={localData.mediaVideo} onChange={(v: string) => update({ mediaVideo: v })} />
-                        <Input label="Overlay Opacity (%)" type="number" value={localData.overlayOpacity} onChange={(v: string) => update({ overlayOpacity: parseInt(v) })} />
-                    </div>
+                    )}
+
+                    {localData.mediaType === 'static' && (
+                        <FileUpload label="Background Image" value={localData.bgImage} onChange={(v: string) => update({ bgImage: v })} />
+                    )}
+
+                    {localData.mediaType === 'imageCarousel' && (
+                         <div className="space-y-4">
+                            <FileUpload 
+                                label="Carousel Images" 
+                                value={localData.mediaImages || []} 
+                                onChange={(v: string[]) => update({ mediaImages: v })} 
+                                multiple={true}
+                            />
+                            <Input label="Interval (ms)" type="number" value={localData.carouselInterval || 3000} onChange={(v: string) => update({ carouselInterval: parseInt(v) })} />
+                         </div>
+                    )}
+                    
+                    <Input label="Overlay Opacity (%)" type="number" value={localData.overlayOpacity} onChange={(v: string) => update({ overlayOpacity: parseInt(v) })} />
                 </div>
             </div>
         </EditorLayout>
@@ -193,21 +282,21 @@ const AboutEditor = () => {
         <EditorLayout
             title="About Us Section"
             icon={Info}
-            helpText="Tell your company story here. This builds trust. The 'Owner/Team Image' is displayed prominently. The 'Mission' text appears as a highlight."
+            helpText="Manage the story, mission statement, and owner profile image."
             onSave={() => updateContent('about', localData)}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Main Story</h3>
                     <Input label="Title" value={localData.title} onChange={(v: string) => update({ title: v })} />
-                    <TextArea label="Main Text" value={localData.text} onChange={(v: string) => update({ text: v })} rows={6} />
+                    <TextArea label="Main Text" value={localData.text} onChange={(v: string) => update({ text: v })} rows={8} />
                 </div>
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Mission & Visuals</h3>
                     <Input label="Mission Title" value={localData.missionTitle} onChange={(v: string) => update({ missionTitle: v })} />
                     <TextArea label="Mission Text" value={localData.missionText} onChange={(v: string) => update({ missionText: v })} rows={3} />
-                    <div className="mt-4">
+                    <div className="mt-4 pt-4 border-t border-white/5">
                         <FileUpload label="Owner / Team Image" value={localData.ownerImage} onChange={(v: string) => update({ ownerImage: v })} />
                     </div>
                 </div>
@@ -281,7 +370,7 @@ const ServicesEditor = () => {
 
     if (editingId && tempService) {
         return (
-            <div className="space-y-6 animate-in fade-in">
+            <div className="space-y-6 animate-in fade-in pb-20">
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-white">Edit Service</h2>
                     <div className="flex gap-2">
@@ -337,7 +426,7 @@ const ServicesEditor = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in">
+        <div className="space-y-6 animate-in fade-in pb-20">
             <SectionHeader 
                 title="Manage Services" 
                 icon={Zap} 
@@ -370,7 +459,7 @@ const ServicesEditor = () => {
 };
 
 const ProcessEditor = () => {
-    const { content, updateProcessSteps, updateContent } = useContent();
+    const { content, updateContent } = useContent();
     const [localProcess, setLocalProcess] = useState(content.process);
 
     const handleStepChange = (index: number, field: keyof ProcessStep, value: string) => {
@@ -379,16 +468,12 @@ const ProcessEditor = () => {
         setLocalProcess(prev => ({ ...prev, steps: newSteps }));
     };
 
-    const handleSave = () => {
-        updateContent('process', localProcess);
-    };
-
     return (
         <EditorLayout
             title="Process Section"
             icon={Workflow}
-            helpText="Describe your workflow in 4 simple steps. This appears on the Home and Process pages. Use short, punchy titles and descriptions."
-            onSave={handleSave}
+            helpText="Describe your workflow steps. These icons correspond to Lucide React icons."
+            onSave={() => updateContent('process', localProcess)}
         >
             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-8">
                 <h3 className="text-white font-bold mb-4">Section Headings</h3>
@@ -397,7 +482,7 @@ const ProcessEditor = () => {
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-white font-bold px-1">Steps</h3>
+                <h3 className="text-white font-bold px-1">Workflow Steps</h3>
                 {localProcess.steps.map((step, idx) => (
                     <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex gap-4 items-start">
                         <div className="bg-white/5 w-8 h-8 flex items-center justify-center rounded-full text-white font-bold shrink-0">{step.step}</div>
@@ -428,7 +513,7 @@ const ServiceAreaEditor = () => {
         <EditorLayout
             title="Service Area"
             icon={MapPin}
-            helpText="Define where you operate. The 'Towns' list is used for the interactive map tags. Upload a high-res image of your service area map."
+            helpText="The 'Towns' list populates the interactive map tags. Upload a clear map image."
             onSave={() => updateContent('serviceArea', localData)}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -456,7 +541,7 @@ const SafetyEditor = () => {
         <EditorLayout
             title="Safety & Certification"
             icon={Shield}
-            helpText="Upload logos of your certifications (Sapca, Dept of Ag). The 3 badges are short key phrases (e.g. 'Pet Safe') displayed prominently."
+            helpText="Upload compliance certificates (Sapca, etc.) and define your 3 key safety badges."
             onSave={() => updateContent('safety', localData)}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -523,55 +608,6 @@ const FaqEditor = () => {
     );
 };
 
-const TestimonialsEditor = () => {
-    const { content, updateContent } = useContent();
-    const [localTests, setLocalTests] = useState(content.testimonials);
-
-    const handleUpdate = (index: number, field: keyof TestimonialItem, value: any) => {
-        const newTests = [...localTests];
-        newTests[index] = { ...newTests[index], [field]: value };
-        setLocalTests(newTests);
-    };
-
-    const handleAdd = () => {
-        const newTest: TestimonialItem = { id: `test-${Date.now()}`, name: 'New Client', location: 'City', text: 'Great service!', rating: 5 };
-        setLocalTests([...localTests, newTest]);
-    };
-
-    const handleDelete = (index: number) => {
-        setLocalTests(localTests.filter((_, i) => i !== index));
-    };
-
-    return (
-        <EditorLayout
-            title="Client Testimonials"
-            icon={Star}
-            helpText="Showcase positive reviews. Ratings are 1-5 stars. Location adds credibility."
-            onSave={() => updateContent('testimonials', localTests)}
-        >
-             <div className="flex justify-end mb-4">
-                <button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Review</button>
-             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {localTests.map((t, idx) => (
-                    <div key={t.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
-                        <button onClick={() => handleDelete(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
-                        <div className="flex gap-4 mb-4">
-                            <Input label="Name" value={t.name} onChange={(v: string) => handleUpdate(idx, 'name', v)} />
-                            <Input label="Location" value={t.location} onChange={(v: string) => handleUpdate(idx, 'location', v)} />
-                        </div>
-                        <TextArea label="Review Text" value={t.text} onChange={(v: string) => handleUpdate(idx, 'text', v)} rows={3} />
-                        <div className="mt-4">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Rating (1-5)</label>
-                            <input type="number" min="1" max="5" value={t.rating} onChange={(e) => handleUpdate(idx, 'rating', parseInt(e.target.value))} className="w-full p-2 bg-black/30 border border-white/10 rounded-lg text-white mt-1" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </EditorLayout>
-    );
-};
-
 const SeoEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.seo);
@@ -580,7 +616,7 @@ const SeoEditor = () => {
         <EditorLayout
             title="SEO Settings"
             icon={Search}
-            helpText="Optimize for Google search. 'Meta Title' and 'Description' are what appear in search results. 'OG Image' is what shows when shared on WhatsApp/Facebook."
+            helpText="Optimize for Google search. 'Meta Title' and 'Description' are what appear in search results."
             onSave={() => updateContent('seo', localData)}
         >
             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
@@ -590,7 +626,9 @@ const SeoEditor = () => {
                 <div className="pt-4 border-t border-white/5">
                     <FileUpload label="Social Share Image (OG Image)" value={localData.ogImage} onChange={(v: string) => setLocalData({ ...localData, ogImage: v })} />
                 </div>
-                <Input label="Structured Data (JSON-LD)" value={localData.structuredDataJSON} onChange={(v: string) => setLocalData({ ...localData, structuredDataJSON: v })} />
+                <Input label="Canonical URL" value={localData.canonicalUrl || ''} onChange={(v: string) => setLocalData({ ...localData, canonicalUrl: v })} />
+                <Input label="Robots" value={localData.robotsDirective || 'index, follow'} onChange={(v: string) => setLocalData({ ...localData, robotsDirective: v })} />
+                <TextArea label="Structured Data (JSON-LD)" value={localData.structuredDataJSON} onChange={(v: string) => setLocalData({ ...localData, structuredDataJSON: v })} rows={6} />
             </div>
         </EditorLayout>
     );
@@ -629,6 +667,111 @@ const CreatorWidgetEditor = () => {
         </EditorLayout>
     );
 };
+
+// --- CREATOR EXCLUSIVE: ZERO TO HERO GUIDE ---
+const ZeroToHeroGuide = () => {
+    const { apiUrl } = useContent();
+    
+    return (
+        <div className="space-y-8 animate-in fade-in pb-20">
+            <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-3xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+                            <Terminal size={32} className="text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black text-white">Zero-to-Hero Masterclass</h2>
+                            <p className="text-purple-200">The complete full-stack deployment guide for beginners.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        {/* PHASE 1 */}
+                        <div>
+                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><GitBranch size={20}/> Phase 1: GitHub (Source Code)</h3>
+                             <InfoBlock 
+                                title="1. Initialize Git" 
+                                text="Open your project folder in VS Code terminal. Run these commands one by one."
+                                code={`git init\ngit add .\ngit commit -m "Initial commit"`}
+                             />
+                             <InfoBlock 
+                                title="2. Push to GitHub" 
+                                text="Create a NEW repository on GitHub (e.g., 'pest-app'). Do not add a README. Then run:"
+                                code={`git remote add origin https://github.com/YOUR_USERNAME/pest-app.git\ngit branch -M main\ngit push -u origin main`}
+                             />
+                        </div>
+
+                        {/* PHASE 2 */}
+                        <div>
+                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Database size={20}/> Phase 2: Supabase (Database)</h3>
+                             <InfoBlock 
+                                title="1. Create Project" 
+                                text="Go to Supabase.com -> New Project. Name it 'pest-db'. Save your Database Password!" 
+                             />
+                             <InfoBlock 
+                                title="2. Get Connection String" 
+                                text="Go to Project Settings -> Database -> Connection String -> URI. Copy it. It looks like: postgresql://postgres.xxxx:password@aws-0-region.pooler.supabase.com:6543/postgres" 
+                             />
+                             <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl mb-4">
+                                <p className="text-yellow-500 text-xs font-bold">IMPORTANT: Replace `[YOUR-PASSWORD]` in the URL with the password you created in step 1.</p>
+                             </div>
+                        </div>
+
+                        {/* PHASE 3 */}
+                        <div>
+                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Server size={20}/> Phase 3: Render (Backend Hosting)</h3>
+                             <InfoBlock 
+                                title="1. Create Web Service" 
+                                text="Go to Render.com -> New Web Service -> Connect GitHub -> Select 'pest-app'." 
+                             />
+                             <InfoBlock 
+                                title="2. Configure Settings" 
+                                text="Runtime: Node.  Build Command: `npm install`.  Start Command: `node server.js`." 
+                             />
+                             <InfoBlock 
+                                title="3. Add Environment Variables" 
+                                text="Scroll down to 'Environment Variables'. Add Key: `DATABASE_URL`, Value: (Paste your Supabase URL from Phase 2)." 
+                             />
+                             <InfoBlock 
+                                title="4. Deploy" 
+                                text="Click Create Web Service. Wait for it to show 'Live'. Copy the Render URL (e.g. https://pest-app.onrender.com)." 
+                             />
+                        </div>
+
+                        {/* PHASE 4 */}
+                        <div>
+                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Globe2 size={20}/> Phase 4: Vercel (Frontend Hosting)</h3>
+                             <InfoBlock 
+                                title="1. Import Project" 
+                                text="Go to Vercel.com -> Add New -> Project -> Import 'pest-app' from GitHub." 
+                             />
+                             <InfoBlock 
+                                title="2. Environment Variables" 
+                                text="In the setup screen, add variable: `VITE_API_URL`. Value: (Paste your Render URL from Phase 3). IMPORTANT: Remove any trailing slash!" 
+                             />
+                             <InfoBlock 
+                                title="3. Deploy" 
+                                text="Click Deploy. Vercel will build the site. Once done, your app is live!" 
+                             />
+                        </div>
+                        
+                        <div className="border-t border-purple-500/30 pt-6 mt-8">
+                            <h3 className="text-white font-bold mb-2">Current System Connection</h3>
+                            <div className="bg-black/40 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                                <code className="text-pestGreen font-mono">{apiUrl}</code>
+                                <span className="text-xs text-gray-500 uppercase font-bold">Active API</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- EMPLOYEE EDITOR ---
 
 const EmployeeEditor = () => {
     const { content, addEmployee, updateEmployee, deleteEmployee } = useContent();
@@ -671,7 +814,7 @@ const EmployeeEditor = () => {
 
     if (editingId && tempEmp) {
         return (
-            <div className="space-y-6 animate-in fade-in">
+            <div className="space-y-6 animate-in fade-in pb-20">
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-white">Edit Employee</h2>
                     <div className="flex gap-2">
@@ -717,7 +860,7 @@ const EmployeeEditor = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in">
+        <div className="space-y-6 animate-in fade-in pb-20">
             <SectionHeader 
                 title="Staff Directory" 
                 icon={Users} 
@@ -748,119 +891,7 @@ const EmployeeEditor = () => {
     );
 };
 
-const InquiriesViewer = () => {
-    const { content } = useContent();
-    const bookings = content.bookings;
-
-    return (
-        <div className="space-y-6 animate-in fade-in">
-            <SectionHeader title="Web Inquiries & Bookings" icon={Inbox} />
-            
-            <div className="bg-[#161817] rounded-2xl border border-white/5 overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
-                            <th className="p-4">Date Rec.</th>
-                            <th className="p-4">Client</th>
-                            <th className="p-4">Service</th>
-                            <th className="p-4">Requested Date</th>
-                            <th className="p-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {bookings.length > 0 ? bookings.map((b) => (
-                            <tr key={b.id} className="text-white hover:bg-white/5 transition-colors">
-                                <td className="p-4 text-xs text-gray-500">{new Date(b.submittedAt).toLocaleDateString()}</td>
-                                <td className="p-4">
-                                    <div className="font-bold">{b.clientName}</div>
-                                    <div className="text-xs text-gray-500">{b.clientPhone}</div>
-                                </td>
-                                <td className="p-4 text-sm">{b.serviceName}</td>
-                                <td className="p-4 text-sm font-mono">{new Date(b.date).toLocaleDateString()}</td>
-                                <td className="p-4">
-                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${b.status === 'New' ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'}`}>
-                                        {b.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        )) : (
-                            <tr>
-                                <td colSpan={5} className="p-8 text-center text-gray-500 italic">No inquiries received yet.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
-
-// --- SYSTEM GUIDES (DEPLOYMENT & STATUS) ---
-
-const DeploymentGuide = () => {
-    const { apiUrl, setApiUrl } = useContent();
-    const [tempUrl, setTempUrl] = useState(apiUrl);
-
-    return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-         <div className="bg-[#161817] border border-pestGreen/30 rounded-2xl p-8 relative overflow-hidden">
-             {/* Header */}
-             <div className="absolute -top-10 -right-10 w-64 h-64 bg-pestGreen/10 rounded-full blur-3xl"></div>
-             <div className="flex items-center gap-4 mb-8 relative z-10">
-                 <div className="w-20 h-20 bg-pestGreen rounded-2xl flex items-center justify-center shadow-neon shrink-0">
-                     <Code2 size={40} className="text-white" />
-                 </div>
-                 <div>
-                     <h2 className="text-4xl font-black text-white leading-tight">Zero-to-Hero Masterclass</h2>
-                     <p className="text-gray-400 text-lg">The 100% Free, Full Stack Deployment Guide (GitHub + Supabase + Render + Vercel).</p>
-                 </div>
-             </div>
-             
-             {/* LIVE CONNECTION TOOL */}
-             <div className="bg-gray-900 border border-pestGreen p-6 rounded-2xl mb-12 relative z-20 shadow-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-pestGreen/20 rounded-lg text-pestGreen animate-pulse">
-                        <Wifi size={24} />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold text-white">Live API Connection</h3>
-                        <p className="text-gray-400 text-xs">Enter your deployed server URL (Phase 3) here to connect the dashboard.</p>
-                    </div>
-                </div>
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <div className="flex-1 w-full relative">
-                        <input 
-                            type="text" 
-                            value={tempUrl} 
-                            onChange={(e) => setTempUrl(e.target.value)}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-pestGreen outline-none font-mono text-sm"
-                            placeholder="https://pest-backend.onrender.com" 
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                             <span className={`w-2 h-2 rounded-full ${apiUrl.includes('localhost') ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                             <span className="text-[10px] uppercase font-bold text-gray-500">{apiUrl.includes('localhost') ? 'Localhost' : 'Live Remote'}</span>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => setApiUrl(tempUrl)} 
-                        className="w-full md:w-auto bg-pestGreen hover:bg-white hover:text-pestGreen text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
-                    >
-                        <Server size={18} /> Connect & Reload
-                    </button>
-                </div>
-             </div>
-             
-             {/* Phases Content - Simplified for brevity in this update, keeping layout */}
-             <div className="space-y-12 relative z-10">
-                <InfoBlock title="Phase 1: GitHub" text="Create a repo named 'pest-control-app' and upload all project files. This is your source of truth." />
-                <InfoBlock title="Phase 2: Supabase" text="Create a free PostgreSQL database. Get the connection string from Settings -> Database. Use connection pooling (Transaction mode)." />
-                <InfoBlock title="Phase 3: Render" text="Create a Web Service connected to your GitHub repo. Set Environment Variables: DATABASE_URL (from Supabase)." />
-                <InfoBlock title="Phase 4: Vercel" text="Import project from GitHub. Set VITE_API_URL to your Render backend URL (no trailing slash)." />
-             </div>
-         </div>
-    </div>
-    );
-};
+// --- SYSTEM STATUS & GUIDE ---
 
 const SystemGuide = () => {
     const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType, connectionError, isConnecting, retryConnection } = useContent();
@@ -869,7 +900,7 @@ const SystemGuide = () => {
 
     const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            if (window.confirm("WARNING: This will overwrite ALL current data with the backup file. Are you sure?")) {
+            if (window.confirm("WARNING: This will overwrite ALL current data. Are you sure?")) {
                 const success = await restoreBackup(e.target.files[0]);
                 if (success) alert("System restored successfully.");
                 else alert("Restore failed. Check file format.");
@@ -880,7 +911,7 @@ const SystemGuide = () => {
     const isRenderWithSqlite = dbType === 'sqlite' && !apiUrl.includes('localhost');
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-20">
             {/* SETUP & STATUS SECTION */}
             <div className="bg-[#161817] border border-white/10 rounded-2xl p-8 relative overflow-hidden">
                  <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -z-10"></div>
@@ -898,8 +929,8 @@ const SystemGuide = () => {
                                      <h3 className="text-xl font-black text-red-500 uppercase mb-2">CRITICAL: DATA LOSS RISK DETECTED</h3>
                                      <p className="text-white font-bold mb-2">You are running on a Live Render Server using a Local SQLite Database.</p>
                                      <p className="text-gray-300 text-sm mb-4">
-                                         Render deletes local files every time the server restarts (sleeps). Any content you upload will be DELETED automatically. 
-                                         You MUST connect Supabase (PostgreSQL) to save data permanently.
+                                         Render deletes local files every time the server restarts. Any content you upload will be DELETED automatically. 
+                                         Please refer to the "Zero-to-Hero" guide in the Creator tab to connect Supabase.
                                      </p>
                                  </div>
                              </div>
@@ -1019,7 +1050,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
-  const { content, deleteJobCard } = useContent(); // Added deleteJobCard
+  const { content, deleteJobCard } = useContent(); 
   
   // Permissions & Roles
   const perms = loggedInUser?.permissions || {
@@ -1036,29 +1067,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
   const isCreator = loggedInUser?.id === 'creator-admin';
   const isAdmin = perms.isAdmin;
 
-  // Main Tab Visibility
   const showSiteTab = perms.isAdmin || perms.canEditSiteContent;
-  const showWorkTab = true; // Work tab available to all logged in users (filtered internally)
+  const showWorkTab = true; 
   const showTeamTab = perms.isAdmin || perms.canManageEmployees;
+  // Creator tab is only for Creator ID
+  const showCreatorTab = isCreator;
 
-  // Initialize state based on permissions
   const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>(showSiteTab ? 'siteContent' : 'bookings');
-  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'systemGuide' : 'jobs');
+  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'company' : 'jobs');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-  // Security Redirect: If user tries to access a tab they don't have permission for
+  // Security Redirect
   useEffect(() => {
      if (activeMainTab === 'siteContent' && !showSiteTab) {
          setActiveMainTab('bookings');
          setActiveSubTab('jobs');
      }
-     if (activeMainTab === 'employees' && !showTeamTab) {
-         setActiveMainTab('bookings');
-         setActiveSubTab('jobs');
-     }
-  }, [activeMainTab, showSiteTab, showTeamTab]);
+  }, [activeMainTab, showSiteTab]);
 
-  // If a job is selected, show the JobManager overlay instead of dashboard
   if (selectedJobId) {
       return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
   }
@@ -1102,20 +1128,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             </div>
 
             {/* Main Tabs */}
-            <div className="flex p-2 gap-1 border-b border-white/5">
+            <div className="flex p-2 gap-1 border-b border-white/5 overflow-x-auto scrollbar-hide">
                 {showSiteTab && (
-                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab(isAdmin ? 'systemGuide' : 'company'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'siteContent' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab('company'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'siteContent' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Globe size={18} /> Site
                     </button>
                 )}
                 {showWorkTab && (
-                    <button onClick={() => { setActiveMainTab('bookings'); setActiveSubTab('jobs'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'bookings' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button onClick={() => { setActiveMainTab('bookings'); setActiveSubTab('jobs'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'bookings' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Briefcase size={18} /> Work
                     </button>
                 )}
                 {showTeamTab && (
-                    <button onClick={() => { setActiveMainTab('employees'); setActiveSubTab('employeeDirectory'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'employees' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button onClick={() => { setActiveMainTab('employees'); setActiveSubTab('employeeDirectory'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'employees' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Users size={18} /> Team
+                    </button>
+                )}
+                {showCreatorTab && (
+                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab('creatorSettings'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeSubTab === 'creatorSettings' || activeSubTab === 'deploymentGuide' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-purple-400'}`}>
+                        <Code2 size={18} /> Dev
                     </button>
                 )}
             </div>
@@ -1126,10 +1157,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 
                 {/* Site Content Subtabs */}
                 {isAdmin && <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="siteContent" />}
-                {isAdmin && <SidebarItem id="deploymentGuide" label="Deployment Guide" icon={Cloud} mainTab="siteContent" />}
-                {(isAdmin || (showSiteTab && !isAdmin)) && <div className="my-2 border-t border-white/5"></div>}
                 
                 <SidebarItem id="company" label="Company Info" icon={Building2} mainTab="siteContent" />
+                <SidebarItem id="contact" label="Contact & CTA" icon={Phone} mainTab="siteContent" />
                 <SidebarItem id="hero" label="Hero Section" icon={Layout} mainTab="siteContent" />
                 <SidebarItem id="about" label="About Us" icon={Info} mainTab="siteContent" />
                 <SidebarItem id="services" label="Services" icon={Zap} mainTab="siteContent" />
@@ -1137,15 +1167,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 <SidebarItem id="serviceArea" label="Service Area" icon={MapPin} mainTab="siteContent" />
                 <SidebarItem id="safety" label="Safety & badges" icon={Shield} mainTab="siteContent" />
                 <SidebarItem id="faq" label="FAQs" icon={HelpCircle} mainTab="siteContent" />
-                <SidebarItem id="testimonials" label="Testimonials" icon={Star} mainTab="siteContent" />
                 <SidebarItem id="seo" label="SEO Settings" icon={Search} mainTab="siteContent" />
                 
-                {/* CREATOR WIDGET - ONLY VISIBLE TO CREATOR */}
-                {isCreator && <SidebarItem id="creatorSettings" label="Creator Widget" icon={Code2} mainTab="siteContent" />}
+                {/* Creator Only */}
+                {isCreator && activeMainTab === 'siteContent' && (
+                    <>
+                        <div className="my-2 border-t border-white/5 px-2 py-1 text-xs font-bold text-purple-500 uppercase">Creator Hub</div>
+                        <button onClick={() => setActiveSubTab('creatorSettings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'creatorSettings' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><Code2 size={16}/> Widget Settings</button>
+                        <button onClick={() => setActiveSubTab('deploymentGuide')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'deploymentGuide' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><GitBranch size={16}/> Zero-to-Hero Guide</button>
+                    </>
+                )}
 
                 {/* Work Subtabs */}
                 <SidebarItem id="jobs" label="Job Cards" icon={Clipboard} mainTab="bookings" />
-                <SidebarItem id="inquiries" label="Inquiries" icon={Inbox} mainTab="bookings" />
+                <SidebarItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="bookings" />
 
                 {/* Team Subtabs */}
                 <SidebarItem id="employeeDirectory" label="Staff Directory" icon={Users} mainTab="employees" />
@@ -1171,14 +1206,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
         {/* CONTENT AREA */}
         <main className="flex-1 overflow-y-auto bg-[#0f1110] relative">
             <div className="max-w-5xl mx-auto p-8 pb-24">
-                {/* Dynamic Content */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* Only render these if on valid tab and permissions allow */}
                     
                     {activeMainTab === 'siteContent' && activeSubTab === 'systemGuide' && isAdmin && <SystemGuide />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'deploymentGuide' && isAdmin && <DeploymentGuide />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'deploymentGuide' && isCreator && <ZeroToHeroGuide />}
                     
                     {activeMainTab === 'siteContent' && activeSubTab === 'company' && <CompanyEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'contact' && <ContactEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'hero' && <HeroEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'about' && <AboutEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'services' && <ServicesEditor />}
@@ -1186,23 +1220,61 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     {activeMainTab === 'siteContent' && activeSubTab === 'serviceArea' && <ServiceAreaEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'safety' && <SafetyEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'faq' && <FaqEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'testimonials' && <TestimonialsEditor />}
                     {activeMainTab === 'siteContent' && activeSubTab === 'seo' && <SeoEditor />}
                     
-                    {/* Creator Widget Guard */}
                     {activeMainTab === 'siteContent' && activeSubTab === 'creatorSettings' && isCreator && <CreatorWidgetEditor />}
                     
                     {activeMainTab === 'employees' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
-                    {activeMainTab === 'bookings' && activeSubTab === 'inquiries' && <InquiriesViewer />}
+                    
+                    {/* Inquiries View */}
+                    {activeMainTab === 'bookings' && activeSubTab === 'inquiries' && (
+                         <div className="space-y-6">
+                            <SectionHeader title="Web Inquiries & Bookings" icon={Inbox} />
+                            <div className="bg-[#161817] rounded-2xl border border-white/5 overflow-hidden">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
+                                            <th className="p-4">Date Rec.</th>
+                                            <th className="p-4">Client</th>
+                                            <th className="p-4">Service</th>
+                                            <th className="p-4">Requested Date</th>
+                                            <th className="p-4">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {content.bookings.length > 0 ? content.bookings.map((b) => (
+                                            <tr key={b.id} className="text-white hover:bg-white/5 transition-colors">
+                                                <td className="p-4 text-xs text-gray-500">{new Date(b.submittedAt).toLocaleDateString()}</td>
+                                                <td className="p-4">
+                                                    <div className="font-bold">{b.clientName}</div>
+                                                    <div className="text-xs text-gray-500">{b.clientPhone}</div>
+                                                </td>
+                                                <td className="p-4 text-sm">{b.serviceName}</td>
+                                                <td className="p-4 text-sm font-mono">{new Date(b.date).toLocaleDateString()}</td>
+                                                <td className="p-4">
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${b.status === 'New' ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'}`}>
+                                                        {b.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={5} className="p-8 text-center text-gray-500 italic">No inquiries received yet.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Job Management */}
                     {activeMainTab === 'bookings' && activeSubTab === 'jobs' && (
-                        <div className="space-y-6">
+                        <div className="space-y-6 pb-20">
                             <SectionHeader title="Active Job Cards" icon={Clipboard} />
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {content.jobCards.map(job => (
                                     <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] border border-white/5 hover:border-pestGreen/50 p-6 rounded-2xl cursor-pointer group transition-all relative">
-                                        {/* Added Delete Button for Admins */}
                                         {isAdmin && (
                                             <button 
                                                 onClick={(e) => handleDeleteJob(e, job.id)} 
@@ -1230,12 +1302,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                         </div>
                                     </div>
                                 ))}
-                                {/* Create New Job - visible to those who can create */}
                                 {(perms.isAdmin || perms.canCreateQuotes) && (
                                     <button 
-                                        onClick={() => {
-                                            alert("To create a new job, please use the Booking system or this feature will be fully implemented in the next update.");
-                                        }} 
+                                        onClick={() => alert("To create a new job, please use the Booking system on the website.")} 
                                         className="bg-white/5 border border-dashed border-white/10 hover:border-pestGreen hover:bg-pestGreen/5 rounded-2xl flex flex-col items-center justify-center gap-4 min-h-[200px] transition-all"
                                     >
                                         <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white">

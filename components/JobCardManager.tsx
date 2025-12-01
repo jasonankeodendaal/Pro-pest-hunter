@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
 import { JobCard, Checkpoint, QuoteLineItem, JobStatus, Employee } from '../types';
-import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info } from 'lucide-react';
+import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info, Calculator, Percent } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 
@@ -87,6 +87,9 @@ const HELP_CONTENT: Record<string, { title: string; content: React.ReactNode }> 
         )
     }
 };
+
+const COMMON_PESTS = ['German Cockroach', 'American Cockroach', 'Ants (Sugar)', 'Termites (Subterranean)', 'Rodents (Rat)', 'Rodents (Mouse)'];
+const COMMON_AREAS = ['Kitchen Cupboard (Under Sink)', 'Main DB Board', 'Garage', 'Roof Void', 'External Perimeter', 'Bedroom Cupboards'];
 
 export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUser, onClose }) => {
     const { content, updateJobCard, deleteJobCard } = useContent();
@@ -289,13 +292,13 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     );
 
     const SaveBar = ({ onSave }: { onSave: () => void }) => (
-        <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+        <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between sticky bottom-0 bg-[#0f1110] pb-4 z-10">
             <span className="text-xs text-gray-500 italic flex items-center gap-1"><Info size={12}/> Changes are local until saved.</span>
             <button 
                 onClick={onSave}
                 className="bg-pestGreen hover:bg-white hover:text-pestGreen text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
             >
-                <Save size={18} /> Save {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Details
+                <Save size={18} /> Save Details
             </button>
         </div>
     );
@@ -440,6 +443,19 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         </button>
                                      </div>
                                  </div>
+                                 
+                                 {/* Quick Add Buttons */}
+                                 <div className="mb-6 space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Quick Select Pest</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {COMMON_PESTS.map(p => (
+                                            <button key={p} onClick={() => setNewCheckpoint(prev => ({ ...prev, pestType: p }))} className={`text-xs px-3 py-1 rounded-full border transition-colors ${newCheckpoint.pestType === p ? 'bg-pestGreen text-white border-pestGreen' : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'}`}>
+                                                {p}
+                                            </button>
+                                        ))}
+                                    </div>
+                                 </div>
+
                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                      <Input label="Area Name" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} placeholder="e.g. Kitchen Cupboard" />
                                      <Input label="Pest Found" value={newCheckpoint.pestType} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, pestType: v }))} placeholder="e.g. German Cockroach" />
@@ -522,9 +538,29 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
                              {/* Quote Summary Table */}
                              <div className={`bg-[#161817] border border-white/5 rounded-2xl overflow-hidden shadow-2xl ${!isAdmin ? 'opacity-80' : ''}`}>
+                                 <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                                    <h3 className="text-white font-bold">Line Items</h3>
+                                    {isAdmin && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-gray-400 uppercase">VAT Rate:</span>
+                                            <input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={job.quote.vatRate * 100}
+                                                onChange={(e) => {
+                                                    const newRate = parseFloat(e.target.value) / 100;
+                                                    const sub = job.quote.subtotal;
+                                                    handleSaveJob({ quote: { ...job.quote, vatRate: newRate, total: sub * (1 + newRate) } });
+                                                }}
+                                                className="w-16 bg-black/30 border border-white/10 rounded px-2 py-1 text-white text-xs text-center"
+                                            />
+                                            <span className="text-gray-500">%</span>
+                                        </div>
+                                    )}
+                                 </div>
                                  <table className="w-full text-left border-collapse">
                                      <thead>
-                                         <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
+                                         <tr className="bg-black/20 text-gray-400 text-xs uppercase tracking-wider">
                                              <th className="p-4">Description</th>
                                              <th className="p-4 w-24 text-center">Qty</th>
                                              <th className="p-4 w-32 text-right">Unit Price</th>
@@ -548,7 +584,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                          ))}
                                          {/* Add Row - ADMIN ONLY */}
                                          {isAdmin && (
-                                             <tr className="bg-white/5">
+                                             <tr className="bg-pestGreen/5">
                                                  <td className="p-2"><input type="text" placeholder="Item Description" value={newLineItem.name} onChange={e => setNewLineItem(prev => ({...prev, name: e.target.value}))} className="w-full bg-transparent p-2 outline-none text-white placeholder-gray-600 border-b border-transparent focus:border-pestGreen transition-colors" /></td>
                                                  <td className="p-2"><input type="number" min="1" value={newLineItem.qty} onChange={e => setNewLineItem(prev => ({...prev, qty: parseInt(e.target.value)}))} className="w-full bg-transparent p-2 outline-none text-white text-center border-b border-transparent focus:border-pestGreen transition-colors" /></td>
                                                  <td className="p-2"><input type="number" min="0" value={newLineItem.unitPrice} onChange={e => setNewLineItem(prev => ({...prev, unitPrice: parseFloat(e.target.value)}))} className="w-full bg-transparent p-2 outline-none text-white text-right border-b border-transparent focus:border-pestGreen transition-colors" /></td>
@@ -573,11 +609,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                              <td></td>
                                          </tr>
                                          <tr>
-                                             <td colSpan={3} className="p-4 text-right font-bold text-gray-400">VAT (15%)</td>
-                                             <td className="p-4 text-right font-bold">R {(job.quote.subtotal * 0.15).toFixed(2)}</td>
+                                             <td colSpan={3} className="p-4 text-right font-bold text-gray-400">VAT ({(job.quote.vatRate * 100).toFixed(0)}%)</td>
+                                             <td className="p-4 text-right font-bold">R {(job.quote.subtotal * job.quote.vatRate).toFixed(2)}</td>
                                              <td></td>
                                          </tr>
-                                         <tr>
+                                         <tr className="bg-pestGreen/10">
                                              <td colSpan={3} className="p-4 text-right font-black text-xl text-pestGreen">TOTAL</td>
                                              <td className="p-4 text-right font-black text-xl text-pestGreen">R {job.quote.total.toFixed(2)}</td>
                                              <td></td>
@@ -704,7 +740,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <span className="font-bold text-pestGreen">{job.checkpoints.filter(c => c.isTreated).length}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-gray-300 border-t border-white/5 pt-2">
-                                    <span>Invoice Total:</span>
+                                    <span>Invoice Total (Incl. VAT):</span>
                                     <span className="font-black text-xl text-white">R {job.quote.total.toFixed(2)}</span>
                                 </div>
                                 
