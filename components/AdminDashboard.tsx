@@ -1,5 +1,8 @@
 
 
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -111,23 +114,26 @@ const EditorLayout: React.FC<{ title: string, icon: React.ElementType, helpText:
 
 const WhyChooseUsEditor = () => {
     const { content, updateWhyChooseUsItems, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.whyChooseUs);
+    // Safely initialize with fallback
+    const [localData, setLocalData] = useState(content.whyChooseUs || { title: '', subtitle: '', items: [] });
 
     const handleItemChange = (index: number, field: keyof WhyChooseUsItem, value: string) => {
-        const newItems = [...localData.items];
-        newItems[index] = { ...newItems[index], [field]: value };
-        setLocalData({ ...localData, items: newItems });
+        const newItems = [...(localData.items || [])];
+        if (newItems[index]) {
+            newItems[index] = { ...newItems[index], [field]: value };
+            setLocalData({ ...localData, items: newItems });
+        }
     };
 
     const handleDeleteItem = (index: number) => {
-        const newItems = localData.items.filter((_, i) => i !== index);
+        const newItems = (localData.items || []).filter((_, i) => i !== index);
         setLocalData({ ...localData, items: newItems });
     };
 
     const handleAddItem = () => {
         setLocalData({
             ...localData,
-            items: [...localData.items, { title: "New Reason", text: "Description", iconName: "Award" }]
+            items: [...(localData.items || []), { title: "New Reason", text: "Description", iconName: "Award" }]
         });
     };
 
@@ -136,12 +142,12 @@ const WhyChooseUsEditor = () => {
             title="Why Choose Us"
             icon={ThumbsUp}
             helpText="Edit the 6 reasons why clients should choose you. These appear on the Home and About pages."
-            onSave={() => { updateContent('whyChooseUs', { title: localData.title, subtitle: localData.subtitle }); updateWhyChooseUsItems(localData.items); }}
+            onSave={() => { updateContent('whyChooseUs', { title: localData.title, subtitle: localData.subtitle }); updateWhyChooseUsItems(localData.items || []); }}
         >
              <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-6">
                 <h3 className="text-white font-bold mb-4">Section Header</h3>
-                <Input label="Section Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
-                <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
+                <Input label="Section Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
+                <Input label="Subtitle" value={localData.subtitle || ''} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
             </div>
 
             <div className="flex justify-between items-center mb-4">
@@ -150,7 +156,7 @@ const WhyChooseUsEditor = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {localData.items.map((item, idx) => (
+                {(localData.items || []).map((item, idx) => (
                     <div key={idx} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
                         <button onClick={() => handleDeleteItem(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
                         <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} className="mb-4" />
@@ -185,12 +191,12 @@ const CompanyEditor = () => {
             url: newSocial.url,
             icon: newSocial.icon || ''
         };
-        update({ socials: [...localData.socials, link] });
+        update({ socials: [...(localData.socials || []), link] });
         setNewSocial({ name: '', url: '', icon: '' });
     };
 
     const handleDeleteSocial = (id: string) => {
-        update({ socials: localData.socials.filter(s => s.id !== id) });
+        update({ socials: (localData.socials || []).filter(s => s.id !== id) });
     };
 
     return (
@@ -218,9 +224,9 @@ const CompanyEditor = () => {
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Operating Hours</h3>
-                    <Input label="Weekdays" value={localData.hours.weekdays} onChange={(v: string) => update({ hours: { ...localData.hours, weekdays: v } })} />
-                    <Input label="Saturday" value={localData.hours.saturday} onChange={(v: string) => update({ hours: { ...localData.hours, saturday: v } })} />
-                    <Input label="Sunday" value={localData.hours.sunday} onChange={(v: string) => update({ hours: { ...localData.hours, sunday: v } })} />
+                    <Input label="Weekdays" value={localData.hours?.weekdays || ''} onChange={(v: string) => update({ hours: { ...localData.hours, weekdays: v } })} />
+                    <Input label="Saturday" value={localData.hours?.saturday || ''} onChange={(v: string) => update({ hours: { ...localData.hours, saturday: v } })} />
+                    <Input label="Sunday" value={localData.hours?.sunday || ''} onChange={(v: string) => update({ hours: { ...localData.hours, sunday: v } })} />
                 </div>
 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
@@ -233,7 +239,7 @@ const CompanyEditor = () => {
                     
                     {/* List Existing */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                        {localData.socials.map(social => (
+                        {(localData.socials || []).map(social => (
                             <div key={social.id} className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center gap-3 group relative">
                                 <div className="w-10 h-10 bg-white/10 rounded-lg p-1 flex-shrink-0">
                                     {social.icon && <img src={social.icon} alt={social.name} className="w-full h-full object-contain" />}
@@ -296,7 +302,7 @@ const ContactEditor = () => {
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Contact Page Details</h3>
+                    <h3 className="text-white font-bold">Contact Page Details</h3>
                     <Input label="Header Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                     <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
                     <Input label="Form Title" value={localData.formTitle} onChange={(v: string) => setLocalData({ ...localData, formTitle: v })} />
@@ -310,7 +316,7 @@ const ContactEditor = () => {
                 </div>
 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Book Now Banner (CTA)</h3>
+                    <h3 className="text-white font-bold">Book Now Banner (CTA)</h3>
                     <Input label="Banner Title" value={bookData.title} onChange={(v: string) => setBookData({ ...bookData, title: v })} />
                     <TextArea label="Banner Subtitle" value={bookData.subtitle} onChange={(v: string) => setBookData({ ...bookData, subtitle: v })} rows={2} />
                     <Input label="Button Text" value={bookData.buttonText} onChange={(v: string) => setBookData({ ...bookData, buttonText: v })} />
@@ -416,18 +422,18 @@ const AboutEditor = () => {
 
 const ServicesEditor = () => {
     const { content, updateService } = useContent();
-    const [localServices, setLocalServices] = useState(content.services);
+    const [localServices, setLocalServices] = useState(content.services || []);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [tempService, setTempService] = useState<ServiceItem | null>(null);
 
     // Sync with content only on initial load or if content changes externally
     useEffect(() => {
-        setLocalServices(content.services);
+        setLocalServices(content.services || []);
     }, [content.services]);
 
     const handleEdit = (service: ServiceItem) => {
         setEditingId(service.id);
-        setTempService({ ...service });
+        setTempService({ ...service, details: service.details || [] });
     };
 
     const handleNew = () => {
@@ -470,19 +476,19 @@ const ServicesEditor = () => {
 
     const handleDetailChange = (index: number, val: string) => {
         if (!tempService) return;
-        const newDetails = [...tempService.details];
+        const newDetails = [...(tempService.details || [])];
         newDetails[index] = val;
         setTempService({ ...tempService, details: newDetails });
     };
 
     const addDetail = () => {
         if (!tempService) return;
-        setTempService({ ...tempService, details: [...tempService.details, 'New Detail'] });
+        setTempService({ ...tempService, details: [...(tempService.details || []), 'New Detail'] });
     };
 
     const removeDetail = (index: number) => {
         if (!tempService) return;
-        setTempService({ ...tempService, details: tempService.details.filter((_, i) => i !== index) });
+        setTempService({ ...tempService, details: (tempService.details || []).filter((_, i) => i !== index) });
     };
 
     // Global Save
@@ -528,7 +534,7 @@ const ServicesEditor = () => {
                         
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Bullet Points (Details)</label>
                         <div className="space-y-2">
-                            {tempService.details.map((detail, idx) => (
+                            {(tempService.details || []).map((detail, idx) => (
                                 <div key={idx} className="flex gap-2">
                                     <input 
                                         type="text" 
@@ -585,12 +591,14 @@ const ServicesEditor = () => {
 
 const ProcessEditor = () => {
     const { content, updateContent } = useContent();
-    const [localProcess, setLocalProcess] = useState(content.process);
+    const [localProcess, setLocalProcess] = useState(content.process || { title: '', subtitle: '', steps: [] });
 
     const handleStepChange = (index: number, field: keyof ProcessStep, value: string) => {
-        const newSteps = [...localProcess.steps];
-        newSteps[index] = { ...newSteps[index], [field]: value };
-        setLocalProcess(prev => ({ ...prev, steps: newSteps }));
+        const newSteps = [...(localProcess.steps || [])];
+        if (newSteps[index]) {
+            newSteps[index] = { ...newSteps[index], [field]: value };
+            setLocalProcess(prev => ({ ...prev, steps: newSteps }));
+        }
     };
 
     return (
@@ -602,13 +610,13 @@ const ProcessEditor = () => {
         >
             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-8">
                 <h3 className="text-white font-bold mb-4">Section Headings</h3>
-                <Input label="Title" value={localProcess.title} onChange={(v: string) => setLocalProcess({ ...localProcess, title: v })} />
-                <TextArea label="Subtitle" value={localProcess.subtitle} onChange={(v: string) => setLocalProcess({ ...localProcess, subtitle: v })} rows={2} />
+                <Input label="Title" value={localProcess.title || ''} onChange={(v: string) => setLocalProcess({ ...localProcess, title: v })} />
+                <TextArea label="Subtitle" value={localProcess.subtitle || ''} onChange={(v: string) => setLocalProcess({ ...localProcess, subtitle: v })} rows={2} />
             </div>
 
             <div className="space-y-4">
                 <h3 className="text-white font-bold px-1">Workflow Steps</h3>
-                {localProcess.steps.map((step, idx) => (
+                {(localProcess.steps || []).map((step, idx) => (
                     <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex gap-4 items-start">
                         <div className="bg-white/5 w-8 h-8 flex items-center justify-center rounded-full text-white font-bold shrink-0">{step.step}</div>
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -627,7 +635,7 @@ const ProcessEditor = () => {
 
 const ServiceAreaEditor = () => {
     const { content, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.serviceArea);
+    const [localData, setLocalData] = useState(content.serviceArea || { title: '', description: '', towns: [], mapImage: '' });
 
     const handleTownsChange = (v: string) => {
         const towns = v.split(',').map(t => t.trim()).filter(t => t);
@@ -644,9 +652,9 @@ const ServiceAreaEditor = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Text Content</h3>
-                    <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
-                    <TextArea label="Description" value={localData.description} onChange={(v: string) => setLocalData({ ...localData, description: v })} rows={4} />
-                    <TextArea label="Towns (Comma Separated)" value={localData.towns.join(', ')} onChange={handleTownsChange} rows={3} />
+                    <Input label="Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
+                    <TextArea label="Description" value={localData.description || ''} onChange={(v: string) => setLocalData({ ...localData, description: v })} rows={4} />
+                    <TextArea label="Towns (Comma Separated)" value={(localData.towns || []).join(', ')} onChange={handleTownsChange} rows={3} />
                 </div>
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
@@ -709,12 +717,14 @@ const SafetyEditor = () => {
 
 const FaqEditor = () => {
     const { content, updateFaqs } = useContent();
-    const [localFaqs, setLocalFaqs] = useState(content.faqs);
+    const [localFaqs, setLocalFaqs] = useState(content.faqs || []);
 
     const handleUpdate = (index: number, field: keyof FAQItem, value: string) => {
         const newFaqs = [...localFaqs];
-        newFaqs[index] = { ...newFaqs[index], [field]: value };
-        setLocalFaqs(newFaqs);
+        if (newFaqs[index]) {
+            newFaqs[index] = { ...newFaqs[index], [field]: value };
+            setLocalFaqs(newFaqs);
+        }
     };
 
     const handleAdd = () => {
@@ -723,7 +733,6 @@ const FaqEditor = () => {
     };
 
     const handleDelete = (index: number) => {
-        // Update local state immediately
         const newFaqs = localFaqs.filter((_, i) => i !== index);
         setLocalFaqs(newFaqs);
     };
@@ -781,6 +790,8 @@ const SeoEditor = () => {
 const CreatorWidgetEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.creatorWidget);
+
+    if (!localData) return null; // Guard against missing data
 
     return (
         <EditorLayout
@@ -1012,7 +1023,7 @@ const EmployeeEditor = () => {
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {content.employees.map(emp => (
+                {(content.employees || []).map(emp => (
                     <div key={emp.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative">
                         <div className="flex items-start gap-4">
                             <div className="w-16 h-16 rounded-xl bg-gray-700 overflow-hidden flex-shrink-0">
@@ -1034,8 +1045,6 @@ const EmployeeEditor = () => {
         </div>
     );
 };
-
-// --- SYSTEM STATUS & GUIDE ---
 
 const SystemGuide = () => {
     const { apiUrl, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType, connectionError, isConnecting, retryConnection } = useContent();
@@ -1188,292 +1197,292 @@ const SystemGuide = () => {
 
 // --- MAIN ADMIN DASHBOARD ---
 
-// AdminDashboardProps interface is now imported from types.ts
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
-  const { content, deleteJobCard } = useContent(); 
-  
-  // Permissions & Roles
-  const perms = loggedInUser?.permissions || {
-    isAdmin: false,
-    canEditSiteContent: false,
-    canManageEmployees: false,
-    canDoAssessment: false,
-    canCreateQuotes: false,
-    canExecuteJob: false,
-    canInvoice: false,
-    canViewReports: false
-  };
-  
-  const isCreator = loggedInUser?.id === 'creator-admin';
-  const isAdmin = perms.isAdmin;
-
-  const showSiteTab = perms.isAdmin || perms.canEditSiteContent;
-  const showWorkTab = true; 
-  const showTeamTab = perms.isAdmin || perms.canManageEmployees;
-  // Creator tab is only for Creator ID
-  const showCreatorTab = isCreator;
-
-  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>(showSiteTab ? 'homeLayout' : 'work');
-  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'hero' : 'jobs');
+  const { content, deleteJobCard, addJobCard } = useContent();
+  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>('homeLayout');
+  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('hero');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-  // Security Redirect
-  useEffect(() => {
-     if (activeMainTab === 'homeLayout' && !showSiteTab) {
-         setActiveMainTab('work');
-         setActiveSubTab('jobs');
-     }
-  }, [activeMainTab, showSiteTab]);
+  // Derived permissions
+  const perms = loggedInUser?.permissions;
+  const isCreator = loggedInUser?.loginName === 'jstypme';
+  const isAdmin = perms?.isAdmin || isCreator;
 
-  if (selectedJobId) {
-      return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
-  }
+  // Handle Job Deletion from Dashboard list
+  const handleDeleteJob = (e: React.MouseEvent, id: string) => {
+      e.stopPropagation();
+      if(window.confirm("Delete this job card?")) {
+          deleteJobCard(id);
+      }
+  };
 
-  const handleDeleteJob = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
-    e.stopPropagation();
-    if(window.confirm("Are you sure you want to delete this job card?")) {
-        deleteJobCard(id);
+  const SidebarItem = ({ id, label, icon: Icon }: any) => (
+      <button 
+          onClick={() => { setActiveMainTab(id); if(id === 'homeLayout') setActiveSubTab('hero'); if(id === 'servicesArea') setActiveSubTab('servicesList'); if(id === 'companyInfo') setActiveSubTab('companyDetails'); if(id === 'work') setActiveSubTab('jobs'); if(id === 'creator') setActiveSubTab('creatorSettings'); }}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all mb-1 ${activeMainTab === id ? 'bg-pestGreen text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+      >
+          <Icon size={20} />
+          {label}
+      </button>
+  );
+
+  const SubTabButton = ({ id, label }: { id: AdminSubTab, label: string }) => (
+      <button 
+          onClick={() => setActiveSubTab(id)}
+          className={`px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-colors whitespace-nowrap ${activeSubTab === id ? 'bg-white text-black shadow-md' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'}`}
+      >
+          {label}
+      </button>
+  );
+
+  // Render sub-tabs based on active main tab
+  const renderSubTabs = () => {
+    switch (activeMainTab) {
+        case 'homeLayout':
+            return (
+                <>
+                    <SubTabButton id="hero" label="Hero Section" />
+                    <SubTabButton id="about" label="About Us" />
+                    <SubTabButton id="whyChooseUs" label="Why Choose Us" />
+                    <SubTabButton id="process" label="Our Process" />
+                    <SubTabButton id="safety" label="Safety & Certs" />
+                    <SubTabButton id="cta" label="Call to Action" />
+                </>
+            );
+        case 'servicesArea':
+            return (
+                <>
+                    <SubTabButton id="servicesList" label="Service List" />
+                    <SubTabButton id="serviceAreaMap" label="Service Area" />
+                </>
+            );
+        case 'companyInfo':
+            return (
+                <>
+                    <SubTabButton id="companyDetails" label="Company Details" />
+                    <SubTabButton id="contactPage" label="Contact Page" />
+                    <SubTabButton id="employeeDirectory" label="Staff Directory" />
+                    <SubTabButton id="faqs" label="FAQs" />
+                    <SubTabButton id="seo" label="SEO Settings" />
+                </>
+            );
+        case 'work':
+            return (
+                <>
+                    <SubTabButton id="jobs" label="Job Cards" />
+                    <SubTabButton id="inquiries" label="Web Inquiries" />
+                </>
+            );
+        case 'creator':
+            return (
+                <>
+                    <SubTabButton id="creatorSettings" label="Widget Settings" />
+                    <SubTabButton id="deploymentGuide" label="Deployment Guide" />
+                    <SubTabButton id="systemGuide" label="System Data" />
+                </>
+            );
+        default:
+            return null;
     }
   };
 
-  // Explicitly define SidebarItem as a functional component for proper typing
-  const SidebarItem: React.FC<{ id: AdminSubTab, label: string, icon: React.ElementType, mainTab: AdminMainTab }> = ({ id, label, icon: Icon, mainTab }) => (
-      activeMainTab === mainTab ? (
-        <button 
-            onClick={() => setActiveSubTab(id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === id ? 'bg-pestGreen text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-        >
-            <Icon size={16} />
-            <span>{label}</span>
-            {activeSubTab === id && <ChevronRight size={14} className="ml-auto opacity-50" />}
-        </button>
-      ) : null
-  );
-
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0f1110] flex overflow-hidden font-sans">
-        
-        {/* SIDEBAR */}
-        <aside className="w-72 bg-[#161817] border-r border-white/5 flex flex-col flex-shrink-0">
-            {/* Header */}
-            <div className="p-6 border-b border-white/5">
-                <div className="flex items-center gap-3 mb-1">
-                    <div className="w-10 h-10 bg-pestGreen rounded-xl flex items-center justify-center shadow-neon">
-                        <Lock size={20} className="text-white" />
+    <div className="flex h-screen bg-[#0f1110] font-sans overflow-hidden">
+        {/* Job Manager Overlay */}
+        {selectedJobId && (
+            <JobCardManager 
+                jobId={selectedJobId} 
+                currentUser={loggedInUser} 
+                onClose={() => setSelectedJobId(null)} 
+            />
+        )}
+
+        {/* Main Sidebar */}
+        <aside className="w-64 bg-[#161817] border-r border-white/5 flex flex-col flex-shrink-0 z-20">
+            <div className="p-6">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 bg-pestGreen rounded-xl flex items-center justify-center text-white shadow-neon">
+                        <Layout size={20} />
                     </div>
                     <div>
-                        <h2 className="text-white font-black text-lg leading-none">{isAdmin ? 'Admin' : 'Staff'}</h2>
-                        <span className="text-pestGreen text-xs font-bold uppercase tracking-wider">Dashboard</span>
+                        <h1 className="text-white font-black text-xl tracking-tight">Admin<span className="text-pestGreen">Panel</span></h1>
+                        <p className="text-xs text-gray-500 font-bold uppercase">{content.company.name}</p>
                     </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div>
+                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 px-4">Content Management</p>
+                        {perms?.canEditSiteContent && (
+                            <>
+                                <SidebarItem id="homeLayout" label="Home Page" icon={Layout} />
+                                <SidebarItem id="servicesArea" label="Services & Area" icon={Map} />
+                                <SidebarItem id="companyInfo" label="Company Info" icon={Building2} />
+                            </>
+                        )}
+                    </div>
+
+                    <div>
+                         <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 px-4">Operations</p>
+                         <SidebarItem id="work" label="Work Desk" icon={Briefcase} />
+                    </div>
+
+                    {isCreator && (
+                        <div>
+                             <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 px-4">System</p>
+                             <SidebarItem id="creator" label="Creator Tools" icon={Code2} />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Main Tabs */}
-            <div className="flex p-2 gap-1 border-b border-white/5 overflow-x-auto scrollbar-hide">
-                {showSiteTab && (
-                    <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('hero'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'homeLayout' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Layout size={18} /> Home
-                    </button>
-                )}
-                 {showSiteTab && (
-                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('servicesList'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'servicesArea' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Zap size={18} /> Svcs
-                    </button>
-                )}
-                 {showSiteTab && (
-                    <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('companyDetails'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'companyInfo' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Info size={18} /> Info
-                    </button>
-                )}
-                {showWorkTab && (
-                    <button onClick={() => { setActiveMainTab('work'); setActiveSubTab('jobs'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'work' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Briefcase size={18} /> Work
-                    </button>
-                )}
-                {showCreatorTab && (
-                    <button onClick={() => { setActiveMainTab('creator'); setActiveSubTab('creatorSettings'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'creator' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-purple-400'}`}>
-                        <Code2 size={18} /> Dev
-                    </button>
-                )}
-            </div>
-
-            {/* Sub Tabs Navigation */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-1">
-                <div className="text-xs font-bold text-gray-600 uppercase tracking-widest mb-3 mt-2 px-2">Menu</div>
-                
-                {/* Home Layout */}
-                <SidebarItem id="hero" label="Hero Section" icon={Layout} mainTab="homeLayout" />
-                <SidebarItem id="about" label="About Us" icon={Info} mainTab="homeLayout" />
-                <SidebarItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
-                <SidebarItem id="process" label="Our Process" icon={Workflow} mainTab="homeLayout" />
-                <SidebarItem id="safety" label="Safety & Compliance" icon={Shield} mainTab="homeLayout" />
-                <SidebarItem id="cta" label="CTA Banner" icon={Phone} mainTab="homeLayout" />
-
-                {/* Services & Area */}
-                <SidebarItem id="servicesList" label="Services List" icon={Zap} mainTab="servicesArea" />
-                <SidebarItem id="serviceAreaMap" label="Service Area Map" icon={MapPin} mainTab="servicesArea" />
-
-                {/* Company & Info */}
-                {isAdmin && <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="companyInfo" />}
-                <SidebarItem id="companyDetails" label="Company Info" icon={Building2} mainTab="companyInfo" />
-                <SidebarItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
-                <SidebarItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
-                <SidebarItem id="seo" label="SEO Settings" icon={Search} mainTab="companyInfo" />
-                <SidebarItem id="employeeDirectory" label="Staff Directory" icon={Users} mainTab="companyInfo" />
-
-                {/* Work Subtabs */}
-                <SidebarItem id="jobs" label="Job Cards" icon={Clipboard} mainTab="work" />
-                <SidebarItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
-                
-                {/* Creator Only */}
-                {isCreator && activeMainTab === 'creator' && (
-                    <>
-                        <SidebarItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
-                        <SidebarItem id="deploymentGuide" label="Zero-to-Hero Guide" icon={GitBranch} mainTab="creator" />
-                    </>
-                )}
-
-            </div>
-
-            {/* User Footer */}
-            <div className="p-4 border-t border-white/5 bg-[#0f1110]">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-pestGreen/20 flex items-center justify-center border border-pestGreen/50 text-pestGreen font-bold">
-                        {loggedInUser?.fullName.charAt(0) || 'A'}
-                    </div>
-                    <div className="overflow-hidden">
-                        <h4 className="text-white font-bold text-sm truncate">{loggedInUser?.fullName || 'User'}</h4>
-                        <p className="text-gray-500 text-xs truncate">{loggedInUser?.jobTitle || 'Staff'}</p>
-                    </div>
-                </div>
-                <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-2 rounded-lg font-bold text-sm transition-all">
-                    <LogOut size={16} /> Logout
-                </button>
+            <div className="mt-auto p-4 border-t border-white/5">
+                 <div className="bg-white/5 rounded-xl p-4 flex items-center gap-3 mb-4">
+                     <div className="w-10 h-10 rounded-full bg-pestGreen flex items-center justify-center text-white font-bold">
+                         {loggedInUser?.fullName.charAt(0)}
+                     </div>
+                     <div className="overflow-hidden">
+                         <p className="text-white text-sm font-bold truncate">{loggedInUser?.fullName}</p>
+                         <p className="text-xs text-pestGreen truncate">{loggedInUser?.jobTitle}</p>
+                     </div>
+                 </div>
+                 <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 py-3 rounded-xl font-bold transition-all">
+                     <LogOut size={16} /> Logout
+                 </button>
             </div>
         </aside>
 
-        {/* CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto bg-[#0f1110] relative">
-            <div className="max-w-5xl mx-auto p-8 pb-24">
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    
-                    {/* HOME PAGE LAYOUT GROUP */}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'hero' && <HeroEditor />}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'about' && <AboutEditor />}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'whyChooseUs' && <WhyChooseUsEditor />}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'process' && <ProcessEditor />}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'safety' && <SafetyEditor />}
-                    {activeMainTab === 'homeLayout' && activeSubTab === 'cta' && <ContactEditor />}
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto bg-black relative flex flex-col">
+            {/* Horizontal Sub Navigation Header */}
+            <div className="bg-[#161817] border-b border-white/5 p-4 sticky top-0 z-30 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                {renderSubTabs()}
+            </div>
 
-                    {/* SERVICES & AREA GROUP */}
-                    {activeMainTab === 'servicesArea' && activeSubTab === 'servicesList' && <ServicesEditor />}
-                    {activeMainTab === 'servicesArea' && activeSubTab === 'serviceAreaMap' && <ServiceAreaEditor />}
+            <div className="flex-1 max-w-6xl mx-auto w-full p-6 md:p-12 pb-24">
+                {/* RENDER ACTIVE EDITOR */}
+                
+                {/* Home Layout */}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'hero' && <HeroEditor />}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'about' && <AboutEditor />}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'whyChooseUs' && <WhyChooseUsEditor />}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'process' && <ProcessEditor />}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'safety' && <SafetyEditor />}
+                {activeMainTab === 'homeLayout' && activeSubTab === 'cta' && <ContactEditor />}
 
-                    {/* COMPANY & INFO GROUP */}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'systemGuide' && isAdmin && <SystemGuide />}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'companyDetails' && <CompanyEditor />}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'contactPage' && <ContactEditor />}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'faqs' && <FaqEditor />}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'seo' && <SeoEditor />}
-                    {activeMainTab === 'companyInfo' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
-                    
-                    {/* CREATOR GROUP */}
-                    {activeMainTab === 'creator' && activeSubTab === 'creatorSettings' && isCreator && <CreatorWidgetEditor />}
-                    {activeMainTab === 'creator' && activeSubTab === 'deploymentGuide' && isCreator && <ZeroToHeroGuide />}
-                    
-                    {/* WORK GROUP - INQUIRIES */}
-                    {activeMainTab === 'work' && activeSubTab === 'inquiries' && (
-                         <div className="space-y-6">
-                            <SectionHeader title="Web Inquiries & Bookings" icon={Inbox} />
-                            <div className="bg-[#161817] rounded-2xl border border-white/5 overflow-hidden">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
-                                            <th className="p-4">Date Rec.</th>
-                                            <th className="p-4">Client</th>
-                                            <th className="p-4">Service</th>
-                                            <th className="p-4">Requested Date</th>
-                                            <th className="p-4">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {content.bookings.length > 0 ? content.bookings.map((b) => (
-                                            <tr key={b.id} className="text-white hover:bg-white/5 transition-colors">
-                                                <td className="p-4 text-xs text-gray-500">{new Date(b.submittedAt).toLocaleDateString()}</td>
-                                                <td className="p-4">
-                                                    <div className="font-bold">{b.clientName}</div>
-                                                    <div className="text-xs text-gray-500">{b.clientPhone}</div>
-                                                </td>
-                                                <td className="p-4 text-sm">{b.serviceName}</td>
-                                                <td className="p-4 text-sm font-mono">{new Date(b.date).toLocaleDateString()}</td>
-                                                <td className="p-4">
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${b.status === 'New' ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'}`}>
-                                                        {b.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr>
-                                                <td colSpan={5} className="p-8 text-center text-gray-500 italic">No inquiries received yet.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* WORK GROUP - JOB CARDS */}
-                    {activeMainTab === 'work' && activeSubTab === 'jobs' && (
-                        <div className="space-y-6 pb-20">
-                            <SectionHeader title="Active Job Cards" icon={Clipboard} />
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {content.jobCards.map(job => (
-                                    <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] border border-white/5 hover:border-pestGreen/50 p-6 rounded-2xl cursor-pointer group transition-all relative">
-                                        {isAdmin && (
-                                            <button 
-                                                onClick={(e) => handleDeleteJob(e, job.id)} 
-                                                className="absolute top-4 right-4 text-gray-600 hover:text-red-500 bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
-                                                title="Delete Job Card"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        )}
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-xs font-bold text-gray-500 font-mono">{job.refNumber}</span>
-                                            <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold ${job.status === 'Completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                {job.status.replace('_', ' ')}
-                                            </span>
+                {/* Services */}
+                {activeMainTab === 'servicesArea' && activeSubTab === 'servicesList' && <ServicesEditor />}
+                {activeMainTab === 'servicesArea' && activeSubTab === 'serviceAreaMap' && <ServiceAreaEditor />}
+
+                {/* Company */}
+                {activeMainTab === 'companyInfo' && activeSubTab === 'companyDetails' && <CompanyEditor />}
+                {activeMainTab === 'companyInfo' && activeSubTab === 'contactPage' && <ContactEditor />}
+                {activeMainTab === 'companyInfo' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
+                {activeMainTab === 'companyInfo' && activeSubTab === 'faqs' && <FaqEditor />}
+                {activeMainTab === 'companyInfo' && activeSubTab === 'seo' && <SeoEditor />}
+
+                {/* Creator */}
+                {activeMainTab === 'creator' && activeSubTab === 'creatorSettings' && <CreatorWidgetEditor />}
+                {activeMainTab === 'creator' && activeSubTab === 'deploymentGuide' && <ZeroToHeroGuide />}
+                {activeMainTab === 'creator' && activeSubTab === 'systemGuide' && <SystemGuide />}
+
+                {/* Work - Jobs */}
+                {activeMainTab === 'work' && activeSubTab === 'jobs' && (
+                    <div className="space-y-6 animate-in fade-in">
+                        <SectionHeader title="Job Management" icon={Clipboard} action={
+                            <button onClick={() => {
+                                const newJob: JobCard = {
+                                    id: `job-${Date.now()}`,
+                                    refNumber: `JOB-${new Date().getFullYear().toString().slice(-2)}${(new Date().getMonth()+1).toString().padStart(2, '0')}${Math.floor(Math.random()*100)}`,
+                                    clientName: 'New Client',
+                                    clientAddressDetails: { street: '', suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '1200' },
+                                    contactNumber: '', email: '', propertyType: 'Residential',
+                                    assessmentDate: new Date().toISOString(),
+                                    technicianId: '', selectedServices: [], checkpoints: [], isFirstTimeService: true,
+                                    treatmentRecommendation: '', quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' },
+                                    status: 'Assessment', history: []
+                                };
+                                addJobCard(newJob);
+                            }} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> New Job Card</button>
+                        } />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {content.jobCards.map(job => (
+                                <div 
+                                    key={job.id} 
+                                    onClick={() => setSelectedJobId(job.id)}
+                                    className="bg-[#161817] p-6 rounded-2xl border border-white/5 hover:border-pestGreen/50 cursor-pointer transition-all group relative"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-white font-bold text-lg">{job.refNumber}</h3>
+                                            <p className="text-gray-500 text-sm">{job.clientName}</p>
                                         </div>
-                                        <h3 className="text-xl font-bold text-white mb-1 group-hover:text-pestGreen transition-colors">{job.clientName}</h3>
-                                        <p className="text-sm text-gray-400 mb-4 flex items-center gap-1"><MapPin size={12}/> {job.clientAddressDetails.suburb}</p>
-                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                            <div className="flex -space-x-2">
-                                                <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-[#161817] flex items-center justify-center text-xs text-white">
-                                                    {content.employees.find(e => e.id === job.technicianId)?.fullName.charAt(0) || '?'}
-                                                </div>
-                                            </div>
-                                            <span className="text-xs text-gray-500">{new Date(job.assessmentDate).toLocaleDateString()}</span>
+                                        <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                            job.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
+                                            job.status === 'Invoiced' ? 'bg-blue-500/20 text-blue-400' :
+                                            job.status === 'Job_In_Progress' ? 'bg-orange-500/20 text-orange-400' :
+                                            'bg-gray-500/20 text-gray-400'
+                                        }`}>
+                                            {job.status.replace(/_/g, ' ')}
                                         </div>
                                     </div>
-                                ))}
-                                {(perms.isAdmin || perms.canCreateQuotes) && (
+                                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                        <MapPin size={12}/> {job.clientAddressDetails.suburb}, {job.clientAddressDetails.city}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                        <Calendar size={12}/> {new Date(job.assessmentDate).toLocaleDateString()}
+                                    </div>
+                                    
                                     <button 
-                                        onClick={() => alert("To create a new job, please use the Booking system on the website.")} 
-                                        className="bg-white/5 border border-dashed border-white/10 hover:border-pestGreen hover:bg-pestGreen/5 rounded-2xl flex flex-col items-center justify-center gap-4 min-h-[200px] transition-all"
+                                        onClick={(e) => handleDeleteJob(e, job.id)}
+                                        className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-2"
                                     >
-                                        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white">
-                                            <Plus size={24} />
-                                        </div>
-                                        <span className="font-bold text-white">Create New Job Card</span>
+                                        <Trash2 size={16}/>
                                     </button>
-                                )}
-                            </div>
+                                </div>
+                            ))}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
+                
+                {/* Work - Inquiries */}
+                {activeMainTab === 'work' && activeSubTab === 'inquiries' && (
+                    <div className="space-y-6 animate-in fade-in">
+                        <SectionHeader title="Web Inquiries" icon={Inbox} />
+                        <div className="space-y-4">
+                            {content.bookings.map(booking => (
+                                <div key={booking.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-6 items-start">
+                                    <div className="bg-white/5 p-4 rounded-xl text-center min-w-[100px]">
+                                        <p className="text-2xl font-black text-white">{new Date(booking.date).getDate()}</p>
+                                        <p className="text-xs uppercase font-bold text-gray-500">{new Date(booking.date).toLocaleDateString('en-US', {month: 'short'})}</p>
+                                        <p className="text-pestGreen font-bold text-sm mt-2">{booking.time}</p>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-xl font-bold text-white mb-1">{booking.serviceName}</h3>
+                                            <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs font-bold uppercase">{booking.status}</span>
+                                        </div>
+                                        <p className="text-gray-400 font-bold mb-4">{booking.clientName}</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
+                                            <div className="flex items-center gap-2"><Phone size={14}/> {booking.clientPhone}</div>
+                                            <div className="flex items-center gap-2"><Mail size={14}/> {booking.clientEmail}</div>
+                                            <div className="flex items-center gap-2"><MapPin size={14}/> {booking.clientAddress}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <button className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold text-xs">Convert to Job</button>
+                                        <button className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-lg font-bold text-xs">Archive</button>
+                                    </div>
+                                </div>
+                            ))}
+                            {content.bookings.length === 0 && <p className="text-gray-500 italic">No inquiries received yet.</p>}
+                        </div>
+                    </div>
+                )}
+
             </div>
-        </main>
+        </div>
     </div>
   );
 };

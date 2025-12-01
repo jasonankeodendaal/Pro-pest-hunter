@@ -1,15 +1,25 @@
 
 
-
 import React, { useState, useMemo } from 'react';
-import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle } from 'lucide-react'; // Added Search and Circle
+import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import * as LucideIcons from 'lucide-react'; // Import all Lucide icons
+import * as LucideIcons from 'lucide-react'; 
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
 
-// Map all Lucide Icons for dynamic rendering
-const IconMap: Record<string, React.ElementType> = LucideIcons;
+// SAFE ICON MAP GENERATOR
+// We need to filter out internal exports from lucide-react that aren't valid React components
+// otherwise the IconPicker will crash when trying to map over them.
+const getValidIconNames = () => {
+    return Object.keys(LucideIcons).filter(key => {
+        // Exclude known non-component exports
+        if (['createReactComponent', 'IconNode', 'default', 'lucideReact'].includes(key)) return false;
+        // Check if it starts with uppercase (Convention for React Components)
+        return /^[A-Z]/.test(key);
+    });
+};
+
+const ValidIconNames = getValidIconNames();
 
 export const Input = ({ label, value, onChange, type = "text", placeholder, disabled = false, className = "" }: any) => (
   <div className={`space-y-1 ${className}`}>
@@ -68,10 +78,9 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
       const files = Array.from(e.target.files) as File[];
       const urls: string[] = [];
 
-      // Upload sequentially
       for (const file of files) {
           const formData = new FormData();
-          formData.append('image', file); // Backend expects 'image'
+          formData.append('image', file);
 
           try {
               const res = await fetch(`${API_URL}/api/upload`, {
@@ -89,11 +98,9 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
       setUploading(false);
       
       if (multiple) {
-          // Append new files to existing array
           const current = Array.isArray(value) ? value : (value ? [value] : []);
           onChange([...current, ...urls]);
       } else {
-          // Replace single value
           onChange(urls[0] || '');
       }
     }
@@ -103,7 +110,6 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
     <div className="space-y-2">
       {label && <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">{label}</label>}
       <div className="flex flex-col gap-4">
-        {/* Preview Area */}
         {multiple ? (
             <div className="flex flex-wrap gap-2">
                 {(Array.isArray(value) ? value : []).map((url: string, i: number) => (
@@ -119,7 +125,6 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
         ) : (
              value && (
                 <div className="relative w-full h-48 bg-white/5 rounded-lg overflow-hidden border border-white/10 group">
-                    {/* UPDATED: Added key to force re-render on value change and better video attributes */}
                     {value.match(/\.(mp4|webm|mov)$/i) ? (
                         <video key={value} src={value} className="w-full h-full object-cover" controls playsInline preload="metadata" />
                     ) : (
@@ -164,21 +169,19 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const allIcons = useMemo(() => Object.keys(LucideIcons).filter(name => name !== 'createReactComponent' && name !== 'IconNode'), []);
-
     const filteredIcons = useMemo(() => {
-        if (!searchTerm) return allIcons;
-        return allIcons.filter(name =>
+        if (!searchTerm) return ValidIconNames.slice(0, 100); // Limit initial render for performance
+        return ValidIconNames.filter(name =>
             name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [allIcons, searchTerm]);
+        ).slice(0, 100);
+    }, [searchTerm]);
 
-    const CurrentIconComponent = IconMap[value] || IconMap['Circle'];
+    const CurrentIconComponent = (LucideIcons as any)[value] || LucideIcons.Circle;
 
     const handleSelectIcon = (iconName: string) => {
         onChange(iconName);
         setIsOpen(false);
-        setSearchTerm(''); // Reset search when icon is selected
+        setSearchTerm(''); 
     };
 
     return (
@@ -188,7 +191,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                 type="button"
                 onClick={() => setIsOpen(true)}
                 className="w-full p-2 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none transition-colors focus:bg-[#1a1d1c] flex items-center justify-between"
-                aria-label={`Select icon for ${label}`}
             >
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-pestGreen/20 rounded-md text-pestGreen">
@@ -206,26 +208,22 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm flex flex-col p-4"
-                        onClick={() => setIsOpen(false)} // Close when clicking outside
+                        onClick={() => setIsOpen(false)} 
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
                             className="bg-[#1e201f] rounded-2xl shadow-3xl max-w-4xl w-full mx-auto my-auto p-6 flex flex-col h-[90vh]"
-                            onClick={e => e.stopPropagation()} // Prevent closing when clicking inside
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="icon-picker-title"
+                            onClick={e => e.stopPropagation()} 
                         >
                             <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
-                                <h3 id="icon-picker-title" className="text-xl font-bold text-white flex items-center gap-2">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
                                     <LucideIcons.SwatchBook size={24} className="text-pestGreen"/> Select an Icon
                                 </h3>
                                 <button
                                     onClick={() => setIsOpen(false)}
                                     className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-                                    aria-label="Close icon picker"
                                 >
                                     <X size={24} />
                                 </button>
@@ -245,7 +243,10 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                             <div className="flex-1 overflow-y-auto grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4 p-2 custom-scrollbar">
                                 {filteredIcons.length > 0 ? (
                                     filteredIcons.map(iconName => {
-                                        const Icon = IconMap[iconName];
+                                        const Icon = (LucideIcons as any)[iconName];
+                                        // Safety check in case something slipped through
+                                        if (!Icon) return null;
+                                        
                                         const isSelected = iconName === value;
                                         return (
                                             <button
@@ -254,7 +255,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                                                 className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all duration-200 
                                                             ${isSelected ? 'bg-pestGreen/20 border-pestGreen text-pestGreen' : 'bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-white'}`}
                                                 title={iconName}
-                                                aria-pressed={isSelected}
                                             >
                                                 <Icon size={24} />
                                                 <span className="text-[8px] mt-2 truncate w-full text-center">{iconName}</span>

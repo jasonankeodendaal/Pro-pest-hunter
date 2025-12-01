@@ -55,52 +55,57 @@ const App: React.FC = () => {
     <ContentProvider>
       <main className="w-full min-h-screen bg-pestLight relative">
         
-        {/* Router Logic */}
-        {currentPage === 'home' && (
-            <Home
-                onBookClick={() => setIsBookingOpen(true)}
-                onAdminClick={() => setIsAdminLoginOpen(true)}
-                navigateTo={navigateToPage}
-            />
-        )}
-        
-        {currentPage === 'services' && (
-            <ServicesPage
-                onBookClick={() => setIsBookingOpen(true)}
-                onAdminClick={() => setIsAdminLoginOpen(true)}
-                navigateTo={navigateToPage}
-            />
+        {/* PUBLIC INTERFACE - Only render if Admin Dashboard is CLOSED */}
+        {!isAdminDashboardOpen && (
+          <>
+            {/* Router Logic */}
+            {currentPage === 'home' && (
+                <Home
+                    onBookClick={() => setIsBookingOpen(true)}
+                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    navigateTo={navigateToPage}
+                />
+            )}
+            
+            {currentPage === 'services' && (
+                <ServicesPage
+                    onBookClick={() => setIsBookingOpen(true)}
+                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    navigateTo={navigateToPage}
+                />
+            )}
+
+            {currentPage === 'about' && (
+                <AboutPage
+                    onBookClick={() => setIsBookingOpen(true)}
+                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    navigateTo={navigateToPage}
+                />
+            )}
+
+            {currentPage === 'process' && (
+                <ProcessPage
+                    onBookClick={() => setIsBookingOpen(true)}
+                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    navigateTo={navigateToPage}
+                />
+            )}
+
+            {currentPage === 'contact' && (
+                <ContactPage
+                    onBookClick={() => setIsBookingOpen(true)}
+                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    navigateTo={navigateToPage}
+                />
+            )}
+          
+            <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+            
+            <CreatorWidget />
+          </>
         )}
 
-        {currentPage === 'about' && (
-            <AboutPage
-                onBookClick={() => setIsBookingOpen(true)}
-                onAdminClick={() => setIsAdminLoginOpen(true)}
-                navigateTo={navigateToPage}
-            />
-        )}
-
-        {currentPage === 'process' && (
-            <ProcessPage
-                onBookClick={() => setIsBookingOpen(true)}
-                onAdminClick={() => setIsAdminLoginOpen(true)}
-                navigateTo={navigateToPage}
-            />
-        )}
-
-        {currentPage === 'contact' && (
-            <ContactPage
-                onBookClick={() => setIsBookingOpen(true)}
-                onAdminClick={() => setIsAdminLoginOpen(true)}
-                navigateTo={navigateToPage}
-            />
-        )}
-      
-        <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
-        
-        {/* Creator Widget - Global - Hidden in Admin Dashboard */}
-        {!isAdminDashboardOpen && <CreatorWidget />}
-
+        {/* ADMIN INTERFACE */}
         {isAdminLoginOpen && (
           <AdminLogin 
             onLogin={(employee) => {

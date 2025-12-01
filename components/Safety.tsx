@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { ShieldCheck, FileCheck, Leaf, Heart, Award } from 'lucide-react'; // Added Heart and Award for new defaults
 import { Section } from './ui/Section';

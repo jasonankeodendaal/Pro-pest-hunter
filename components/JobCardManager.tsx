@@ -1,9 +1,13 @@
 
 
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
 import { JobCard, Checkpoint, QuoteLineItem, JobStatus, Employee } from '../types';
-import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info, Calculator, Percent } from 'lucide-react';
+import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info, Calculator, Percent, Clock, Cloud, Thermometer, Box, FileCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 
@@ -13,83 +17,11 @@ interface JobCardManagerProps {
     onClose: () => void;
 }
 
-// --- HELP CONTENT DEFINITIONS ---
-const HELP_CONTENT: Record<string, { title: string; content: React.ReactNode }> = {
-    overview: {
-        title: "Job Overview Guide",
-        content: (
-            <div className="space-y-3 text-sm text-gray-300">
-                <p>The <strong>Overview</strong> tab is the control center for this job. It contains all static client data and scheduling information.</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li><strong>Client Details:</strong> Ensure email and phone are correct for automated notifications.</li>
-                    <li><strong>Service Location:</strong> This address links to Google Maps. Use the "Open in Maps" link to navigate.</li>
-                    <li><strong>Schedule:</strong> Assign a Technician here. Only the assigned technician (and Admins) can see this job in their "My Jobs" view.</li>
-                    <li><strong>Gate Codes:</strong> Enter access codes here so the technician doesn't get stuck at the gate.</li>
-                </ul>
-                <div className="bg-yellow-500/10 border border-yellow-500/20 p-2 rounded mt-2 text-yellow-500 text-xs">
-                    <strong>Tip:</strong> Always click the "Save Changes" button at the bottom after updating details.
-                </div>
-            </div>
-        )
-    },
-    assessment: {
-        title: "Site Assessment Workflow",
-        content: (
-            <div className="space-y-3 text-sm text-gray-300">
-                <p>The <strong>Assessment</strong> phase is critical. This is where you identify the problem areas before quoting.</p>
-                <ol className="list-decimal list-inside space-y-2 ml-2">
-                    <li><strong>Walk the Site:</strong> Identify key infestation zones (e.g., Kitchen Sink, Main DB Board).</li>
-                    <li><strong>Add Checkpoints:</strong> For each zone, click "Add New Finding". Give it a name (Area) and severity.</li>
-                    <li><strong>QR Codes:</strong> The system auto-generates a QR code for every checkpoint. Click "Print Checkpoint QRs" to generate a printable sheet. Stick these QR codes at the physical location (e.g., inside the cupboard door).</li>
-                    <li><strong>Photos:</strong> Take photos of the evidence (droppings, damage). This builds trust with the client.</li>
-                </ol>
-            </div>
-        )
-    },
-    quote: {
-        title: "Quote Builder Guide",
-        content: (
-            <div className="space-y-3 text-sm text-gray-300">
-                <p>Build a professional quote based on the assessment findings.</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li><strong>Line Items:</strong> Add chemicals, labor, and equipment usage as separate lines.</li>
-                    <li><strong>Approval:</strong> If you are a Technician, you can build the quote but an Admin must approve it before it can be sent to the client.</li>
-                    <li><strong>Status Change:</strong> Once the client accepts the quote, click "Approve & Schedule Job" to unlock the Execution tab.</li>
-                </ul>
-            </div>
-        )
-    },
-    execution: {
-        title: "Job Execution & Scanning",
-        content: (
-            <div className="space-y-3 text-sm text-gray-300">
-                <p>This tab is used by the Technician <strong>on the day of service</strong>.</p>
-                <ol className="list-decimal list-inside space-y-2 ml-2">
-                    <li><strong>Scan to Verify:</strong> Click "Scan QR" and point your camera at the sticker you placed during assessment. This proves you were physically at that specific spot.</li>
-                    <li><strong>Auto-Check:</strong> Scanning a valid code will automatically mark that checkpoint as "Treated".</li>
-                    <li><strong>Treatment Notes:</strong> Record exactly what chemical was used (e.g., "5g Maxforce Gel"). This is required for safety compliance.</li>
-                    <li><strong>Completion:</strong> Once all checkpoints are green, click "Complete Job" to notify Admin for invoicing.</li>
-                </ol>
-            </div>
-        )
-    },
-    invoice: {
-        title: "Invoicing & Close Out",
-        content: (
-            <div className="space-y-3 text-sm text-gray-300">
-                <p>Finalize the financial aspects of the job.</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li><strong>Review:</strong> Check that all work was actually done.</li>
-                    <li><strong>Billing Notes:</strong> Add internal notes about payment status (e.g., "Paid via EFT").</li>
-                    <li><strong>Archive:</strong> "Close Job Card" moves this job to the history archive and removes it from the active dashboard.</li>
-                </ul>
-            </div>
-        )
-    }
-};
-
-const COMMON_PESTS = ['German Cockroach', 'American Cockroach', 'Ants (Sugar)', 'Termites (Subterranean)', 'Rodents (Rat)', 'Rodents (Mouse)'];
-const COMMON_AREAS = ['Kitchen Cupboard (Under Sink)', 'Main DB Board', 'Garage', 'Roof Void', 'External Perimeter', 'Bedroom Cupboards'];
+const COMMON_PESTS = ['German Cockroach', 'American Cockroach', 'Ants (Sugar)', 'Termites (Subterranean)', 'Rodents (Rat)', 'Rodents (Mouse)', 'Bed Bugs', 'Flies', 'Fleas'];
+const COMMON_ROOT_CAUSES = ['Hygiene Issue', 'Structural Gaps', 'Imported Goods', 'Moisture Problem', 'Overgrown Vegetation', 'Waste Management', 'Neighboring Property'];
+const COMMON_RECOMMENDATIONS = ['Seal Cracks', 'Improve Sanitation', 'Cut Back Trees', 'Install Door Sweeps', 'Remove Clutter', 'Clean Drains', 'Proofing Required'];
+const COMMON_PPE = ['Gloves', 'Respirator Mask', 'Safety Goggles', 'Coveralls', 'Safety Boots', 'Ear Protection'];
+const SAFETY_CHECKLIST_ITEMS = ["Pets Removed", "Food Covered/Removed", "Windows Closed", "Smoke Detectors Covered", "Aquariums Covered", "Children Away from Area"];
 
 export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUser, onClose }) => {
     const { content, updateJobCard, deleteJobCard } = useContent();
@@ -105,7 +37,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     const [showHelp, setShowHelp] = useState(false);
     
     // Local state for adding new items
-    const [newCheckpoint, setNewCheckpoint] = useState<Partial<Checkpoint>>({ area: '', pestType: '', severity: 'Low', notes: '', photos: [] });
+    const [newCheckpoint, setNewCheckpoint] = useState<Partial<Checkpoint>>({ 
+        area: '', pestType: '', severity: 'Low', notes: '', photos: [], 
+        rootCause: '', accessNotes: '', recommendation: '', 
+        infestationLevel: 'Low', actionPriority: 'Routine' 
+    });
     const [newLineItem, setNewLineItem] = useState<Partial<QuoteLineItem>>({ name: '', qty: 1, unitPrice: 0 });
 
     // Scanner State
@@ -197,12 +133,157 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             pestType: newCheckpoint.pestType!,
             severity: newCheckpoint.severity as any,
             notes: newCheckpoint.notes || '',
+            rootCause: newCheckpoint.rootCause || '',
+            accessNotes: newCheckpoint.accessNotes || '',
+            recommendation: newCheckpoint.recommendation || '',
             photos: newCheckpoint.photos || [],
             timestamp: new Date().toISOString(),
-            isTreated: false
+            isTreated: false,
+            infestationLevel: newCheckpoint.infestationLevel as any || 'Low',
+            actionPriority: newCheckpoint.actionPriority as any || 'Routine'
         };
         handleSaveJob({ checkpoints: [...job.checkpoints, checkpoint] });
-        setNewCheckpoint({ area: '', pestType: '', severity: 'Low', notes: '', photos: [] });
+        setNewCheckpoint({ area: '', pestType: '', severity: 'Low', notes: '', photos: [], rootCause: '', accessNotes: '', recommendation: '', infestationLevel: 'Low', actionPriority: 'Routine' });
+    };
+
+    const generatePrintDocument = (type: 'QUOTE' | 'INVOICE') => {
+        const win = window.open('', '', 'width=900,height=1200');
+        if (!win) return;
+    
+        const company = content.company;
+        const bank = content.bankDetails;
+        
+        // CSS for print layout
+        const styles = `
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; font-size: 14px; }
+                .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #4CAF50; padding-bottom: 20px; }
+                .logo { max-height: 80px; }
+                .company-info { text-align: right; }
+                .company-info h1 { margin: 0 0 5px 0; color: #4CAF50; }
+                .bill-to { margin-bottom: 30px; }
+                .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .table th { background: #f0f0f0; text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
+                .table td { padding: 10px; border-bottom: 1px solid #ddd; }
+                .totals { float: right; width: 300px; }
+                .totals-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                .grand-total { font-weight: bold; font-size: 18px; border-top: 2px solid #333; padding-top: 10px; margin-top: 10px; }
+                .section-title { font-size: 16px; font-weight: bold; color: #4CAF50; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                .bank-details { margin-top: 40px; padding: 15px; background: #f9f9f9; border-left: 4px solid #4CAF50; font-size: 12px; }
+                .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
+                .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                .finding-card { border: 1px solid #eee; padding: 10px; page-break-inside: avoid; }
+                .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; color: white; }
+                .status-high { background: #ef4444; }
+                .status-med { background: #f59e0b; }
+                .status-low { background: #10b981; }
+                @media print {
+                    .no-print { display: none; }
+                }
+            </style>
+        `;
+
+        const findingsHtml = job.checkpoints.map(cp => `
+            <div class="finding-card">
+                <strong>${cp.area}</strong> 
+                <span class="status-badge status-${cp.severity === 'High' ? 'high' : cp.severity === 'Medium' ? 'med' : 'low'}">${cp.severity}</span>
+                <br/>
+                <small>Pest: ${cp.pestType} | Level: ${cp.infestationLevel}</small>
+                <p style="margin: 5px 0; font-style:italic;">${cp.notes}</p>
+                ${cp.recommendation ? `<p style="margin: 5px 0; color: #4CAF50;"><strong>Rec:</strong> ${cp.recommendation}</p>` : ''}
+            </div>
+        `).join('');
+
+        const lineItemsHtml = job.quote.lineItems.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td style="text-align:center">${item.qty}</td>
+                <td style="text-align:right">R ${item.unitPrice.toFixed(2)}</td>
+                <td style="text-align:right">R ${item.total.toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        win.document.write(`
+            <html>
+                <head><title>${type === 'QUOTE' ? 'Quotation' : 'Tax Invoice'} - ${job.refNumber}</title>${styles}</head>
+                <body>
+                    <div class="header">
+                        <div>
+                            ${company.logo ? `<img src="${company.logo}" class="logo"/>` : `<h2>${company.name}</h2>`}
+                        </div>
+                        <div class="company-info">
+                            <h1>${type === 'QUOTE' ? 'QUOTATION' : 'TAX INVOICE'}</h1>
+                            <p><strong>Ref:</strong> ${job.refNumber}</p>
+                            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                            <p>${company.address}</p>
+                            <p>${company.email} | ${company.phone}</p>
+                            ${company.regNumber ? `<p>Reg: ${company.regNumber}</p>` : ''}
+                            ${company.vatNumber ? `<p>VAT: ${company.vatNumber}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="bill-to">
+                        <h3>Bill To:</h3>
+                        <p><strong>${job.clientName}</strong> ${job.clientCompanyName ? `(${job.clientCompanyName})` : ''}</p>
+                        <p>${job.clientAddressDetails.street}, ${job.clientAddressDetails.suburb}</p>
+                        <p>${job.clientAddressDetails.city}, ${job.clientAddressDetails.postalCode}</p>
+                        <p>${job.email} | ${job.contactNumber}</p>
+                        ${job.clientVatNumber ? `<p>Client VAT: ${job.clientVatNumber}</p>` : ''}
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th style="text-align:center">Qty</th>
+                                <th style="text-align:right">Unit Price</th>
+                                <th style="text-align:right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lineItemsHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div class="totals-row"><span>Subtotal:</span> <span>R ${job.quote.subtotal.toFixed(2)}</span></div>
+                        <div class="totals-row"><span>VAT (${(job.quote.vatRate*100).toFixed(0)}%):</span> <span>R ${(job.quote.subtotal * job.quote.vatRate).toFixed(2)}</span></div>
+                        <div class="totals-row grand-total"><span>TOTAL:</span> <span>R ${job.quote.total.toFixed(2)}</span></div>
+                    </div>
+                    <div style="clear:both;"></div>
+
+                    ${type === 'QUOTE' ? `
+                    <div class="bank-details">
+                        <h4>Banking Details for Deposit</h4>
+                        <p><strong>Bank:</strong> ${bank.bankName}</p>
+                        <p><strong>Account Name:</strong> ${bank.accountName}</p>
+                        <p><strong>Account No:</strong> ${bank.accountNumber}</p>
+                        <p><strong>Branch Code:</strong> ${bank.branchCode}</p>
+                        <p><strong>Reference:</strong> ${job.refNumber}</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="section-title">Site Assessment Report</div>
+                    <p style="margin-bottom:15px;">The following findings were noted during our inspection of the property.</p>
+                    <div class="findings-grid">
+                        ${findingsHtml}
+                    </div>
+
+                    ${type === 'INVOICE' && job.status === 'Completed' ? `
+                        <div class="section-title">Execution Report</div>
+                        <p><strong>Technician:</strong> ${content.employees.find(e => e.id === job.technicianId)?.fullName || 'N/A'}</p>
+                        <p><strong>Date Completed:</strong> ${new Date().toLocaleDateString()}</p>
+                        <p><strong>Chemicals Used:</strong> ${job.checkpoints.map(c => c.chemicalUsed).filter(Boolean).join(', ') || 'Standard Application'}</p>
+                    ` : ''}
+
+                    <div class="footer">
+                        <p>Terms & Conditions Apply. ${company.name} is a registered service provider.</p>
+                        <p>Thank you for your business!</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        win.document.close();
     };
 
     const printQRCodes = () => {
@@ -270,27 +351,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
         </button>
     );
 
-    const HelpModal = () => (
-        <AnimatePresence>
-            {showHelp && (
-                <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-20 right-6 md:right-12 z-50 w-80 bg-[#1e201f] border border-pestGreen/50 shadow-2xl rounded-2xl p-6"
-                >
-                    <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-                        <h4 className="text-pestGreen font-bold flex items-center gap-2">
-                            <Info size={16}/> {HELP_CONTENT[activeTab].title}
-                        </h4>
-                        <button onClick={() => setShowHelp(false)} className="text-gray-500 hover:text-white"><X size={16}/></button>
-                    </div>
-                    {HELP_CONTENT[activeTab].content}
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-
     const SaveBar = ({ onSave }: { onSave: () => void }) => (
         <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between sticky bottom-0 bg-[#0f1110] pb-4 z-10">
             <span className="text-xs text-gray-500 italic flex items-center gap-1"><Info size={12}/> Changes are local until saved.</span>
@@ -338,19 +398,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-y-auto bg-[#0f1110] relative">
-                {/* Header with Help Button */}
-                <div className="absolute top-6 right-6 md:right-12 z-40">
-                    <button 
-                        onClick={() => setShowHelp(!showHelp)} 
-                        className="w-10 h-10 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center border border-yellow-500/30 transition-colors"
-                        title="Guide for this section"
-                    >
-                        <HelpCircle size={20} />
-                    </button>
-                </div>
                 
-                <HelpModal />
-
                 <div className="max-w-5xl mx-auto p-6 md:p-12 pb-24">
                     
                     {/* OVERVIEW TAB */}
@@ -372,6 +420,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     </div>
                                     <Input label="Alt Contact" value={job.contactNumberAlt || ''} onChange={(v: string) => handleSaveJob({ contactNumberAlt: v })} />
                                     <Input label="Business Name (Optional)" value={job.clientCompanyName || ''} onChange={(v: string) => handleSaveJob({ clientCompanyName: v })} />
+                                    <Input label="VAT Number (Optional)" value={job.clientVatNumber || ''} onChange={(v: string) => handleSaveJob({ clientVatNumber: v })} />
                                 </div>
 
                                 {/* Location Info */}
@@ -382,6 +431,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         <Input label="Suburb" value={job.clientAddressDetails.suburb} onChange={(v: string) => handleSaveJob({ clientAddressDetails: { ...job.clientAddressDetails, suburb: v } })} />
                                         <Input label="City" value={job.clientAddressDetails.city} onChange={(v: string) => handleSaveJob({ clientAddressDetails: { ...job.clientAddressDetails, city: v } })} />
                                     </div>
+                                    <Input label="Postal Code" value={job.clientAddressDetails.postalCode} onChange={(v: string) => handleSaveJob({ clientAddressDetails: { ...job.clientAddressDetails, postalCode: v } })} />
                                     <Input label="Gate / Access Codes" value={job.siteAccessCodes || ''} onChange={(v: string) => handleSaveJob({ siteAccessCodes: v })} placeholder="e.g. Key under mat, Gate: 12345" />
                                 </div>
                                 
@@ -459,11 +509,43 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                      <Input label="Area Name" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} placeholder="e.g. Kitchen Cupboard" />
                                      <Input label="Pest Found" value={newCheckpoint.pestType} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, pestType: v }))} placeholder="e.g. German Cockroach" />
-                                     <Select label="Severity" value={newCheckpoint.severity} options={[{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, severity: v as any }))} />
+                                     <Select label="Infestation Level" value={newCheckpoint.infestationLevel} options={[{label:'Trace',value:'Trace'},{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'},{label:'Severe',value:'Severe'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, infestationLevel: v as any }))} />
                                  </div>
+
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                     <div>
+                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 mb-1 block">Root Cause</label>
+                                         <select 
+                                             value={newCheckpoint.rootCause || ''}
+                                             onChange={(e) => setNewCheckpoint(prev => ({ ...prev, rootCause: e.target.value }))}
+                                             className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2"
+                                         >
+                                             <option value="">Select Root Cause...</option>
+                                             {COMMON_ROOT_CAUSES.map(rc => <option key={rc} value={rc}>{rc}</option>)}
+                                         </select>
+                                     </div>
+                                     <div>
+                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 mb-1 block">Recommendation</label>
+                                         <select 
+                                             value={newCheckpoint.recommendation || ''}
+                                             onChange={(e) => setNewCheckpoint(prev => ({ ...prev, recommendation: e.target.value }))}
+                                             className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2"
+                                         >
+                                             <option value="">Select Recommendation...</option>
+                                             {COMMON_RECOMMENDATIONS.map(rc => <option key={rc} value={rc}>{rc}</option>)}
+                                         </select>
+                                     </div>
+                                 </div>
+                                 
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                     <Select label="Action Priority" value={newCheckpoint.actionPriority} options={[{label:'Routine',value:'Routine'},{label:'Urgent',value:'Urgent'},{label:'Critical',value:'Critical'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, actionPriority: v as any }))} />
+                                     <Input label="Equipment Needed" value={job.equipmentNeeded ? job.equipmentNeeded.join(', ') : ''} onChange={(v: string) => handleSaveJob({ equipmentNeeded: v.split(',').map(s=>s.trim()) })} placeholder="e.g. Ladder, Thermal Camera..." />
+                                 </div>
+
                                  <div className="mb-4">
-                                    <TextArea label="Notes / Observations" value={newCheckpoint.notes} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, notes: v }))} rows={2} placeholder="Describe the infestation level and evidence found..." />
+                                    <TextArea label="Detailed Notes / Observations" value={newCheckpoint.notes} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, notes: v }))} rows={2} placeholder="Describe the infestation level and evidence found..." />
                                  </div>
+
                                  <div className="mb-6">
                                      <FileUpload 
                                         label="Attach Evidence Photos" 
@@ -474,7 +556,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                      />
                                  </div>
                                  <button onClick={addCheckpoint} className="w-full bg-pestGreen hover:bg-white hover:text-pestGreen text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
-                                     <Plus size={20}/> Add Checkpoint
+                                     <Plus size={20}/> Add Finding
                                  </button>
                              </div>
 
@@ -482,7 +564,15 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                              <div className="grid grid-cols-1 gap-4">
                                  {job.checkpoints.map((cp, idx) => (
                                      <div key={cp.id} className="bg-[#161817] border-l-4 border-l-pestGreen border-y border-r border-white/5 rounded-r-xl p-6 relative flex flex-col md:flex-row gap-6 items-start">
-                                         <button onClick={() => { handleSaveJob({ checkpoints: job.checkpoints.filter(c => c.id !== cp.id) }) }} className="absolute top-4 right-4 text-gray-600 hover:text-red-500"><Trash2 size={16}/></button>
+                                         <button 
+                                            onClick={() => { 
+                                                const updated = job.checkpoints.filter(c => c.id !== cp.id);
+                                                handleSaveJob({ checkpoints: updated });
+                                            }} 
+                                            className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
+                                         >
+                                            <Trash2 size={16}/>
+                                         </button>
                                          
                                          <div className="flex-shrink-0">
                                             <div className="w-20 h-20 bg-white p-2 rounded-lg">
@@ -494,11 +584,20 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
                                                     <h4 className="text-xl font-bold text-white">{cp.area}</h4>
-                                                    <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${cp.severity === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-pestGreen/20 text-pestGreen'}`}>{cp.pestType} • {cp.severity} Priority</span>
+                                                    <div className="flex gap-2 mt-1">
+                                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${cp.actionPriority === 'Critical' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>{cp.actionPriority}</span>
+                                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${cp.infestationLevel === 'Severe' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}`}>Level: {cp.infestationLevel}</span>
+                                                    </div>
                                                 </div>
                                                 <span className="text-xs text-gray-600 font-mono mr-8">{cp.code}</span>
                                             </div>
-                                            <p className="text-gray-400 text-sm mb-4">{cp.notes}</p>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-400 mb-2">
+                                                {cp.rootCause && <p><strong>Root Cause:</strong> {cp.rootCause}</p>}
+                                                {cp.recommendation && <p><strong>Rec:</strong> {cp.recommendation}</p>}
+                                            </div>
+
+                                            <p className="text-gray-300 text-sm mb-4 bg-white/5 p-2 rounded border border-white/5">{cp.notes}</p>
                                             {cp.photos && cp.photos.length > 0 && (
                                                 <div className="flex gap-2 flex-wrap">
                                                     {cp.photos.map((photo, i) => (
@@ -522,18 +621,17 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                              <div className="flex justify-between items-center">
                                 <h1 className="text-3xl font-black text-white flex items-center gap-3"><DollarSign size={32} className="text-pestGreen"/> Quote Builder</h1>
                                 
-                                {isAdmin && job.status === 'Quote_Builder' && (
-                                    <div className="flex gap-2">
-                                        <button className="bg-white/10 text-white px-4 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 hover:bg-white/20"><Download size={16}/> Print PDF</button>
-                                        <button onClick={() => advanceStatus('Job_Scheduled')} className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg">Approve & Schedule <ArrowRight size={16}/></button>
-                                    </div>
-                                )}
-                                
-                                {!isAdmin && job.status === 'Quote_Builder' && (
-                                    <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2">
-                                        <Lock size={14} /> Pending Admin Approval
-                                    </div>
-                                )}
+                                <div className="flex gap-2">
+                                    <button onClick={() => generatePrintDocument('QUOTE')} className="bg-white/10 text-white px-4 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 hover:bg-white/20">
+                                        <Printer size={16}/> Print Quote
+                                    </button>
+                                    
+                                    {isAdmin && job.status === 'Quote_Builder' && (
+                                        <button onClick={() => advanceStatus('Job_Scheduled')} className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg">
+                                            Approve & Schedule <ArrowRight size={16}/>
+                                        </button>
+                                    )}
+                                </div>
                              </div>
 
                              {/* Quote Summary Table */}
@@ -622,15 +720,38 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                  </table>
                              </div>
                              
-                             <div className="bg-[#161817] border border-white/5 rounded-2xl p-6">
-                                 {isAdmin ? (
-                                    <TextArea label="Quote Terms & Conditions" value={job.quote.notes} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, notes: v } })} placeholder="e.g. 50% Deposit required. Valid for 7 days." />
-                                 ) : (
-                                     <div>
-                                         <label className="text-xs font-bold text-gray-500 uppercase">Quote Notes</label>
-                                         <p className="text-gray-400 text-sm mt-1 bg-black/20 p-4 rounded-xl">{job.quote.notes || 'No notes available.'}</p>
-                                     </div>
-                                 )}
+                             {/* DETAILED QUOTE TERMS */}
+                             <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                 <div>
+                                    <h4 className="text-white font-bold mb-4">Terms of Service</h4>
+                                    {isAdmin ? (
+                                        <div className="space-y-4">
+                                            <Input label="Deposit Required (%)" type="number" value={job.quote.depositRequired || 0} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, depositRequired: parseInt(v) } })} />
+                                            <Input label="Warranty Period" value={job.quote.warranty || ''} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, warranty: v } })} placeholder="e.g. 3 Months" />
+                                            <Input label="Quote Valid Until" type="date" value={job.quote.validUntil || ''} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, validUntil: v } })} />
+                                        </div>
+                                    ) : (
+                                        <ul className="space-y-2 text-sm text-gray-300">
+                                            <li><strong>Deposit:</strong> {job.quote.depositRequired ? `${job.quote.depositRequired}%` : 'None'}</li>
+                                            <li><strong>Warranty:</strong> {job.quote.warranty || 'Standard'}</li>
+                                            <li><strong>Valid Until:</strong> {job.quote.validUntil || 'N/A'}</li>
+                                        </ul>
+                                    )}
+                                 </div>
+                                 <div>
+                                     <h4 className="text-white font-bold mb-4">Notes & Duration</h4>
+                                     {isAdmin ? (
+                                        <div className="space-y-4">
+                                             <Input label="Est. Duration" value={job.quote.estimatedDuration || ''} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, estimatedDuration: v } })} placeholder="e.g. 2 Hours" />
+                                             <TextArea label="Additional Notes" value={job.quote.notes} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, notes: v } })} placeholder="e.g. 50% Deposit required. Valid for 7 days." />
+                                        </div>
+                                     ) : (
+                                        <div className="bg-black/20 p-4 rounded-xl text-gray-400 text-sm">
+                                            <p className="mb-2"><strong>Duration:</strong> {job.quote.estimatedDuration || 'TBD'}</p>
+                                            <p>{job.quote.notes || 'No notes available.'}</p>
+                                        </div>
+                                     )}
+                                 </div>
                              </div>
 
                              <SaveBar onSave={() => alert('Quote Saved!')} />
@@ -642,8 +763,83 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                             <div className="flex justify-between items-center">
                                 <h1 className="text-3xl font-black text-white flex items-center gap-3"><Zap size={32} className="text-pestGreen"/> Job Execution</h1>
-                                {job.status === 'Job_Scheduled' && <button onClick={() => advanceStatus('Job_In_Progress')} className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold shadow-neon">Start Job Timer</button>}
-                                {job.status === 'Job_In_Progress' && <button onClick={() => advanceStatus('Invoiced')} className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition-colors">Complete & Sign Off</button>}
+                                {job.status === 'Job_Scheduled' && <button onClick={() => {
+                                    handleSaveJob({ timeStarted: new Date().toLocaleTimeString() });
+                                    advanceStatus('Job_In_Progress');
+                                }} className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold shadow-neon">Start Job Timer</button>}
+                                {job.status === 'Job_In_Progress' && <button onClick={() => {
+                                    handleSaveJob({ timeFinished: new Date().toLocaleTimeString() });
+                                    advanceStatus('Invoiced');
+                                }} className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition-colors">Complete & Sign Off</button>}
+                            </div>
+
+                            {/* Job Conditions Form (NEW) */}
+                            <div className="bg-[#161817] border border-white/5 rounded-2xl p-6">
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Cloud size={16}/> Site Conditions & Compliance</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                     <Input label="Weather" value={job.weatherNotes || ''} onChange={(v: string) => handleSaveJob({ weatherNotes: v })} placeholder="e.g. Sunny" />
+                                     <Input label="Wind Speed" value={job.windSpeed || ''} onChange={(v: string) => handleSaveJob({ windSpeed: v })} placeholder="e.g. 5 km/h" />
+                                     <Input label="Temperature" value={job.temperature || ''} onChange={(v: string) => handleSaveJob({ temperature: v })} placeholder="e.g. 26 C" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                     <Input label="Chemical Batch #" value={job.chemicalBatchNumbers || ''} onChange={(v: string) => handleSaveJob({ chemicalBatchNumbers: v })} placeholder="e.g. BATCH-00123" />
+                                     <div className="flex gap-2 items-end">
+                                        <div className="flex-1">
+                                            <Input label="Time Started" type="time" value={job.timeStarted || ''} onChange={(v: string) => handleSaveJob({ timeStarted: v })} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Input label="Time Finished" type="time" value={job.timeFinished || ''} onChange={(v: string) => handleSaveJob({ timeFinished: v })} />
+                                        </div>
+                                     </div>
+                                </div>
+                                
+                                {/* Safety Checklist (NEW) */}
+                                <div className="mb-4 space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Pre-Treatment Safety Checklist</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        {SAFETY_CHECKLIST_ITEMS.map(item => {
+                                            const isChecked = (job.safetyChecklist || []).includes(item);
+                                            return (
+                                                <button 
+                                                    key={item} 
+                                                    onClick={() => {
+                                                        const current = job.safetyChecklist || [];
+                                                        const updated = isChecked ? current.filter(i => i !== item) : [...current, item];
+                                                        handleSaveJob({ safetyChecklist: updated });
+                                                    }}
+                                                    className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors flex items-center gap-2 ${isChecked ? 'bg-green-500/20 text-green-400 border-green-500' : 'bg-black/30 text-gray-500 border-white/10'}`}
+                                                >
+                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-green-500 border-green-500' : 'border-gray-500'}`}>
+                                                        {isChecked && <CheckCircle size={12} className="text-white" />}
+                                                    </div>
+                                                    {item}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">PPE Used</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {COMMON_PPE.map(ppe => {
+                                            const isSelected = (job.ppeUsed || []).includes(ppe);
+                                            return (
+                                                <button 
+                                                    key={ppe} 
+                                                    onClick={() => {
+                                                        const current = job.ppeUsed || [];
+                                                        const updated = isSelected ? current.filter(p => p !== ppe) : [...current, ppe];
+                                                        handleSaveJob({ ppeUsed: updated });
+                                                    }}
+                                                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${isSelected ? 'bg-pestGreen text-white border-pestGreen' : 'bg-black/30 text-gray-500 border-white/10'}`}
+                                                >
+                                                    {ppe}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* SCANNER MODAL */}
@@ -676,6 +872,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                                     {cp.area}
                                                 </h4>
                                                 <p className="text-sm text-gray-400 mt-1">Target: <span className="text-pestGreen font-bold">{cp.pestType}</span></p>
+                                                {cp.recommendation && <p className="text-xs text-blue-400 mt-1">Note: {cp.recommendation}</p>}
                                             </div>
                                             <button 
                                                 onClick={() => {
@@ -689,16 +886,28 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         </div>
                                         
                                         <div className="space-y-4 pt-4 border-t border-white/5">
-                                            <TextArea 
-                                                label="Treatment Chemical & Dosage" 
-                                                placeholder="e.g. Applied 5g Maxforce Gel" 
-                                                value={cp.treatmentNotes || ''} 
-                                                onChange={(v: string) => {
-                                                     const updated = job.checkpoints.map(c => c.id === cp.id ? {...c, treatmentNotes: v } : c);
-                                                     handleSaveJob({ checkpoints: updated });
-                                                }} 
-                                                rows={1} 
-                                            />
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <TextArea 
+                                                    label="Treatment Chemical Used" 
+                                                    placeholder="e.g. Maxforce Gel" 
+                                                    value={cp.chemicalUsed || ''} 
+                                                    onChange={(v: string) => {
+                                                        const updated = job.checkpoints.map(c => c.id === cp.id ? {...c, chemicalUsed: v } : c);
+                                                        handleSaveJob({ checkpoints: updated });
+                                                    }} 
+                                                    rows={1} 
+                                                />
+                                                <TextArea 
+                                                    label="Dosage / Notes" 
+                                                    placeholder="e.g. 5g applied to hinges" 
+                                                    value={cp.treatmentNotes || ''} 
+                                                    onChange={(v: string) => {
+                                                        const updated = job.checkpoints.map(c => c.id === cp.id ? {...c, treatmentNotes: v } : c);
+                                                        handleSaveJob({ checkpoints: updated });
+                                                    }} 
+                                                    rows={1} 
+                                                />
+                                            </div>
                                             <FileUpload 
                                                 label="Proof of Treatment (Photo)" 
                                                 value={cp.servicePhotos} 
@@ -750,7 +959,9 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                              </div>
                              
                              <div className="flex justify-center gap-4">
-                                 <button className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors"><FileText size={18}/> Download Invoice PDF</button>
+                                 <button onClick={() => generatePrintDocument('INVOICE')} className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors">
+                                    <Printer size={18}/> Print Invoice & Report
+                                 </button>
                                  <button onClick={() => { handleSaveJob({ status: 'Completed' }); onClose(); }} className="bg-pestGreen text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-white hover:text-pestGreen transition-colors flex items-center gap-2">
                                      <CheckCircle size={18} /> Archive & Close Job
                                  </button>

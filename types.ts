@@ -139,7 +139,17 @@ export interface Checkpoint {
   code: string; // Auto-generated: CHK-YYYYMMDD-XXX
   area: string;
   notes: string; // Assessment notes
+  
+  // Assessment Details
+  rootCause?: string; // e.g. "Structural Gap", "Hygiene", "Imported Goods"
+  accessNotes?: string; // e.g. "Need ladder", "Locked"
+  recommendation?: string; // e.g. "Seal cracks", "Install brush strip"
+  infestationLevel?: 'Trace' | 'Low' | 'Medium' | 'High' | 'Severe'; // NEW
+  actionPriority?: 'Routine' | 'Urgent' | 'Critical'; // NEW
+
+  // Execution Details
   treatmentNotes?: string; // Notes added during execution
+  chemicalUsed?: string; // Specific chemical used here
   pestType: string;
   severity: 'Low' | 'Medium' | 'High';
   photos: string[]; // Assessment photos
@@ -164,6 +174,13 @@ export interface JobQuote {
   vatRate: number; // e.g., 0.15 for 15%
   total: number; // subtotal + (subtotal * vatRate)
   notes: string; // General quote notes
+  
+  // Quote Details
+  depositRequired?: number; // e.g. 50%
+  warranty?: string; // e.g. "3 Months"
+  validUntil?: string; // Date string
+  estimatedDuration?: string; // e.g. "2 Hours"
+  
   generatedDate?: string;
 }
 
@@ -223,6 +240,20 @@ export interface JobCard {
   isFirstTimeService: boolean; // Toggle to show codes for sticker setup
   siteAccessCodes?: string; // For gate codes etc
   billingNotes?: string; // Internal billing notes
+  
+  // Expanded Assessment Data
+  equipmentNeeded?: string[]; // NEW: Ladders, Torch, Thermal Camera
+  
+  // Execution Log
+  weatherNotes?: string; // e.g. "Rainy"
+  windSpeed?: string; // NEW
+  temperature?: string; // NEW
+  safetyChecklist?: string[]; // NEW: ["Pets Removed", "Food Covered", "Smoke Alarms Off"]
+
+  ppeUsed?: string[]; // Array of PPE items e.g. "Gloves", "Mask"
+  chemicalBatchNumbers?: string; // Traceability
+  timeStarted?: string;
+  timeFinished?: string;
   
   // Stages Data
   treatmentRecommendation: string;
