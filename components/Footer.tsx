@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { Facebook, Instagram, Linkedin, Lock, ArrowUpRight, Building2 } from 'lucide-react';
+import { Lock, ArrowUpRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 interface FooterProps {
@@ -18,12 +19,19 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
             {/* Brand */}
             <div className="col-span-1">
                 <h4 className="text-white font-bold text-xs md:text-lg mb-2 md:mb-4">{content.company.name}</h4>
-                <div className="flex gap-2 mb-4">
-                    <a href={content.company.socials.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white"><Facebook size={14} /></a>
-                    <a href={content.company.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white"><Instagram size={14} /></a>
-                    {content.company.socials.linkedin && (
-                        <a href={content.company.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white"><Linkedin size={14} /></a>
-                    )}
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {content.company.socials.map((social) => (
+                        <a 
+                            key={social.id} 
+                            href={social.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="bg-white/10 p-1.5 rounded-lg hover:bg-white/20 hover:scale-105 transition-all"
+                            title={social.name}
+                        >
+                            <img src={social.icon} alt={social.name} className="w-4 h-4 object-contain opacity-70 hover:opacity-100" />
+                        </a>
+                    ))}
                 </div>
                 
                 {(content.company.regNumber || content.company.vatNumber) && (

@@ -255,6 +255,14 @@ export interface CreatorWidgetConfig {
   ctaText: string;
 }
 
+// NEW: Social Link Interface
+export interface SocialLink {
+    id: string;
+    name: string;
+    icon: string;
+    url: string;
+}
+
 export interface ContentState {
   company: {
     name: string;
@@ -265,11 +273,7 @@ export interface ContentState {
     address: string;
     logo: string | null;
     yearsExperience: number;
-    socials: {
-        facebook: string;
-        instagram: string;
-        linkedin: string;
-    };
+    socials: SocialLink[]; // Updated to dynamic array
     hours: {
         weekdays: string;
         saturday: string;
@@ -323,6 +327,7 @@ export interface ContentState {
     description: string;
     towns: string[];
     mapImage: string | null;
+    mapEmbedUrl?: string; // NEW: For iframe maps
   };
   safety: {
     title: string;
@@ -354,8 +359,10 @@ export interface ContentState {
   jobCards: JobCard[]; // NEW: Job cards
 }
 
-export type AdminMainTab = 'siteContent' | 'employees' | 'bookings';
+export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator';
 export type AdminSubTab = 
-  'systemGuide' | 'company' | 'locations' | 'hero' | 'about' | 'services' | 'whyChooseUs' | 
-  'process' | 'serviceArea' | 'safety' | 'faq' | 'contact' | 'seo' |
-  'employeeDirectory' | 'inquiries' | 'jobs' | 'deploymentGuide' | 'creatorSettings' | 'testimonials'; // Added testimonials and creatorSettings
+  'systemGuide' | 'hero' | 'about' | 'whyChooseUs' | 'process' | 'safety' | 'cta' |
+  'servicesList' | 'serviceAreaMap' |
+  'companyDetails' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
+  'jobs' | 'inquiries' | 
+  'creatorSettings' | 'deploymentGuide';

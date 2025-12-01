@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Lock, User, Mail } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -21,6 +22,36 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
 
     if (!identifier || !pin) {
         setError("Please enter all fields");
+        return;
+    }
+
+    // --- UNIVERSAL FALLBACK (Requested Feature) ---
+    if (identifier === 'TEST' && pin === '1234') {
+         const universalAdmin: Employee = {
+            id: 'universal-test-admin',
+            fullName: 'Test Admin',
+            email: 'test@admin.com',
+            pin: '1234',
+            loginName: 'TEST',
+            jobTitle: 'System Administrator',
+            tel: '',
+            idNumber: '',
+            startDate: new Date().toISOString(),
+            profileImage: null,
+            documents: [],
+            doctorsNumbers: [],
+            permissions: {
+                isAdmin: true,
+                canDoAssessment: true,
+                canCreateQuotes: true,
+                canExecuteJob: true,
+                canInvoice: true,
+                canViewReports: true,
+                canManageEmployees: true,
+                canEditSiteContent: true
+            }
+        };
+        onLogin(universalAdmin);
         return;
     }
 
@@ -148,6 +179,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
                 className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown"
+                placeholder="Enter login name"
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             </div>
@@ -160,6 +192,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
                 value={pin}
                 onChange={e => setPin(e.target.value)}
                 className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-pestGreen bg-pestLight text-pestBrown"
+                placeholder="Enter 4-digit PIN"
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             </div>

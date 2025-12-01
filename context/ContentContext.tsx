@@ -1,6 +1,7 @@
 
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails } from '../types';
+import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails, SocialLink } from '../types';
 
 // Helper to get the current API URL (Local override > Env Var > Localhost)
 const getApiUrl = () => {
@@ -17,7 +18,10 @@ const defaultState: ContentState = {
     address: "Unit 4, Rapid Falls Industrial Park, Riverside, Nelspruit, 1200",
     logo: "https://i.ibb.co/zHBzVwRV/image.png",
     yearsExperience: 18,
-    socials: { facebook: "https://facebook.com", instagram: "https://instagram.com", linkedin: "https://linkedin.com" },
+    socials: [
+        { id: 'soc-1', name: 'Facebook', icon: 'https://cdn-icons-png.flaticon.com/512/733/733547.png', url: 'https://facebook.com' },
+        { id: 'soc-2', name: 'Instagram', icon: 'https://cdn-icons-png.flaticon.com/512/2111/2111463.png', url: 'https://instagram.com' }
+    ],
     hours: { weekdays: "07:30 - 17:00", saturday: "08:00 - 13:00", sunday: "Closed" }
   },
   bankDetails: { 

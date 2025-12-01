@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -9,11 +10,11 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map, Award, ThumbsUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, TestimonialItem } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink } from '../types';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 import { JobCardManager } from './JobCardManager';
 
@@ -107,10 +108,65 @@ const EditorLayout = ({ title, icon, helpText, onSave, children }: { title: stri
 
 // --- EDITORS ---
 
+const WhyChooseUsEditor = () => {
+    const { content, updateWhyChooseUsItems, updateContent } = useContent();
+    const [localData, setLocalData] = useState(content.whyChooseUs);
+
+    const handleItemChange = (index: number, field: keyof WhyChooseUsItem, value: string) => {
+        const newItems = [...localData.items];
+        newItems[index] = { ...newItems[index], [field]: value };
+        setLocalData({ ...localData, items: newItems });
+    };
+
+    const handleDeleteItem = (index: number) => {
+        const newItems = localData.items.filter((_, i) => i !== index);
+        setLocalData({ ...localData, items: newItems });
+    };
+
+    const handleAddItem = () => {
+        setLocalData({
+            ...localData,
+            items: [...localData.items, { title: "New Reason", text: "Description", iconName: "Award" }]
+        });
+    };
+
+    return (
+        <EditorLayout
+            title="Why Choose Us"
+            icon={ThumbsUp}
+            helpText="Edit the 6 reasons why clients should choose you. These appear on the Home and About pages."
+            onSave={() => { updateContent('whyChooseUs', { title: localData.title, subtitle: localData.subtitle }); updateWhyChooseUsItems(localData.items); }}
+        >
+             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-6">
+                <h3 className="text-white font-bold mb-4">Section Header</h3>
+                <Input label="Section Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
+                <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
+            </div>
+
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white font-bold">Reason Cards</h3>
+                <button onClick={handleAddItem} className="bg-pestGreen text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2"><Plus size={14}/> Add Card</button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {localData.items.map((item, idx) => (
+                    <div key={idx} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
+                        <button onClick={() => handleDeleteItem(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+                        <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} className="mb-4" />
+                        <TextArea label="Description" value={item.text} onChange={(v: string) => handleItemChange(idx, 'text', v)} rows={3} className="mb-4" />
+                        <Input label="Icon Name (Lucide)" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
+                    </div>
+                ))}
+            </div>
+        </EditorLayout>
+    );
+};
+
 const CompanyEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.company);
     const [bankData, setBankData] = useState(content.bankDetails);
+    const [newSocial, setNewSocial] = useState<Partial<SocialLink>>({ name: '', url: '', icon: '' });
     
     const update = (updates: any) => setLocalData(prev => ({ ...prev, ...updates }));
     const updateBank = (updates: any) => setBankData(prev => ({ ...prev, ...updates }));
@@ -118,6 +174,22 @@ const CompanyEditor = () => {
     const handleSave = () => {
         updateContent('company', localData);
         updateContent('bankDetails', bankData);
+    };
+
+    const handleAddSocial = () => {
+        if (!newSocial.name || !newSocial.url) return;
+        const link: SocialLink = {
+            id: Date.now().toString(),
+            name: newSocial.name,
+            url: newSocial.url,
+            icon: newSocial.icon || ''
+        };
+        update({ socials: [...localData.socials, link] });
+        setNewSocial({ name: '', url: '', icon: '' });
+    };
+
+    const handleDeleteSocial = (id: string) => {
+        update({ socials: localData.socials.filter(s => s.id !== id) });
     };
 
     return (
@@ -151,11 +223,42 @@ const CompanyEditor = () => {
                 </div>
 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Branding & Socials</h3>
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Branding</h3>
                     <FileUpload label="Company Logo" value={localData.logo} onChange={(v: string) => update({ logo: v })} />
-                    <div className="pt-4 space-y-2">
-                        <Input label="Facebook URL" value={localData.socials.facebook} onChange={(v: string) => update({ socials: { ...localData.socials, facebook: v } })} />
-                        <Input label="Instagram URL" value={localData.socials.instagram} onChange={(v: string) => update({ socials: { ...localData.socials, instagram: v } })} />
+                </div>
+
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 md:col-span-2">
+                    <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Social Media Links</h3>
+                    
+                    {/* List Existing */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                        {localData.socials.map(social => (
+                            <div key={social.id} className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center gap-3 group relative">
+                                <div className="w-10 h-10 bg-white/10 rounded-lg p-1 flex-shrink-0">
+                                    {social.icon && <img src={social.icon} alt={social.name} className="w-full h-full object-contain" />}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <h4 className="text-white font-bold text-sm truncate">{social.name}</h4>
+                                    <p className="text-xs text-gray-500 truncate">{social.url}</p>
+                                </div>
+                                <button onClick={() => handleDeleteSocial(social.id)} className="absolute top-2 right-2 text-gray-600 hover:text-red-500"><Trash2 size={14}/></button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Add New */}
+                    <div className="bg-white/5 p-4 rounded-xl border border-dashed border-white/20">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Add New Link</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <Input placeholder="Name (e.g. TikTok)" value={newSocial.name} onChange={(v: string) => setNewSocial({...newSocial, name: v})} />
+                             <Input placeholder="URL (https://...)" value={newSocial.url} onChange={(v: string) => setNewSocial({...newSocial, url: v})} />
+                             <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <FileUpload label="Icon" value={newSocial.icon} onChange={(v: string) => setNewSocial({...newSocial, icon: v})} />
+                                </div>
+                                <button onClick={handleAddSocial} className="bg-pestGreen text-white px-4 rounded-lg font-bold self-end h-12 flex items-center justify-center"><Plus size={20}/></button>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
@@ -247,7 +350,12 @@ const HeroEditor = () => {
                     />
                     
                     {localData.mediaType === 'video' && (
-                        <FileUpload label="Video File (MP4)" value={localData.mediaVideo} onChange={(v: string) => update({ mediaVideo: v })} />
+                        <FileUpload 
+                            label="Video File (MP4/WebM)" 
+                            value={localData.mediaVideo} 
+                            onChange={(v: string) => update({ mediaVideo: v })} 
+                            accept="video/mp4,video/webm,image/*" 
+                        />
                     )}
 
                     {localData.mediaType === 'static' && (
@@ -307,8 +415,14 @@ const AboutEditor = () => {
 
 const ServicesEditor = () => {
     const { content, updateService } = useContent();
+    const [localServices, setLocalServices] = useState(content.services);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [tempService, setTempService] = useState<ServiceItem | null>(null);
+
+    // Sync with content only on initial load or if content changes externally
+    useEffect(() => {
+        setLocalServices(content.services);
+    }, [content.services]);
 
     const handleEdit = (service: ServiceItem) => {
         setEditingId(service.id);
@@ -331,23 +445,25 @@ const ServicesEditor = () => {
         setEditingId(newService.id);
     };
 
-    const handleSave = () => {
+    const handleSaveTemp = () => {
         if (!tempService) return;
-        const exists = content.services.find(s => s.id === tempService.id);
+        const exists = localServices.find(s => s.id === tempService.id);
         let updatedList;
         if (exists) {
-            updatedList = content.services.map(s => s.id === tempService.id ? tempService : s);
+            updatedList = localServices.map(s => s.id === tempService.id ? tempService : s);
         } else {
-            updatedList = [...content.services, tempService];
+            updatedList = [...localServices, tempService];
         }
-        updateService(updatedList);
+        setLocalServices(updatedList);
         setEditingId(null);
         setTempService(null);
     };
 
     const handleDelete = (id: string) => {
         if (confirm('Are you sure you want to delete this service?')) {
-            updateService(content.services.filter(s => s.id !== id));
+            // Update local state immediately
+            const updated = localServices.filter(s => s.id !== id);
+            setLocalServices(updated);
         }
     };
 
@@ -368,6 +484,11 @@ const ServicesEditor = () => {
         setTempService({ ...tempService, details: tempService.details.filter((_, i) => i !== index) });
     };
 
+    // Global Save
+    const handleGlobalSave = () => {
+        updateService(localServices);
+    };
+
     if (editingId && tempService) {
         return (
             <div className="space-y-6 animate-in fade-in pb-20">
@@ -375,7 +496,7 @@ const ServicesEditor = () => {
                     <h2 className="text-2xl font-bold text-white">Edit Service</h2>
                     <div className="flex gap-2">
                         <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/10 text-white rounded-lg">Cancel</button>
-                        <button onClick={handleSave} className="px-4 py-2 bg-pestGreen text-white rounded-lg font-bold flex items-center gap-2"><Save size={16}/> Save Changes</button>
+                        <button onClick={handleSaveTemp} className="px-4 py-2 bg-pestGreen text-white rounded-lg font-bold flex items-center gap-2"><CheckCircle size={16}/> Done (Ready to Save)</button>
                     </div>
                 </div>
 
@@ -426,15 +547,18 @@ const ServicesEditor = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in pb-20">
-            <SectionHeader 
-                title="Manage Services" 
-                icon={Zap} 
-                action={<button onClick={handleNew} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Service</button>}
-            />
+        <EditorLayout
+            title="Manage Services"
+            icon={Zap}
+            helpText="Add, edit, or remove services offered. Changes are only applied when you click 'Save Changes'."
+            onSave={handleGlobalSave}
+        >
+            <div className="flex justify-end mb-4">
+                <button onClick={handleNew} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Service</button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {content.services.map(service => (
+                {localServices.map(service => (
                     <div key={service.id} className={`p-6 rounded-2xl border transition-all ${service.visible ? 'bg-[#161817] border-white/5' : 'bg-red-500/5 border-red-500/20 opacity-75'}`}>
                         <div className="flex justify-between items-start mb-4">
                             <div className="w-10 h-10 bg-pestGreen/20 rounded-lg flex items-center justify-center text-pestGreen">
@@ -454,7 +578,7 @@ const ServicesEditor = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </EditorLayout>
     );
 };
 
@@ -513,7 +637,7 @@ const ServiceAreaEditor = () => {
         <EditorLayout
             title="Service Area"
             icon={MapPin}
-            helpText="The 'Towns' list populates the interactive map tags. Upload a clear map image."
+            helpText="The 'Towns' list populates the interactive map tags. Upload a clear map image OR paste a Google Maps Embed URL."
             onSave={() => updateContent('serviceArea', localData)}
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -526,6 +650,14 @@ const ServiceAreaEditor = () => {
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Map Visual</h3>
+                    <TextArea 
+                        label="Google Maps Embed URL (Iframe src)" 
+                        value={localData.mapEmbedUrl || ''} 
+                        onChange={(v: string) => setLocalData({ ...localData, mapEmbedUrl: v })} 
+                        rows={3} 
+                        placeholder="https://www.google.com/maps/embed?..."
+                    />
+                    <div className="text-center text-xs text-gray-500 font-bold uppercase my-2">- OR -</div>
                     <FileUpload label="Area Map Image" value={localData.mapImage} onChange={(v: string) => setLocalData({ ...localData, mapImage: v })} />
                 </div>
             </div>
@@ -581,7 +713,9 @@ const FaqEditor = () => {
     };
 
     const handleDelete = (index: number) => {
-        setLocalFaqs(localFaqs.filter((_, i) => i !== index));
+        // Update local state immediately
+        const newFaqs = localFaqs.filter((_, i) => i !== index);
+        setLocalFaqs(newFaqs);
     };
 
     return (
@@ -1073,14 +1207,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
   // Creator tab is only for Creator ID
   const showCreatorTab = isCreator;
 
-  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>(showSiteTab ? 'siteContent' : 'bookings');
-  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'company' : 'jobs');
+  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>(showSiteTab ? 'homeLayout' : 'work');
+  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'hero' : 'jobs');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   // Security Redirect
   useEffect(() => {
-     if (activeMainTab === 'siteContent' && !showSiteTab) {
-         setActiveMainTab('bookings');
+     if (activeMainTab === 'homeLayout' && !showSiteTab) {
+         setActiveMainTab('work');
          setActiveSubTab('jobs');
      }
   }, [activeMainTab, showSiteTab]);
@@ -1130,22 +1264,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             {/* Main Tabs */}
             <div className="flex p-2 gap-1 border-b border-white/5 overflow-x-auto scrollbar-hide">
                 {showSiteTab && (
-                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab('company'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'siteContent' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Globe size={18} /> Site
+                    <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('hero'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'homeLayout' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Layout size={18} /> Home
+                    </button>
+                )}
+                 {showSiteTab && (
+                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('servicesList'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'servicesArea' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Zap size={18} /> Svcs
+                    </button>
+                )}
+                 {showSiteTab && (
+                    <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('companyDetails'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'companyInfo' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Info size={18} /> Info
                     </button>
                 )}
                 {showWorkTab && (
-                    <button onClick={() => { setActiveMainTab('bookings'); setActiveSubTab('jobs'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'bookings' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button onClick={() => { setActiveMainTab('work'); setActiveSubTab('jobs'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'work' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Briefcase size={18} /> Work
                     </button>
                 )}
-                {showTeamTab && (
-                    <button onClick={() => { setActiveMainTab('employees'); setActiveSubTab('employeeDirectory'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'employees' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                        <Users size={18} /> Team
-                    </button>
-                )}
                 {showCreatorTab && (
-                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab('creatorSettings'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeSubTab === 'creatorSettings' || activeSubTab === 'deploymentGuide' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-purple-400'}`}>
+                    <button onClick={() => { setActiveMainTab('creator'); setActiveSubTab('creatorSettings'); }} className={`flex-1 min-w-[60px] py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'creator' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-purple-400'}`}>
                         <Code2 size={18} /> Dev
                     </button>
                 )}
@@ -1155,35 +1294,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
                 <div className="text-xs font-bold text-gray-600 uppercase tracking-widest mb-3 mt-2 px-2">Menu</div>
                 
-                {/* Site Content Subtabs */}
-                {isAdmin && <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="siteContent" />}
-                
-                <SidebarItem id="company" label="Company Info" icon={Building2} mainTab="siteContent" />
-                <SidebarItem id="contact" label="Contact & CTA" icon={Phone} mainTab="siteContent" />
-                <SidebarItem id="hero" label="Hero Section" icon={Layout} mainTab="siteContent" />
-                <SidebarItem id="about" label="About Us" icon={Info} mainTab="siteContent" />
-                <SidebarItem id="services" label="Services" icon={Zap} mainTab="siteContent" />
-                <SidebarItem id="process" label="Process" icon={Workflow} mainTab="siteContent" />
-                <SidebarItem id="serviceArea" label="Service Area" icon={MapPin} mainTab="siteContent" />
-                <SidebarItem id="safety" label="Safety & badges" icon={Shield} mainTab="siteContent" />
-                <SidebarItem id="faq" label="FAQs" icon={HelpCircle} mainTab="siteContent" />
-                <SidebarItem id="seo" label="SEO Settings" icon={Search} mainTab="siteContent" />
+                {/* Home Layout */}
+                <SidebarItem id="hero" label="Hero Section" icon={Layout} mainTab="homeLayout" />
+                <SidebarItem id="about" label="About Us" icon={Info} mainTab="homeLayout" />
+                <SidebarItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
+                <SidebarItem id="process" label="Our Process" icon={Workflow} mainTab="homeLayout" />
+                <SidebarItem id="safety" label="Safety & Compliance" icon={Shield} mainTab="homeLayout" />
+                <SidebarItem id="cta" label="CTA Banner" icon={Phone} mainTab="homeLayout" />
+
+                {/* Services & Area */}
+                <SidebarItem id="servicesList" label="Services List" icon={Zap} mainTab="servicesArea" />
+                <SidebarItem id="serviceAreaMap" label="Service Area Map" icon={MapPin} mainTab="servicesArea" />
+
+                {/* Company & Info */}
+                {isAdmin && <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="companyInfo" />}
+                <SidebarItem id="companyDetails" label="Company Info" icon={Building2} mainTab="companyInfo" />
+                <SidebarItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
+                <SidebarItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
+                <SidebarItem id="seo" label="SEO Settings" icon={Search} mainTab="companyInfo" />
+                <SidebarItem id="employeeDirectory" label="Staff Directory" icon={Users} mainTab="companyInfo" />
+
+                {/* Work Subtabs */}
+                <SidebarItem id="jobs" label="Job Cards" icon={Clipboard} mainTab="work" />
+                <SidebarItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
                 
                 {/* Creator Only */}
-                {isCreator && activeMainTab === 'siteContent' && (
+                {isCreator && activeMainTab === 'creator' && (
                     <>
-                        <div className="my-2 border-t border-white/5 px-2 py-1 text-xs font-bold text-purple-500 uppercase">Creator Hub</div>
                         <button onClick={() => setActiveSubTab('creatorSettings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'creatorSettings' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><Code2 size={16}/> Widget Settings</button>
                         <button onClick={() => setActiveSubTab('deploymentGuide')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'deploymentGuide' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><GitBranch size={16}/> Zero-to-Hero Guide</button>
                     </>
                 )}
 
-                {/* Work Subtabs */}
-                <SidebarItem id="jobs" label="Job Cards" icon={Clipboard} mainTab="bookings" />
-                <SidebarItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="bookings" />
-
-                {/* Team Subtabs */}
-                <SidebarItem id="employeeDirectory" label="Staff Directory" icon={Users} mainTab="employees" />
             </div>
 
             {/* User Footer */}
@@ -1208,26 +1350,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             <div className="max-w-5xl mx-auto p-8 pb-24">
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     
-                    {activeMainTab === 'siteContent' && activeSubTab === 'systemGuide' && isAdmin && <SystemGuide />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'deploymentGuide' && isCreator && <ZeroToHeroGuide />}
+                    {/* HOME PAGE LAYOUT GROUP */}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'hero' && <HeroEditor />}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'about' && <AboutEditor />}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'whyChooseUs' && <WhyChooseUsEditor />}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'process' && <ProcessEditor />}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'safety' && <SafetyEditor />}
+                    {activeMainTab === 'homeLayout' && activeSubTab === 'cta' && <ContactEditor />}
+
+                    {/* SERVICES & AREA GROUP */}
+                    {activeMainTab === 'servicesArea' && activeSubTab === 'servicesList' && <ServicesEditor />}
+                    {activeMainTab === 'servicesArea' && activeSubTab === 'serviceAreaMap' && <ServiceAreaEditor />}
+
+                    {/* COMPANY & INFO GROUP */}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'systemGuide' && isAdmin && <SystemGuide />}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'companyDetails' && <CompanyEditor />}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'contactPage' && <ContactEditor />}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'faqs' && <FaqEditor />}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'seo' && <SeoEditor />}
+                    {activeMainTab === 'companyInfo' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
                     
-                    {activeMainTab === 'siteContent' && activeSubTab === 'company' && <CompanyEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'contact' && <ContactEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'hero' && <HeroEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'about' && <AboutEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'services' && <ServicesEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'process' && <ProcessEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'serviceArea' && <ServiceAreaEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'safety' && <SafetyEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'faq' && <FaqEditor />}
-                    {activeMainTab === 'siteContent' && activeSubTab === 'seo' && <SeoEditor />}
+                    {/* CREATOR GROUP */}
+                    {activeMainTab === 'creator' && activeSubTab === 'creatorSettings' && isCreator && <CreatorWidgetEditor />}
+                    {activeMainTab === 'creator' && activeSubTab === 'deploymentGuide' && isCreator && <ZeroToHeroGuide />}
                     
-                    {activeMainTab === 'siteContent' && activeSubTab === 'creatorSettings' && isCreator && <CreatorWidgetEditor />}
-                    
-                    {activeMainTab === 'employees' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
-                    
-                    {/* Inquiries View */}
-                    {activeMainTab === 'bookings' && activeSubTab === 'inquiries' && (
+                    {/* WORK GROUP - INQUIRIES */}
+                    {activeMainTab === 'work' && activeSubTab === 'inquiries' && (
                          <div className="space-y-6">
                             <SectionHeader title="Web Inquiries & Bookings" icon={Inbox} />
                             <div className="bg-[#161817] rounded-2xl border border-white/5 overflow-hidden">
@@ -1268,8 +1416,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         </div>
                     )}
                     
-                    {/* Job Management */}
-                    {activeMainTab === 'bookings' && activeSubTab === 'jobs' && (
+                    {/* WORK GROUP - JOB CARDS */}
+                    {activeMainTab === 'work' && activeSubTab === 'jobs' && (
                         <div className="space-y-6 pb-20">
                             <SectionHeader title="Active Job Cards" icon={Clipboard} />
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
