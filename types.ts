@@ -1,4 +1,5 @@
 
+
 import { LucideIcon } from 'lucide-react';
 
 export interface ServiceItem {
@@ -355,4 +356,4 @@ export type AdminMainTab = 'siteContent' | 'employees' | 'bookings';
 export type AdminSubTab = 
   'systemGuide' | 'company' | 'locations' | 'hero' | 'about' | 'services' | 'whyChooseUs' | 
   'process' | 'serviceArea' | 'safety' | 'faq' | 'inquiriesContact' | 'seo' |
-  'employeeDirectory' | 'inquiries' | 'jobs' | 'deploymentGuide' | 'creatorSettings'; // Added creatorSettings
+  'employeeDirectory' | 'inquiries' | 'jobs' | 'deploymentGuide' | 'creatorSettings' | 'testimonials'; // Added testimonials and creatorSettings

@@ -35,8 +35,18 @@ class DatabaseAdapter {
 
         if (this.type === 'postgres') {
             console.log("Initializing PostgreSQL Connection (Supabase) via postgres.js...");
+            
+            let postgres;
             try {
-                const postgres = require('postgres');
+                postgres = require('postgres');
+            } catch (e) {
+                console.error("CRITICAL ERROR: Failed to load 'postgres' library.");
+                console.error("Error Details:", e.message);
+                console.error("To fix: Run `npm install postgres` or check package.json");
+                process.exit(1);
+            }
+
+            try {
                 this.client = postgres(process.env.DATABASE_URL.trim(), {
                     ssl: { rejectUnauthorized: false }, // Fix for Supabase/Render SSL handshake issues
                     max: 10, // Connection pool size
@@ -58,9 +68,15 @@ class DatabaseAdapter {
                 });
 
             } catch (e) {
-                console.error("CRITICAL ERROR: Failed to load 'postgres' library.");
-                console.error("Error Details:", e);
-                console.error("To fix: Run `npm install postgres` or check package.json");
+                console.error("CRITICAL ERROR: Invalid Database Connection String.");
+                console.error("Error Details:", e.message);
+                if (e.code === 'ERR_INVALID_URL') {
+                    console.error("---------------------------------------------------------------");
+                    console.error("HINT: Your DATABASE_URL is malformed.");
+                    console.error("Format should be: postgresql://USER:PASSWORD@HOST:PORT/DB");
+                    console.error("Common mistake: Missing the '@' symbol between password and host.");
+                    console.error("---------------------------------------------------------------");
+                }
                 process.exit(1);
             }
         } else {
