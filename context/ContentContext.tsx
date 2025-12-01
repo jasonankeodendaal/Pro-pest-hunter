@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails, SocialLink } from '../types';
 
@@ -64,7 +63,7 @@ const defaultState: ContentState = {
       overlayOpacity: 60, 
       mediaType: 'video', 
       mediaImages: [], 
-      mediaVideo: "https://cdn.pixabay.com/video/2020/05/25/40133-424930159_large.mp4", 
+      mediaVideo: "https://cdn.pixabay.com/video/2022/10/19/135658-761953702_large.mp4", 
       carouselInterval: 3000 
   },
   about: { 
@@ -350,6 +349,22 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
                 if (serverData.meta) {
                     setDbType(serverData.meta.databaseType);
                 }
+                
+                // CRITICAL FIX: Sanitize 'socials' if it comes as object (Legacy Data)
+                // This prevents "map is not a function" crash
+                if (serverData.company && serverData.company.socials && !Array.isArray(serverData.company.socials)) {
+                    console.warn("Legacy social data detected. converting to array...");
+                    const oldSocials = serverData.company.socials;
+                    const newSocials = [];
+                    if (oldSocials.facebook) newSocials.push({ id: 'fb', name: 'Facebook', url: oldSocials.facebook, icon: 'https://cdn-icons-png.flaticon.com/512/733/733547.png' });
+                    if (oldSocials.instagram) newSocials.push({ id: 'ig', name: 'Instagram', url: oldSocials.instagram, icon: 'https://cdn-icons-png.flaticon.com/512/2111/2111463.png' });
+                    if (oldSocials.linkedin) newSocials.push({ id: 'li', name: 'LinkedIn', url: oldSocials.linkedin, icon: 'https://cdn-icons-png.flaticon.com/512/3536/3536505.png' });
+                    serverData.company.socials = newSocials;
+                }
+                
+                // Fallback for missing arrays
+                if (serverData.company && !serverData.company.socials) serverData.company.socials = [];
+
                 setContent(prev => ({
                     ...prev,
                     ...serverData

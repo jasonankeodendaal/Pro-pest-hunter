@@ -439,8 +439,8 @@ function getDefaultEmployees() {
         {
             id: 'emp-001',
             fullName: 'Ruaan Van Wyk',
-            email: 'ruaan@propesthunters.co.za', 
-            pin: '2024',            
+            email: process.env.VITE_ADMIN_EMAIL || 'ruaan@propesthunters.co.za', 
+            pin: process.env.VITE_ADMIN_PIN || '2024',            
             loginName: 'ruaan',
             jobTitle: 'Owner / Master Technician',
             permissions: { isAdmin: true, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
@@ -493,11 +493,11 @@ function getDefaultSettings() {
             address: "Unit 4, Rapid Falls Industrial Park, Riverside, Nelspruit, 1200",
             logo: "https://i.ibb.co/zHBzVwRV/image.png",
             yearsExperience: 18,
-            socials: { 
-                facebook: "https://facebook.com/propesthunters", 
-                instagram: "https://instagram.com/propesthunters_lowveld", 
-                linkedin: "https://linkedin.com/company/pro-pest-hunters" 
-            },
+            socials: [
+                { id: 'soc-fb', name: 'Facebook', icon: 'https://cdn-icons-png.flaticon.com/512/733/733547.png', url: 'https://facebook.com/propesthunters' },
+                { id: 'soc-ig', name: 'Instagram', icon: 'https://cdn-icons-png.flaticon.com/512/2111/2111463.png', url: 'https://instagram.com/propesthunters_lowveld' },
+                { id: 'soc-li', name: 'LinkedIn', icon: 'https://cdn-icons-png.flaticon.com/512/3536/3536505.png', url: 'https://linkedin.com/company/pro-pest-hunters' }
+            ],
             hours: { weekdays: "07:30 - 17:00", saturday: "08:00 - 13:00", sunday: "Emergency Only" }
         },
         hero: {
@@ -507,7 +507,7 @@ function getDefaultSettings() {
             overlayOpacity: 60,
             mediaType: 'video',
             mediaImages: [], 
-            mediaVideo: "https://cdn.pixabay.com/video/2020/05/25/40133-424930159_large.mp4",
+            mediaVideo: "https://cdn.pixabay.com/video/2022/10/19/135658-761953702_large.mp4",
             carouselInterval: 3000
         },
         about: {

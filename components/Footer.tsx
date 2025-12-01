@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Lock, ArrowUpRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -20,7 +19,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
             <div className="col-span-1">
                 <h4 className="text-white font-bold text-xs md:text-lg mb-2 md:mb-4">{content.company.name}</h4>
                 <div className="flex flex-wrap gap-2 mb-4">
-                    {content.company.socials.map((social) => (
+                    {Array.isArray(content.company.socials) && content.company.socials.map((social) => (
                         <a 
                             key={social.id} 
                             href={social.url} 
