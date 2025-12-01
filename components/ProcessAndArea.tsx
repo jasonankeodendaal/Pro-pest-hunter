@@ -95,21 +95,34 @@ export const ProcessAndArea: React.FC = () => {
             >
                 {/* Map Content */}
                 <div className="absolute inset-0 bg-pestLight transition-transform duration-700 group-hover:scale-105">
-                    {content.serviceArea.mapImage ? (
-                        <img src={content.serviceArea.mapImage} alt="Service Area Map" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                    {content.serviceArea.mapEmbedUrl ? (
+                         <iframe 
+                            src={content.serviceArea.mapEmbedUrl} 
+                            width="100%" 
+                            height="100%" 
+                            style={{ border: 0 }} 
+                            allowFullScreen={false} 
+                            loading="lazy" 
+                            title="Service Area Map"
+                            className="w-full h-full"
+                        />
                     ) : (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                            <svg className="absolute inset-0 w-full h-full opacity-10 text-pestBrown fill-current" viewBox="0 0 400 400" preserveAspectRatio="none">
-                                <path d="M0,200 Q100,150 200,200 T400,200 V400 H0 Z" fillOpacity="0.1"/>
-                                <path d="M50,50 Q150,0 250,50 T450,50" stroke="currentColor" strokeWidth="1" fill="none" />
-                                <path d="M100,300 Q200,250 300,300" stroke="currentColor" strokeWidth="1" fill="none" />
-                                <circle cx="200" cy="200" r="100" stroke="currentColor" strokeWidth="0.5" fill="none" strokeDasharray="4 4" />
-                            </svg>
-                            <div className="text-center p-6 border-2 border-dashed border-pestBrown/20 rounded-3xl">
-                                <MapPin className="w-12 h-12 text-pestBrown/30 mx-auto mb-2" />
-                                <p className="text-pestBrown/40 font-bold text-sm uppercase tracking-widest">Map Display Area</p>
+                        content.serviceArea.mapImage ? (
+                            <img src={content.serviceArea.mapImage} alt="Service Area Map" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                        ) : (
+                            <div className="relative w-full h-full flex items-center justify-center">
+                                <svg className="absolute inset-0 w-full h-full opacity-10 text-pestBrown fill-current" viewBox="0 0 400 400" preserveAspectRatio="none">
+                                    <path d="M0,200 Q100,150 200,200 T400,200 V400 H0 Z" fillOpacity="0.1"/>
+                                    <path d="M50,50 Q150,0 250,50 T450,50" stroke="currentColor" strokeWidth="1" fill="none" />
+                                    <path d="M100,300 Q200,250 300,300" stroke="currentColor" strokeWidth="1" fill="none" />
+                                    <circle cx="200" cy="200" r="100" stroke="currentColor" strokeWidth="0.5" fill="none" strokeDasharray="4 4" />
+                                </svg>
+                                <div className="text-center p-6 border-2 border-dashed border-pestBrown/20 rounded-3xl">
+                                    <MapPin className="w-12 h-12 text-pestBrown/30 mx-auto mb-2" />
+                                    <p className="text-pestBrown/40 font-bold text-sm uppercase tracking-widest">Map Display Area</p>
+                                </div>
                             </div>
-                        </div>
+                        )
                     )}
                 </div>
 
@@ -148,7 +161,7 @@ export const ProcessAndArea: React.FC = () => {
                 onClick={() => setIsMapOpen(false)}
             >
                 <button 
-                    className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-black/20 p-2 rounded-full hover:bg-black/40"
+                    className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-black/20 p-2 rounded-full hover:bg-black/40 z-[110]"
                     onClick={() => setIsMapOpen(false)}
                 >
                     <X size={32} />
@@ -158,16 +171,28 @@ export const ProcessAndArea: React.FC = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    className="relative max-w-full max-h-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-pestLight"
+                    className="relative w-full h-full max-w-[90vw] max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-pestLight"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {content.serviceArea.mapImage ? (
-                        <img src={content.serviceArea.mapImage} alt="Full Service Area Map" className="max-w-full max-h-[85vh] object-contain" />
+                    {content.serviceArea.mapEmbedUrl ? (
+                         <iframe 
+                            src={content.serviceArea.mapEmbedUrl} 
+                            width="100%" 
+                            height="100%" 
+                            style={{ border: 0 }} 
+                            allowFullScreen={true} 
+                            loading="lazy" 
+                            title="Full Service Area Map"
+                        />
                     ) : (
-                        <div className="w-[80vw] h-[60vh] flex flex-col items-center justify-center bg-pestLight text-pestBrown/40 p-10 text-center">
-                            <MapPin size={64} className="mb-4 opacity-50" />
-                            <h3 className="text-2xl font-black uppercase opacity-50">No Map Uploaded</h3>
-                        </div>
+                        content.serviceArea.mapImage ? (
+                            <img src={content.serviceArea.mapImage} alt="Full Service Area Map" className="w-full h-full object-contain" />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-pestLight text-pestBrown/40 p-10 text-center">
+                                <MapPin size={64} className="mb-4 opacity-50" />
+                                <h3 className="text-2xl font-black uppercase opacity-50">No Map Uploaded</h3>
+                            </div>
+                        )
                     )}
                 </motion.div>
             </motion.div>

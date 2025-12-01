@@ -317,6 +317,18 @@ const ContactEditor = () => {
         updateContent('bookCTA', bookData);
     };
 
+    // Clean URL handler
+    const handleUrlChange = (v: string) => {
+        let clean = v;
+        if (clean.includes('<iframe') && clean.includes('src="')) {
+            const match = clean.match(/src="([^"]+)"/);
+            if (match && match[1]) {
+                clean = match[1];
+            }
+        }
+        setLocalData({ ...localData, mapEmbedUrl: clean });
+    }
+
     return (
         <EditorLayout
             title="Contact & CTA"
@@ -334,9 +346,9 @@ const ContactEditor = () => {
                     <TextArea 
                         label="Google Maps Embed URL (iframe src)" 
                         value={localData.mapEmbedUrl} 
-                        onChange={(v: string) => setLocalData({ ...localData, mapEmbedUrl: v })} 
+                        onChange={handleUrlChange}
                         rows={3} 
-                        placeholder="https://www.google.com/maps/embed?..."
+                        placeholder="Paste URL or <iframe> here..."
                     />
                 </div>
 
@@ -683,7 +695,6 @@ const ProcessEditor = () => {
 
 const ServiceAreaEditor = () => {
     const { content, updateContent } = useContent();
-    // Removed mapImage from state to enforce URL use
     const [localData, setLocalData] = useState({ 
         title: content.serviceArea?.title || '', 
         description: content.serviceArea?.description || '', 
@@ -702,13 +713,27 @@ const ServiceAreaEditor = () => {
         setLocalData(prev => ({ ...prev, towns: prev.towns.filter((_, i) => i !== index) }));
     };
 
+    // Auto-clean URL on paste
+    const handleUrlChange = (val: string) => {
+        let clean = val;
+        // Check if user pasted the full iframe code
+        if (clean.includes('<iframe') && clean.includes('src="')) {
+            const match = clean.match(/src="([^"]+)"/);
+            if (match && match[1]) {
+                clean = match[1];
+            }
+        }
+        setLocalData({ ...localData, mapEmbedUrl: clean });
+    }
+
     return (
         <EditorLayout
             title="Service Area"
             icon={MapPin}
             description="Specify the towns and regions you cover. This helps clients know if they fall within your service zone."
             helpText="The 'Towns' list populates the interactive map tags. Paste a Google Maps Embed URL to display the map."
-            onSave={() => updateContent('serviceArea', localData)}
+            // FORCE REMOVAL OF MAP IMAGE ON SAVE
+            onSave={() => updateContent('serviceArea', { ...localData, mapImage: null })}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
@@ -746,12 +771,13 @@ const ServiceAreaEditor = () => {
                     <TextArea 
                         label="Google Maps Embed URL (Iframe src)" 
                         value={localData.mapEmbedUrl || ''} 
-                        onChange={(v: string) => setLocalData({ ...localData, mapEmbedUrl: v })} 
+                        onChange={handleUrlChange} 
                         rows={3} 
-                        placeholder="https://www.google.com/maps/embed?..."
+                        placeholder="Paste the URL or the full <iframe> tag here..."
                     />
-                    <div className="text-xs text-gray-500 italic mt-2">
-                        * Image upload removed. Please use Google Maps Embed URL for better accuracy.
+                    <div className="text-xs text-gray-500 italic mt-2 bg-blue-500/10 p-2 rounded border border-blue-500/20 text-blue-300">
+                        <Info size={12} className="inline mr-1"/>
+                        Tip: Go to Google Maps {'>'} Share {'>'} Embed a map {'>'} Copy HTML. Paste it here, and we will extract the link automatically.
                     </div>
                 </div>
             </div>
@@ -1167,11 +1193,14 @@ const BookingManager = () => {
 };
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
-    const { content, resetSystem, clearSystem, downloadBackup, restoreBackup, connectionError, retryConnection } = useContent();
+    const { content, resetSystem, clearSystem, downloadBackup, restoreBackup, connectionError, retryConnection, addJobCard, deleteJobCard } = useContent();
     const [activeTab, setActiveTab] = useState<AdminMainTab>('work'); // Default to work
     const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('jobs');
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Identify if current user is Creator Admin
+    const isCreator = loggedInUser?.id === 'creator-admin';
 
     // --- RENDER CONTENT ---
     const renderContent = () => {
@@ -1208,9 +1237,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                             {/* Create New Card */}
                             <button 
-                                onClick={() => {
-                                    const { addJobCard } = useContent(); 
-                                }}
+                                onClick={() => handleCreateJob()}
                                 className="bg-[#161817] border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 group hover:border-pestGreen/50 transition-colors cursor-pointer"
                             >
                                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-pestGreen/20 transition-colors">
@@ -1248,8 +1275,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
         }
     };
 
-    // Need to access addJobCard at top level for the button above
-    const { addJobCard } = useContent();
     const handleCreateJob = () => {
          const newJob: JobCard = {
             id: `job-${Date.now()}`,
@@ -1299,6 +1324,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                     onClick={() => setSelectedJobId(job.id)}
                                     className="bg-[#161817] p-6 rounded-2xl border border-white/5 hover:border-pestGreen/50 transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[200px]"
                                 >
+                                    <button 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            if(confirm("Delete this Job Card?")) deleteJobCard(job.id); 
+                                        }}
+                                        className="absolute top-4 right-4 text-gray-500 hover:text-red-500 bg-black/20 p-2 rounded-full hover:bg-black/40 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Delete Job"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+
                                     <div>
                                         <div className="flex justify-between items-start mb-4">
                                             <span className="font-mono text-xs text-gray-500">{job.refNumber}</span>
@@ -1363,7 +1399,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                              <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'homeLayout' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Layout size={20}/></button>
                              <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'companyInfo' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Building2 size={20}/></button>
                              <button onClick={() => { setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'servicesArea' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Zap size={20}/></button>
-                             <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'creator' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Code2 size={20}/></button>
+                             {isCreator && (
+                                <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'creator' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Code2 size={20}/></button>
+                             )}
                         </div>
 
                         {/* Sub Tabs List */}
@@ -1405,7 +1443,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                     <NavItem id="serviceAreaMap" label="Service Area" icon={Map} mainTab="servicesArea" />
                                 </>
                             )}
-                            {activeTab === 'creator' && (
+                            {activeTab === 'creator' && isCreator && (
                                 <>
                                     <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tools</div>
                                     <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
@@ -1430,7 +1468,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'homeLayout' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Website Layout"><Layout size={24}/></button>
                 <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'companyInfo' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Company Info"><Building2 size={24}/></button>
                 <button onClick={() => { setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'servicesArea' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Services"><Zap size={24}/></button>
-                <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'creator' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="System"><Code2 size={24}/></button>
+                {isCreator && (
+                    <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'creator' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="System"><Code2 size={24}/></button>
+                )}
                 
                 <div className="mt-auto flex flex-col gap-4">
                      <button onClick={onLogout} className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors" title="Logout"><LogOut size={24}/></button>
@@ -1496,7 +1536,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     )}
 
                     {/* System Menu */}
-                    {activeTab === 'creator' && (
+                    {activeTab === 'creator' && isCreator && (
                         <>
                             <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Tools</div>
                             <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
