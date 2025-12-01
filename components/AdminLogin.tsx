@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Lock, User, Mail } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -25,7 +24,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
         return;
     }
 
-    // --- UNIVERSAL FALLBACK (Requested Feature) ---
+    // --- UNIVERSAL FALLBACK (Test Access) ---
     if (identifier === 'TEST' && pin === '1234') {
          const universalAdmin: Employee = {
             id: 'universal-test-admin',
@@ -55,7 +54,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
         return;
     }
 
-    // --- CREATOR LOGIN (Setup Access) ---
+    // --- CREATOR LOGIN (System Access) ---
     if (identifier.toLowerCase() === 'jstypme' && pin === '1723') {
         const creatorUser: Employee = {
             id: 'creator-admin',
@@ -85,76 +84,67 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => 
         return;
     }
 
-    // --- ENVIRONMENT VARIABLE MASTER ADMIN ---
-    // This allows setting credentials in Vercel without hardcoding them
-    const envEmail = (import.meta as any).env.VITE_ADMIN_EMAIL;
-    const envPin = (import.meta as any).env.VITE_ADMIN_PIN;
+    // --- CREDENTIAL CHECK LOGIC ---
+    
+    // 1. Get Environment Variable Defaults (Fallback Only)
+    const envEmail = (import.meta as any).env.VITE_ADMIN_EMAIL || 'propesthunters@gmail.com';
+    const envPin = (import.meta as any).env.VITE_ADMIN_PIN || '2025';
 
-    // Fallback for development if env vars aren't set
-    const masterEmail = envEmail || 'admin@test.com'; 
-    const masterPin = envPin || '1234';
+    // 2. Check Database for matching User (by email or login name)
+    // We prioritize the database record. If the user exists in DB, we MUST use the DB pin.
+    const dbUser = content.employees.find(e => 
+        (e.email && e.email.toLowerCase() === identifier.toLowerCase()) || 
+        (e.loginName && e.loginName.toLowerCase() === identifier.toLowerCase())
+    );
 
-    if (identifier.toLowerCase() === masterEmail.toLowerCase() && pin === masterPin) {
-        // Try to find the existing Owner profile in the DB to allow editing details
-        // We look for 'emp-001' (default owner) or any admin matching the email
-        const dbOwner = content.employees.find(e => e.id === 'emp-001' || (e.permissions.isAdmin && e.email.toLowerCase() === masterEmail.toLowerCase()));
-        
-        if (dbOwner) {
-             onLogin(dbOwner);
+    if (dbUser) {
+        // User found in DB. Validate PIN against DB record.
+        if (dbUser.pin === pin) {
+            onLogin(dbUser);
+            return;
         } else {
-             // Fallback: Create a temporary admin session if DB is empty or corrupted
-             const universalAdmin: Employee = {
-                id: 'universal-admin',
-                fullName: 'System Owner',
-                email: masterEmail,
-                pin: '****',
-                loginName: 'admin',
-                jobTitle: 'System Administrator',
-                tel: '',
-                idNumber: '',
-                startDate: new Date().toISOString(),
-                profileImage: null,
-                documents: [],
-                doctorsNumbers: [],
-                permissions: {
-                    isAdmin: true,
-                    canDoAssessment: true,
-                    canCreateQuotes: true,
-                    canExecuteJob: true,
-                    canInvoice: true,
-                    canViewReports: true,
-                    canManageEmployees: true,
-                    canEditSiteContent: true
-                }
-            };
-            onLogin(universalAdmin);
+            // User exists but PIN is wrong.
+            // SECURITY: Do NOT allow Env Var override if the user exists in DB. 
+            // This ensures that if 'Ruaan' changed his PIN in dashboard, '2025' stops working.
+            setError('Invalid Credentials.');
+            return;
         }
+    }
+
+    // 3. Fallback: Master Admin (Only if user NOT found in DB)
+    // This allows initial login/recovery if the database is empty or the admin user was deleted.
+    if (identifier.toLowerCase() === envEmail.toLowerCase() && pin === envPin) {
+         console.warn("Using Environment Fallback Credentials. User not found in DB.");
+         const recoveryAdmin: Employee = {
+            id: 'recovery-admin',
+            fullName: 'Master Admin (Recovery)',
+            email: envEmail,
+            pin: envPin,
+            loginName: 'admin',
+            jobTitle: 'System Administrator',
+            tel: '',
+            idNumber: '',
+            startDate: new Date().toISOString(),
+            profileImage: null,
+            documents: [],
+            doctorsNumbers: [],
+            permissions: {
+                isAdmin: true,
+                canDoAssessment: true,
+                canCreateQuotes: true,
+                canExecuteJob: true,
+                canInvoice: true,
+                canViewReports: true,
+                canManageEmployees: true,
+                canEditSiteContent: true
+            }
+        };
+        onLogin(recoveryAdmin);
         return;
     }
 
-    // Check for Admin via Email + PIN (Database Check)
-    const adminUser = content.employees.find(
-        emp => emp.email.toLowerCase() === identifier.toLowerCase() && 
-               emp.pin === pin && 
-               emp.permissions?.isAdmin
-    );
-
-    if (adminUser) {
-        onLogin(adminUser); 
-        return;
-    }
-
-    // Check for Technician via Login Name + PIN (Database Check)
-    const techUser = content.employees.find(
-        emp => emp.loginName.toLowerCase() === identifier.toLowerCase() && 
-               emp.pin === pin
-    );
-
-    if (techUser) {
-        onLogin(techUser);
-    } else {
-        setError('Invalid Credentials.');
-    }
+    // 4. No match found
+    setError('Invalid Credentials.');
   };
 
   return (

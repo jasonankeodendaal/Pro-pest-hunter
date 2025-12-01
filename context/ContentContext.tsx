@@ -241,11 +241,11 @@ const defaultState: ContentState = {
   employees: [
         {
             id: 'emp-001',
-            fullName: 'Ruaan Van Wyk',
-            email: 'ruaan@propesthunters.co.za', 
-            pin: '2024',            
+            fullName: 'Ruaan de Lange',
+            email: 'propesthunters@gmail.com', 
+            pin: '2025',            
             loginName: 'ruaan',
-            jobTitle: 'Owner / Master Technician',
+            jobTitle: 'Company Owner',
             permissions: { isAdmin: true, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
             idNumber: '8501015000080',
             tel: '082 555 1234',

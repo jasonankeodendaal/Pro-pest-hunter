@@ -1,7 +1,5 @@
-
-
-import React, { useState, useMemo } from 'react';
-import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase } from 'lucide-react'; 
+import React, { useState, useMemo, Component } from 'react';
+import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase, Hammer, Trees, Heart, User, CheckCircle, Zap } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import * as LucideIcons from 'lucide-react'; 
 
@@ -39,13 +37,13 @@ interface IconErrorBoundaryState {
   hasError: boolean;
 }
 
-class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
-    constructor(props: IconErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false };
-    }
+class IconErrorBoundary extends Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+    state: IconErrorBoundaryState = { hasError: false };
+
     static getDerivedStateFromError() { return { hasError: true }; }
+    
     componentDidCatch(error: any) { console.warn("Icon render failed:", error); }
+    
     render() {
         if (this.state.hasError) return this.props.fallback;
         return this.props.children;
@@ -201,23 +199,68 @@ interface IconPickerProps {
 export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-    // Categories for quick access
+    // Categories with CURATED specific icon lists (20+ items each)
     const categories = [
-        { name: 'Safety', icon: Shield, terms: ['shield', 'check', 'lock', 'hard', 'alert', 'siren', 'triangle', 'safe'] },
-        { name: 'Pests/Bugs', icon: Bug, terms: ['bug', 'spider', 'ant', 'rat', 'cat', 'dog', 'bird', 'fish', 'snail', 'biohazard'] },
-        { name: 'Tools', icon: Briefcase, terms: ['tool', 'wrench', 'hammer', 'drill', 'clipboard', 'file'] },
-        { name: 'General', icon: Circle, terms: ['user', 'home', 'building', 'map', 'phone', 'mail'] },
+        { 
+            name: 'Safety', 
+            icon: Shield, 
+            icons: [
+                'Shield', 'ShieldCheck', 'ShieldAlert', 'ShieldX', 'Lock', 'Unlock', 'Key', 'Siren', 
+                'TriangleAlert', 'OctagonAlert', 'HardHat', 'FireExtinguisher', 'FirstAid', 'HeartPulse', 
+                'Activity', 'Eye', 'Video', 'Fingerprint', 'ScanFace', 'UserCheck', 'FileCheck', 'Biohazard', 
+                'Stethoscope', 'Pill', 'Thermometer', 'Siren', 'LifeBuoy', 'Umbrella', 'Anchor'
+            ]
+        },
+        { 
+            name: 'Pests/Nature', 
+            icon: Bug, 
+            icons: [
+                'Bug', 'BugOff', 'BugPlay', 'Rat', 'Bird', 'Cat', 'Dog', 'Fish', 'Rabbit', 'Snail', 'Squirrel', 'Turtle', 
+                'Leaf', 'Flower2', 'TreeDeciduous', 'Trees', 'Sprout', 'Wheat', 'Droplets', 'CloudRain', 'Sun', 
+                'ThermometerSun', 'Wind', 'Waves', 'Shell', 'Egg', 'Feather', 'PawPrint', 'Grab', 'Skull'
+            ]
+        },
+        { 
+            name: 'Tools/Job', 
+            icon: Briefcase, 
+            icons: [
+                'Wrench', 'Hammer', 'Axe', 'Drill', 'Briefcase', 'BriefcaseMedical', 'Clipboard', 'ClipboardCheck', 
+                'ClipboardList', 'FileText', 'PenTool', 'Pencil', 'Ruler', 'Scissors', 'Zap', 'FlaskConical', 
+                'Beaker', 'Syringe', 'Truck', 'Car', 'Map', 'MapPin', 'Navigation', 'Search', 'ScanLine', 
+                'QrCode', 'Printer', 'Box', 'Package', 'Archive', 'Settings', 'Sliders', 'Gauge', 'Calculator', 'Scale'
+            ]
+        },
+        { 
+            name: 'General', 
+            icon: Circle, 
+            icons: [
+                'User', 'Users', 'Home', 'Building', 'Building2', 'Factory', 'Warehouse', 'Store', 'Tent', 
+                'Phone', 'Mail', 'Globe', 'CheckCircle', 'XCircle', 'Info', 'HelpCircle', 'Settings', 'Menu', 
+                'ArrowRight', 'ChevronRight', 'Star', 'Heart', 'ThumbsUp', 'Award', 'Clock', 'Calendar', 'Camera', 'Video', 'Bell', 'Bookmark'
+            ] 
+        },
     ];
 
     const filteredIcons = useMemo(() => {
-        if (!searchTerm) return ValidIconNames.slice(0, 100); 
-        
-        // Search functionality
-        return ValidIconNames.filter(name =>
-            name.toLowerCase().includes(searchTerm.toLowerCase())
-        ).slice(0, 150);
-    }, [searchTerm]);
+        // 1. If a category is selected, show ONLY that category's icons
+        if (activeCategory) {
+            const cat = categories.find(c => c.name === activeCategory);
+            // Verify icon exists in Lucide before returning to avoid crash
+            return cat ? cat.icons.filter(name => (LucideIcons as any)[name]) : [];
+        }
+
+        // 2. If search term exists, filter ALL valid icons
+        if (searchTerm) {
+            return ValidIconNames.filter(name =>
+                name.toLowerCase().includes(searchTerm.toLowerCase())
+            ).slice(0, 100);
+        }
+
+        // 3. Default: Show a mix or first 100 valid icons
+        return ValidIconNames.slice(0, 100); 
+    }, [searchTerm, activeCategory]);
 
     const CurrentIconComponent = (LucideIcons as any)[value] || LucideIcons.Circle;
 
@@ -225,6 +268,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
         onChange(iconName);
         setIsOpen(false);
         setSearchTerm(''); 
+        setActiveCategory(null);
     };
 
     return (
@@ -286,30 +330,30 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                                     <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="text"
-                                        placeholder="Search 1000+ icons (e.g. 'bug', 'check', 'home')..."
+                                        placeholder="Search all 1000+ icons..."
                                         value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
+                                        onChange={e => { setSearchTerm(e.target.value); setActiveCategory(null); }}
                                         className="w-full pl-12 pr-4 py-4 bg-black/40 border border-white/10 rounded-2xl text-white focus:border-pestGreen focus:ring-1 focus:ring-pestGreen outline-none text-lg placeholder-gray-600 font-medium"
                                         autoFocus
                                     />
                                 </div>
                                 
                                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    <button 
+                                        onClick={() => { setActiveCategory(null); setSearchTerm(''); }}
+                                        className={`px-4 py-2 rounded-xl border transition-all whitespace-nowrap text-sm font-bold ${!activeCategory && !searchTerm ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
+                                    >
+                                        All Icons
+                                    </button>
                                     {categories.map(cat => (
                                         <button
                                             key={cat.name}
-                                            onClick={() => setSearchTerm(cat.terms.join(' '))} // Quick hack to filter by these terms broadly
-                                            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-pestGreen hover:text-white rounded-xl border border-white/10 transition-all whitespace-nowrap text-sm font-bold text-gray-400"
+                                            onClick={() => { setActiveCategory(cat.name); setSearchTerm(''); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all whitespace-nowrap text-sm font-bold ${activeCategory === cat.name ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
                                         >
                                             <cat.icon size={16} /> {cat.name}
                                         </button>
                                     ))}
-                                    <button 
-                                        onClick={() => setSearchTerm('')}
-                                        className="px-4 py-2 bg-white/5 hover:bg-white/20 rounded-xl border border-white/10 text-xs font-bold text-gray-400"
-                                    >
-                                        Clear Filter
-                                    </button>
                                 </div>
                             </div>
 

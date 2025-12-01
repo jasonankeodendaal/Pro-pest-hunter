@@ -1,8 +1,5 @@
 
 
-
-
-
 import { createRequire } from 'module';
 import dns from 'node:dns';
 const require = createRequire(import.meta.url);
@@ -442,11 +439,11 @@ function getDefaultEmployees() {
     return [
         {
             id: 'emp-001',
-            fullName: 'Ruaan Van Wyk',
-            email: process.env.VITE_ADMIN_EMAIL || 'ruaan@propesthunters.co.za', 
-            pin: process.env.VITE_ADMIN_PIN || '2024',            
+            fullName: 'Ruaan de Lange',
+            email: process.env.VITE_ADMIN_EMAIL || 'propesthunters@gmail.com', 
+            pin: process.env.VITE_ADMIN_PIN || '2025',            
             loginName: 'ruaan',
-            jobTitle: 'Owner / Master Technician',
+            jobTitle: 'Company Owner',
             permissions: { isAdmin: true, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: true, canViewReports: true, canManageEmployees: true, canEditSiteContent: true },
             idNumber: '8501015000080',
             tel: '082 555 1234',

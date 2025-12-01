@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -128,8 +122,10 @@ const WhyChooseUsEditor = () => {
     };
 
     const handleDeleteItem = (index: number) => {
-        const newItems = (localData.items || []).filter((_, i) => i !== index);
-        setLocalData({ ...localData, items: newItems });
+        if(confirm("Delete this reason card?")) {
+            const newItems = (localData.items || []).filter((_, i) => i !== index);
+            setLocalData({ ...localData, items: newItems });
+        }
     };
 
     const handleAddItem = () => {
@@ -160,7 +156,13 @@ const WhyChooseUsEditor = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {(localData.items || []).map((item, idx) => (
                     <div key={idx} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
-                        <button onClick={() => handleDeleteItem(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+                        <button 
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteItem(idx); }}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        >
+                            <Trash2 size={16}/>
+                        </button>
                         <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} className="mb-4" />
                         <TextArea label="Description" value={item.text} onChange={(v: string) => handleItemChange(idx, 'text', v)} rows={3} className="mb-4" />
                         <IconPicker label="Icon Name" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
@@ -575,7 +577,13 @@ const ServicesEditor = () => {
                             </div>
                             <div className="flex gap-2">
                                 <button onClick={() => handleEdit(service)} className="p-2 hover:bg-white/10 rounded-full text-white"><Edit size={16}/></button>
-                                <button onClick={() => handleDelete(service.id)} className="p-2 hover:bg-red-500/20 rounded-full text-red-500"><Trash2 size={16}/></button>
+                                <button 
+                                    type="button" // Explicit button type
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(service.id); }} // Stop propagation
+                                    className="p-2 hover:bg-red-500/20 rounded-full text-red-500 relative z-20" // Boost Z-Index
+                                >
+                                    <Trash2 size={16}/>
+                                </button>
                             </div>
                         </div>
                         <h3 className="font-bold text-white text-lg">{service.title}</h3>
@@ -1437,8 +1445,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                     </div>
                                     
                                     <button 
+                                        type="button"
                                         onClick={(e) => handleDeleteJob(e, job.id)}
-                                        className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-2"
+                                        className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-2 z-10"
                                     >
                                         <Trash2 size={16}/>
                                     </button>
