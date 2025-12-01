@@ -3,6 +3,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -1287,7 +1289,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1110] font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex h-full w-full bg-[#0f1110] font-sans overflow-hidden">
         {/* Job Manager Overlay */}
         {selectedJobId && (
             <JobCardManager 

@@ -1,25 +1,58 @@
 
 
 import React, { useState, useMemo } from 'react';
-import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle } from 'lucide-react'; 
+import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import * as LucideIcons from 'lucide-react'; 
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
 
-// SAFE ICON MAP GENERATOR
-// We need to filter out internal exports from lucide-react that aren't valid React components
-// otherwise the IconPicker will crash when trying to map over them.
+// --- ROBUST ICON FILTERING ---
+// Filters out internal Lucide exports that cause crashes (like createReactComponent, default, etc.)
 const getValidIconNames = () => {
     return Object.keys(LucideIcons).filter(key => {
-        // Exclude known non-component exports
-        if (['createReactComponent', 'IconNode', 'default', 'lucideReact'].includes(key)) return false;
-        // Check if it starts with uppercase (Convention for React Components)
-        return /^[A-Z]/.test(key);
+        // 1. Must start with Uppercase (React Component convention)
+        if (!/^[A-Z]/.test(key)) return false;
+        
+        // 2. Exclude specific internal keywords/exports known to crash
+        const blacklist = ['Icon', 'LucideProps', 'LucideIcon', 'createReactComponent', 'default'];
+        if (blacklist.includes(key)) return false;
+
+        // 3. Verify it's actually a function/object (Component)
+        const val = (LucideIcons as any)[key];
+        if (typeof val !== 'function' && typeof val !== 'object') return false;
+
+        return true;
     });
 };
 
 const ValidIconNames = getValidIconNames();
+
+// --- ERROR BOUNDARY FOR ICONS ---
+// Prevents one bad icon from white-screening the entire app
+interface IconErrorBoundaryProps {
+  fallback: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+interface IconErrorBoundaryState {
+  hasError: boolean;
+}
+
+class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+    constructor(props: IconErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
+    static getDerivedStateFromError() { return { hasError: true }; }
+    componentDidCatch(error: any) { console.warn("Icon render failed:", error); }
+    render() {
+        if (this.state.hasError) return this.props.fallback;
+        return this.props.children;
+    }
+}
+
+// --- SHARED COMPONENTS ---
 
 export const Input = ({ label, value, onChange, type = "text", placeholder, disabled = false, className = "" }: any) => (
   <div className={`space-y-1 ${className}`}>
@@ -169,11 +202,21 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Categories for quick access
+    const categories = [
+        { name: 'Safety', icon: Shield, terms: ['shield', 'check', 'lock', 'hard', 'alert', 'siren', 'triangle', 'safe'] },
+        { name: 'Pests/Bugs', icon: Bug, terms: ['bug', 'spider', 'ant', 'rat', 'cat', 'dog', 'bird', 'fish', 'snail', 'biohazard'] },
+        { name: 'Tools', icon: Briefcase, terms: ['tool', 'wrench', 'hammer', 'drill', 'clipboard', 'file'] },
+        { name: 'General', icon: Circle, terms: ['user', 'home', 'building', 'map', 'phone', 'mail'] },
+    ];
+
     const filteredIcons = useMemo(() => {
-        if (!searchTerm) return ValidIconNames.slice(0, 100); // Limit initial render for performance
+        if (!searchTerm) return ValidIconNames.slice(0, 100); 
+        
+        // Search functionality
         return ValidIconNames.filter(name =>
             name.toLowerCase().includes(searchTerm.toLowerCase())
-        ).slice(0, 100);
+        ).slice(0, 150);
     }, [searchTerm]);
 
     const CurrentIconComponent = (LucideIcons as any)[value] || LucideIcons.Circle;
@@ -190,13 +233,18 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="w-full p-2 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none transition-colors focus:bg-[#1a1d1c] flex items-center justify-between"
+                className="w-full p-2 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none transition-colors focus:bg-[#1a1d1c] flex items-center justify-between group hover:border-pestGreen/50"
             >
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center bg-pestGreen/20 rounded-md text-pestGreen">
-                        <CurrentIconComponent size={18} />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg text-pestGreen border border-white/5 group-hover:bg-pestGreen group-hover:text-white transition-colors">
+                        <IconErrorBoundary fallback={<AlertTriangle size={18}/>}>
+                            <CurrentIconComponent size={20} />
+                        </IconErrorBoundary>
                     </div>
-                    <span className="text-sm">{value || 'Choose Icon'}</span>
+                    <div className="text-left">
+                        <span className="block text-xs text-gray-500 font-bold uppercase">Selected</span>
+                        <span className="text-sm font-bold">{value || 'Choose Icon'}</span>
+                    </div>
                 </div>
                 <ChevronRight size={16} className="text-gray-500" />
             </button>
@@ -207,44 +255,69 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm flex flex-col p-4"
+                        className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4"
                         onClick={() => setIsOpen(false)} 
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
-                            className="bg-[#1e201f] rounded-2xl shadow-3xl max-w-4xl w-full mx-auto my-auto p-6 flex flex-col h-[90vh]"
+                            className="bg-[#1e201f] rounded-3xl shadow-3d max-w-5xl w-full mx-auto p-6 flex flex-col h-[85vh] border border-white/10"
                             onClick={e => e.stopPropagation()} 
                         >
                             <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
-                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                    <LucideIcons.SwatchBook size={24} className="text-pestGreen"/> Select an Icon
-                                </h3>
+                                <div>
+                                    <h3 className="text-2xl font-black text-white flex items-center gap-2">
+                                        Icon Library
+                                    </h3>
+                                    <p className="text-xs text-gray-500 mt-1">Select an icon for your content.</p>
+                                </div>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+                                    className="text-gray-400 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
                             </div>
 
-                            <div className="relative mb-6">
-                                <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search icons..."
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none"
-                                />
+                            {/* Search and Filters */}
+                            <div className="space-y-4 mb-6">
+                                <div className="relative">
+                                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search 1000+ icons (e.g. 'bug', 'check', 'home')..."
+                                        value={searchTerm}
+                                        onChange={e => setSearchTerm(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 bg-black/40 border border-white/10 rounded-2xl text-white focus:border-pestGreen focus:ring-1 focus:ring-pestGreen outline-none text-lg placeholder-gray-600 font-medium"
+                                        autoFocus
+                                    />
+                                </div>
+                                
+                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat.name}
+                                            onClick={() => setSearchTerm(cat.terms.join(' '))} // Quick hack to filter by these terms broadly
+                                            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-pestGreen hover:text-white rounded-xl border border-white/10 transition-all whitespace-nowrap text-sm font-bold text-gray-400"
+                                        >
+                                            <cat.icon size={16} /> {cat.name}
+                                        </button>
+                                    ))}
+                                    <button 
+                                        onClick={() => setSearchTerm('')}
+                                        className="px-4 py-2 bg-white/5 hover:bg-white/20 rounded-xl border border-white/10 text-xs font-bold text-gray-400"
+                                    >
+                                        Clear Filter
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4 p-2 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 p-2 custom-scrollbar bg-black/20 rounded-2xl border border-white/5">
                                 {filteredIcons.length > 0 ? (
                                     filteredIcons.map(iconName => {
                                         const Icon = (LucideIcons as any)[iconName];
-                                        // Safety check in case something slipped through
+                                        // Skip invalid icons silently
                                         if (!Icon) return null;
                                         
                                         const isSelected = iconName === value;
@@ -252,18 +325,27 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                                             <button
                                                 key={iconName}
                                                 onClick={() => handleSelectIcon(iconName)}
-                                                className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all duration-200 
-                                                            ${isSelected ? 'bg-pestGreen/20 border-pestGreen text-pestGreen' : 'bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-white'}`}
+                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 group relative
+                                                            ${isSelected ? 'bg-pestGreen text-white border-pestGreen shadow-lg scale-105 z-10' : 'bg-[#161817] border-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20 hover:scale-105 hover:z-10'}`}
                                                 title={iconName}
                                             >
-                                                <Icon size={24} />
-                                                <span className="text-[8px] mt-2 truncate w-full text-center">{iconName}</span>
+                                                <IconErrorBoundary fallback={<AlertTriangle size={24} className="text-red-500"/>}>
+                                                    <Icon size={24} className="mb-2" />
+                                                </IconErrorBoundary>
+                                                <span className="text-[9px] font-medium truncate w-full text-center opacity-70 group-hover:opacity-100">{iconName}</span>
                                             </button>
                                         );
                                     })
                                 ) : (
-                                    <p className="text-gray-400 col-span-full text-center py-10">No icons found for "{searchTerm}"</p>
+                                    <div className="col-span-full flex flex-col items-center justify-center text-gray-500 py-20">
+                                        <Search size={48} className="mb-4 opacity-20" />
+                                        <p>No icons found matching "{searchTerm}"</p>
+                                    </div>
                                 )}
+                            </div>
+                            
+                            <div className="mt-4 text-center text-xs text-gray-600 font-medium uppercase tracking-widest">
+                                Showing {filteredIcons.length} icons
                             </div>
                         </motion.div>
                     </motion.div>
