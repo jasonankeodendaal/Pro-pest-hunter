@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
 import { JobCard, Checkpoint, QuoteLineItem, JobStatus, Employee } from '../types';
-import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download } from 'lucide-react';
+import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 
@@ -27,12 +27,59 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     const [newCheckpoint, setNewCheckpoint] = useState<Partial<Checkpoint>>({ area: '', pestType: '', severity: 'Low', notes: '', photos: [] });
     const [newLineItem, setNewLineItem] = useState<Partial<QuoteLineItem>>({ name: '', qty: 1, unitPrice: 0 });
 
+    // Scanner State
+    const [showScanner, setShowScanner] = useState(false);
+    const [scannerError, setScannerError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let scanner: any = null;
+        if (showScanner) {
+            // Using a timeout to ensure DOM element exists
+            setTimeout(() => {
+                if ((window as any).Html5QrcodeScanner) {
+                    scanner = new (window as any).Html5QrcodeScanner(
+                        "reader",
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        /* verbose= */ false
+                    );
+                    scanner.render(
+                        (decodedText: string) => {
+                            setNewCheckpoint(prev => ({ ...prev, area: decodedText })); // Populate Area with QR Code
+                            setShowScanner(false);
+                            scanner.clear();
+                        },
+                        (errorMessage: string) => {
+                            // ignore console spam
+                        }
+                    );
+                } else {
+                    setScannerError("Scanner library not loaded. Check internet connection.");
+                }
+            }, 100);
+        }
+
+        return () => {
+            if (scanner) {
+                try {
+                    scanner.clear();
+                } catch(e) { console.error(e) }
+            }
+        }
+    }, [showScanner]);
+
     if (!job) return null;
 
     // --- HELPER FUNCTIONS ---
 
     const handleSaveJob = (updates: Partial<JobCard>) => {
         updateJobCard(jobId, updates);
+    };
+
+    const handleDeleteJobCard = () => {
+        if (window.confirm("Are you sure you want to delete this Job Card completely? This cannot be undone.")) {
+            deleteJobCard(jobId);
+            onClose();
+        }
     };
 
     const advanceStatus = (newStatus: JobStatus) => {
@@ -162,6 +209,15 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         <CheckCircle size={16} /> Invoice & Close
                     </button>
                 </div>
+                
+                {/* Delete Job Button (Admin Only) */}
+                {isAdmin && (
+                    <div className="p-4 border-t border-white/5">
+                        <button onClick={handleDeleteJobCard} className="w-full flex items-center justify-center gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-400 py-3 rounded-xl font-bold text-sm transition-colors">
+                            <Trash2 size={16} /> Delete Job Card
+                        </button>
+                    </div>
+                )}
             </aside>
 
             {/* Main Content Area */}
@@ -235,11 +291,26 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 {job.status === 'Assessment' && <button onClick={() => advanceStatus('Quote_Builder')} className="bg-white text-pestBrown hover:bg-pestGreen hover:text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">Complete Assessment <ArrowRight size={16}/></button>}
                              </div>
 
+                             {/* SCANNER MODAL */}
+                             {showScanner && (
+                                 <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4">
+                                     <button onClick={() => setShowScanner(false)} className="absolute top-4 right-4 text-white"><X size={32}/></button>
+                                     <div id="reader" className="w-full max-w-sm bg-white rounded-lg overflow-hidden"></div>
+                                     <p className="text-white mt-4 font-bold">Scan QR Code on Station</p>
+                                     {scannerError && <p className="text-red-500 mt-2">{scannerError}</p>}
+                                 </div>
+                             )}
+
                              {/* Add Checkpoint Form */}
                              <div className="bg-[#161817] border border-white/5 rounded-2xl p-6">
-                                 <h3 className="text-white font-bold mb-4">Add New Finding</h3>
+                                 <div className="flex items-center justify-between mb-4">
+                                     <h3 className="text-white font-bold">Add New Finding</h3>
+                                     <button onClick={() => setShowScanner(true)} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
+                                         <QrCode size={14} /> Scan QR
+                                     </button>
+                                 </div>
                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                     <Input label="Area (e.g. Kitchen)" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} />
+                                     <Input label="Area / QR Code" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} />
                                      <Input label="Pest Found" value={newCheckpoint.pestType} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, pestType: v }))} />
                                      <Select label="Severity" value={newCheckpoint.severity} options={[{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, severity: v as any }))} />
                                  </div>
@@ -247,7 +318,13 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <TextArea label="Notes / Observations" value={newCheckpoint.notes} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, notes: v }))} rows={2} />
                                  </div>
                                  <div className="mb-4">
-                                     <FileUpload label="Attach Photo" value={newCheckpoint.photos} onChange={(v: string[]) => setNewCheckpoint(prev => ({ ...prev, photos: v }))} multiple={true} />
+                                     <FileUpload 
+                                        label="Attach Photo" 
+                                        value={newCheckpoint.photos} 
+                                        onChange={(v: string[]) => setNewCheckpoint(prev => ({ ...prev, photos: v }))} 
+                                        multiple={true}
+                                        capture="environment" // Forces Camera on Mobile
+                                     />
                                  </div>
                                  <button onClick={addCheckpoint} className="w-full bg-white/5 hover:bg-pestGreen text-white font-bold py-3 rounded-xl transition-colors border border-dashed border-white/20 hover:border-transparent flex items-center justify-center gap-2">
                                      <Plus size={16}/> Add Checkpoint
@@ -402,7 +479,13 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <TextArea label="Treatment Notes" placeholder="e.g. Applied 5g Maxforce Gel" value={cp.treatmentNotes || ''} onChange={(v: string) => updateCheckpoint(cp.id, { treatmentNotes: v })} rows={1} />
-                                            <FileUpload label="Proof of Treatment (Photo)" value={cp.servicePhotos} onChange={(v: string[]) => updateCheckpoint(cp.id, { servicePhotos: v })} multiple={true} />
+                                            <FileUpload 
+                                                label="Proof of Treatment (Photo)" 
+                                                value={cp.servicePhotos} 
+                                                onChange={(v: string[]) => updateCheckpoint(cp.id, { servicePhotos: v })} 
+                                                multiple={true}
+                                                capture="environment"
+                                            />
                                         </div>
                                     </div>
                                 ))}

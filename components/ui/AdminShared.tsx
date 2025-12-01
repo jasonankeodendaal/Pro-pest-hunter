@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, X, Trash2, ChevronRight, Video } from 'lucide-react';
+import { Upload, X, Trash2, ChevronRight, Video, Camera } from 'lucide-react';
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
 
@@ -52,7 +52,7 @@ export const Select = ({ label, value, onChange, options, disabled = false }: an
   </div>
 );
 
-export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*", multiple = false }: any) => {
+export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*", multiple = false, capture }: any) => {
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,9 +125,20 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
 
         <div className="flex items-center gap-2">
             <label className={`flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer transition-colors border border-white/10 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="p-1 bg-pestGreen rounded-md"><Upload size={16} className="text-white"/></div>
-                <span className="text-xs font-bold text-white">{uploading ? 'Uploading...' : (multiple ? 'Add Files' : (value ? 'Change File' : 'Select File'))}</span>
-                <input type="file" accept={accept} multiple={multiple} onChange={handleFileChange} className="hidden" />
+                <div className="p-1 bg-pestGreen rounded-md">
+                   {capture ? <Camera size={16} className="text-white"/> : <Upload size={16} className="text-white"/>}
+                </div>
+                <span className="text-xs font-bold text-white">
+                    {uploading ? 'Uploading...' : (capture ? 'Take Photo' : (multiple ? 'Add Files' : (value ? 'Change File' : 'Select File')))}
+                </span>
+                <input 
+                  type="file" 
+                  accept={accept} 
+                  multiple={multiple} 
+                  capture={capture} 
+                  onChange={handleFileChange} 
+                  className="hidden" 
+                />
             </label>
             <span className="text-[10px] text-gray-500">{multiple ? 'Multi-select' : 'Single file'}</span>
         </div>

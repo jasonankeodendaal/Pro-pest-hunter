@@ -936,15 +936,56 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
-  const { content } = useContent();
-  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>('siteContent');
-  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('systemGuide');
+  const { content, deleteJobCard } = useContent(); // Added deleteJobCard
+  
+  // Permissions & Roles
+  const perms = loggedInUser?.permissions || {
+    isAdmin: false,
+    canEditSiteContent: false,
+    canManageEmployees: false,
+    canDoAssessment: false,
+    canCreateQuotes: false,
+    canExecuteJob: false,
+    canInvoice: false,
+    canViewReports: false
+  };
+  
+  const isCreator = loggedInUser?.id === 'creator-admin';
+  const isAdmin = perms.isAdmin;
+
+  // Main Tab Visibility
+  const showSiteTab = perms.isAdmin || perms.canEditSiteContent;
+  const showWorkTab = true; // Work tab available to all logged in users (filtered internally)
+  const showTeamTab = perms.isAdmin || perms.canManageEmployees;
+
+  // Initialize state based on permissions
+  const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>(showSiteTab ? 'siteContent' : 'bookings');
+  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>(showSiteTab ? 'systemGuide' : 'jobs');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+
+  // Security Redirect: If user tries to access a tab they don't have permission for
+  useEffect(() => {
+     if (activeMainTab === 'siteContent' && !showSiteTab) {
+         setActiveMainTab('bookings');
+         setActiveSubTab('jobs');
+     }
+     if (activeMainTab === 'employees' && !showTeamTab) {
+         setActiveMainTab('bookings');
+         setActiveSubTab('jobs');
+     }
+  }, [activeMainTab, showSiteTab, showTeamTab]);
 
   // If a job is selected, show the JobManager overlay instead of dashboard
   if (selectedJobId) {
       return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
   }
+
+  const handleDeleteJob = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if(window.confirm("Are you sure you want to delete this job card?")) {
+        deleteJobCard(id);
+    }
+  };
 
   const SidebarItem = ({ id, label, icon: Icon, mainTab }: { id: AdminSubTab, label: string, icon: any, mainTab: AdminMainTab }) => (
       activeMainTab === mainTab ? (
@@ -971,7 +1012,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         <Lock size={20} className="text-white" />
                     </div>
                     <div>
-                        <h2 className="text-white font-black text-lg leading-none">Admin</h2>
+                        <h2 className="text-white font-black text-lg leading-none">{isAdmin ? 'Admin' : 'Staff'}</h2>
                         <span className="text-pestGreen text-xs font-bold uppercase tracking-wider">Dashboard</span>
                     </div>
                 </div>
@@ -979,15 +1020,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
 
             {/* Main Tabs */}
             <div className="flex p-2 gap-1 border-b border-white/5">
-                <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab('systemGuide'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'siteContent' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <Globe size={18} /> Site
-                </button>
-                <button onClick={() => { setActiveMainTab('bookings'); setActiveSubTab('jobs'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'bookings' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <Briefcase size={18} /> Work
-                </button>
-                <button onClick={() => { setActiveMainTab('employees'); setActiveSubTab('employeeDirectory'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'employees' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <Users size={18} /> Team
-                </button>
+                {showSiteTab && (
+                    <button onClick={() => { setActiveMainTab('siteContent'); setActiveSubTab(isAdmin ? 'systemGuide' : 'company'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'siteContent' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Globe size={18} /> Site
+                    </button>
+                )}
+                {showWorkTab && (
+                    <button onClick={() => { setActiveMainTab('bookings'); setActiveSubTab('jobs'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'bookings' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Briefcase size={18} /> Work
+                    </button>
+                )}
+                {showTeamTab && (
+                    <button onClick={() => { setActiveMainTab('employees'); setActiveSubTab('employeeDirectory'); }} className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-[10px] font-bold uppercase transition-all ${activeMainTab === 'employees' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Users size={18} /> Team
+                    </button>
+                )}
             </div>
 
             {/* Sub Tabs Navigation */}
@@ -995,9 +1042,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 <div className="text-xs font-bold text-gray-600 uppercase tracking-widest mb-3 mt-2 px-2">Menu</div>
                 
                 {/* Site Content Subtabs */}
-                <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="siteContent" />
-                <SidebarItem id="deploymentGuide" label="Deployment Guide" icon={Cloud} mainTab="siteContent" />
-                <div className="my-2 border-t border-white/5"></div>
+                {isAdmin && <SidebarItem id="systemGuide" label="System Status" icon={Activity} mainTab="siteContent" />}
+                {isAdmin && <SidebarItem id="deploymentGuide" label="Deployment Guide" icon={Cloud} mainTab="siteContent" />}
+                {(isAdmin || (showSiteTab && !isAdmin)) && <div className="my-2 border-t border-white/5"></div>}
+                
                 <SidebarItem id="company" label="Company Info" icon={Building2} mainTab="siteContent" />
                 <SidebarItem id="hero" label="Hero Section" icon={Layout} mainTab="siteContent" />
                 <SidebarItem id="about" label="About Us" icon={Info} mainTab="siteContent" />
@@ -1008,7 +1056,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 <SidebarItem id="faq" label="FAQs" icon={HelpCircle} mainTab="siteContent" />
                 <SidebarItem id="testimonials" label="Testimonials" icon={Star} mainTab="siteContent" />
                 <SidebarItem id="seo" label="SEO Settings" icon={Search} mainTab="siteContent" />
-                <SidebarItem id="creatorSettings" label="Creator Widget" icon={Code2} mainTab="siteContent" />
+                
+                {/* CREATOR WIDGET - ONLY VISIBLE TO CREATOR */}
+                {isCreator && <SidebarItem id="creatorSettings" label="Creator Widget" icon={Code2} mainTab="siteContent" />}
 
                 {/* Work Subtabs */}
                 <SidebarItem id="jobs" label="Job Cards" icon={Clipboard} mainTab="bookings" />
@@ -1025,8 +1075,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         {loggedInUser?.fullName.charAt(0) || 'A'}
                     </div>
                     <div className="overflow-hidden">
-                        <h4 className="text-white font-bold text-sm truncate">{loggedInUser?.fullName || 'Admin'}</h4>
-                        <p className="text-gray-500 text-xs truncate">{loggedInUser?.email || 'System Owner'}</p>
+                        <h4 className="text-white font-bold text-sm truncate">{loggedInUser?.fullName || 'User'}</h4>
+                        <p className="text-gray-500 text-xs truncate">{loggedInUser?.jobTitle || 'Staff'}</p>
                     </div>
                 </div>
                 <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-2 rounded-lg font-bold text-sm transition-all">
@@ -1040,31 +1090,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             <div className="max-w-5xl mx-auto p-8 pb-24">
                 {/* Dynamic Content */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {activeSubTab === 'systemGuide' && <SystemGuide />}
-                    {activeSubTab === 'deploymentGuide' && <DeploymentGuide />}
+                    {/* Only render these if on valid tab and permissions allow */}
                     
-                    {activeSubTab === 'company' && <CompanyEditor />}
-                    {activeSubTab === 'hero' && <HeroEditor />}
-                    {activeSubTab === 'about' && <AboutEditor />}
-                    {activeSubTab === 'services' && <ServicesEditor />}
-                    {activeSubTab === 'process' && <ProcessEditor />}
-                    {activeSubTab === 'serviceArea' && <ServiceAreaEditor />}
-                    {activeSubTab === 'safety' && <SafetyEditor />}
-                    {activeSubTab === 'faq' && <FaqEditor />}
-                    {activeSubTab === 'testimonials' && <TestimonialsEditor />}
-                    {activeSubTab === 'seo' && <SeoEditor />}
-                    {activeSubTab === 'creatorSettings' && <CreatorWidgetEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'systemGuide' && isAdmin && <SystemGuide />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'deploymentGuide' && isAdmin && <DeploymentGuide />}
                     
-                    {activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
-                    {activeSubTab === 'inquiries' && <InquiriesViewer />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'company' && <CompanyEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'hero' && <HeroEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'about' && <AboutEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'services' && <ServicesEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'process' && <ProcessEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'serviceArea' && <ServiceAreaEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'safety' && <SafetyEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'faq' && <FaqEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'testimonials' && <TestimonialsEditor />}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'seo' && <SeoEditor />}
+                    
+                    {/* Creator Widget Guard */}
+                    {activeMainTab === 'siteContent' && activeSubTab === 'creatorSettings' && isCreator && <CreatorWidgetEditor />}
+                    
+                    {activeMainTab === 'employees' && activeSubTab === 'employeeDirectory' && <EmployeeEditor />}
+                    {activeMainTab === 'bookings' && activeSubTab === 'inquiries' && <InquiriesViewer />}
                     
                     {/* Job Management */}
-                    {activeSubTab === 'jobs' && (
+                    {activeMainTab === 'bookings' && activeSubTab === 'jobs' && (
                         <div className="space-y-6">
                             <SectionHeader title="Active Job Cards" icon={Clipboard} />
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {content.jobCards.map(job => (
-                                    <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] border border-white/5 hover:border-pestGreen/50 p-6 rounded-2xl cursor-pointer group transition-all">
+                                    <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] border border-white/5 hover:border-pestGreen/50 p-6 rounded-2xl cursor-pointer group transition-all relative">
+                                        {/* Added Delete Button for Admins */}
+                                        {isAdmin && (
+                                            <button 
+                                                onClick={(e) => handleDeleteJob(e, job.id)} 
+                                                className="absolute top-4 right-4 text-gray-600 hover:text-red-500 bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
+                                                title="Delete Job Card"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                         <div className="flex justify-between items-start mb-4">
                                             <span className="text-xs font-bold text-gray-500 font-mono">{job.refNumber}</span>
                                             <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold ${job.status === 'Completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
@@ -1083,17 +1147,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                         </div>
                                     </div>
                                 ))}
-                                <button 
-                                    onClick={() => {
-                                        alert("To create a new job, please use the Booking system or this feature will be fully implemented in the next update.");
-                                    }} 
-                                    className="bg-white/5 border border-dashed border-white/10 hover:border-pestGreen hover:bg-pestGreen/5 rounded-2xl flex flex-col items-center justify-center gap-4 min-h-[200px] transition-all"
-                                >
-                                    <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white">
-                                        <Plus size={24} />
-                                    </div>
-                                    <span className="font-bold text-white">Create New Job Card</span>
-                                </button>
+                                {/* Create New Job - visible to those who can create */}
+                                {(perms.isAdmin || perms.canCreateQuotes) && (
+                                    <button 
+                                        onClick={() => {
+                                            alert("To create a new job, please use the Booking system or this feature will be fully implemented in the next update.");
+                                        }} 
+                                        className="bg-white/5 border border-dashed border-white/10 hover:border-pestGreen hover:bg-pestGreen/5 rounded-2xl flex flex-col items-center justify-center gap-4 min-h-[200px] transition-all"
+                                    >
+                                        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white">
+                                            <Plus size={24} />
+                                        </div>
+                                        <span className="font-bold text-white">Create New Job Card</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
