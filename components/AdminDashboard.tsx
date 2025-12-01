@@ -129,7 +129,6 @@ const EditorLayout: React.FC<{
 
 const WhyChooseUsEditor = () => {
     const { content, updateWhyChooseUsItems, updateContent } = useContent();
-    // Safely initialize with fallback
     const [localData, setLocalData] = useState(content.whyChooseUs || { title: '', subtitle: '', items: [] });
 
     const handleItemChange = (index: number, field: keyof WhyChooseUsItem, value: string) => {
@@ -162,7 +161,7 @@ const WhyChooseUsEditor = () => {
             helpText="Edit the 6 reasons why clients should choose you. These appear on the Home and About pages."
             onSave={() => { updateContent('whyChooseUs', { title: localData.title, subtitle: localData.subtitle }); updateWhyChooseUsItems(localData.items || []); }}
         >
-             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-6">
+             <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 mb-6">
                 <h3 className="text-white font-bold mb-4">Section Header</h3>
                 <Input label="Section Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                 <Input label="Subtitle" value={localData.subtitle || ''} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
@@ -175,7 +174,7 @@ const WhyChooseUsEditor = () => {
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {(localData.items || []).map((item, idx) => (
-                    <div key={idx} className="bg-[#161817] p-4 md:p-6 rounded-2xl border border-white/5 relative group">
+                    <div key={idx} className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 relative group">
                         <button 
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleDeleteItem(idx); }}
@@ -232,7 +231,7 @@ const CompanyEditor = () => {
             onSave={handleSave}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Core Details</h3>
                     <Input label="Company Name" value={localData.name} onChange={(v: string) => update({ name: v })} />
                     <Input label="Registration Number" value={localData.regNumber} onChange={(v: string) => update({ regNumber: v })} />
@@ -240,26 +239,26 @@ const CompanyEditor = () => {
                     <Input label="Experience (Years)" type="number" value={localData.yearsExperience} onChange={(v: string) => update({ yearsExperience: parseInt(v) })} />
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Contact Info</h3>
                     <Input label="Phone Number" value={localData.phone} onChange={(v: string) => update({ phone: v })} />
                     <Input label="Email Address" value={localData.email} onChange={(v: string) => update({ email: v })} />
                     <TextArea label="Physical Address" value={localData.address} onChange={(v: string) => update({ address: v })} rows={3} />
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Operating Hours</h3>
                     <Input label="Weekdays" value={localData.hours?.weekdays || ''} onChange={(v: string) => update({ hours: { ...localData.hours, weekdays: v } })} />
                     <Input label="Saturday" value={localData.hours?.saturday || ''} onChange={(v: string) => update({ hours: { ...localData.hours, saturday: v } })} />
                     <Input label="Sunday" value={localData.hours?.sunday || ''} onChange={(v: string) => update({ hours: { ...localData.hours, sunday: v } })} />
                 </div>
 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Branding</h3>
                     <FileUpload label="Company Logo" value={localData.logo} onChange={(v: string) => update({ logo: v })} />
                 </div>
 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Social Media Links</h3>
                     
                     {/* List Existing */}
@@ -294,7 +293,7 @@ const CompanyEditor = () => {
                     </div>
                 </div>
 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
                     <h3 className="text-pestGreen font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2"><CreditCard size={18}/> Bank Details (For Invoices)</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <Input label="Bank Name" value={bankData.bankName} onChange={(v: string) => updateBank({ bankName: v })} />
@@ -327,7 +326,7 @@ const ContactEditor = () => {
             onSave={handleSave}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold">Contact Page Details</h3>
                     <Input label="Header Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                     <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
@@ -341,7 +340,7 @@ const ContactEditor = () => {
                     />
                 </div>
 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold">Book Now Banner (CTA)</h3>
                     <Input label="Banner Title" value={bookData.title} onChange={(v: string) => setBookData({ ...bookData, title: v })} />
                     <TextArea label="Banner Subtitle" value={bookData.subtitle} onChange={(v: string) => setBookData({ ...bookData, subtitle: v })} rows={2} />
@@ -367,14 +366,14 @@ const HeroEditor = () => {
             onSave={() => updateContent('hero', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Text Content</h3>
                     <TextArea label="Headline" value={localData.headline} onChange={(v: string) => update({ headline: v })} rows={2} />
                     <TextArea label="Subheadline" value={localData.subheadline} onChange={(v: string) => update({ subheadline: v })} rows={2} />
                     <Input label="Button Text" value={localData.buttonText} onChange={(v: string) => update({ buttonText: v })} />
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Visual Media</h3>
                     <Select 
                         label="Media Type" 
@@ -429,13 +428,13 @@ const AboutEditor = () => {
             onSave={() => updateContent('about', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Main Story</h3>
                     <Input label="Title" value={localData.title} onChange={(v: string) => update({ title: v })} />
                     <TextArea label="Main Text" value={localData.text} onChange={(v: string) => update({ text: v })} rows={8} />
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Mission & Visuals</h3>
                     <Input label="Mission Title" value={localData.missionTitle} onChange={(v: string) => update({ missionTitle: v })} />
                     <TextArea label="Mission Text" value={localData.missionText} onChange={(v: string) => update({ missionText: v })} rows={3} />
@@ -536,7 +535,7 @@ const ServicesEditor = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 md:gap-6">
-                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                    <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                         <Input label="Service Title" value={tempService.title} onChange={(v: string) => setTempService({ ...tempService, title: v })} />
                         <Input label="Price (e.g. From R850)" value={tempService.price} onChange={(v: string) => setTempService({ ...tempService, price: v })} />
                         <IconPicker label="Icon Name" value={tempService.iconName} onChange={(v: string) => setTempService({ ...tempService, iconName: v })} />
@@ -552,12 +551,12 @@ const ServicesEditor = () => {
                         </div>
                     </div>
 
-                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                    <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                         <FileUpload label="Service Image" value={tempService.image} onChange={(v: string) => setTempService({ ...tempService, image: v })} />
                         <TextArea label="Short Description (Card)" value={tempService.description} onChange={(v: string) => setTempService({ ...tempService, description: v })} rows={3} />
                     </div>
 
-                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
+                    <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
                         <TextArea label="Full Description (Panel)" value={tempService.fullDescription} onChange={(v: string) => setTempService({ ...tempService, fullDescription: v })} rows={4} />
                         
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Bullet Points (Details)</label>
@@ -595,7 +594,7 @@ const ServicesEditor = () => {
             
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {localServices.map(service => (
-                    <div key={service.id} className={`p-4 md:p-6 rounded-2xl border transition-all ${service.visible ? 'bg-[#161817] border-white/5' : 'bg-red-500/5 border-red-500/20 opacity-75'}`}>
+                    <div key={service.id} className={`p-3 md:p-6 rounded-2xl border transition-all ${service.visible ? 'bg-[#161817] border-white/5' : 'bg-red-500/5 border-red-500/20 opacity-75'}`}>
                         <div className="flex justify-between items-start mb-4">
                             <div className="w-10 h-10 bg-pestGreen/20 rounded-lg flex items-center justify-center text-pestGreen">
                                 <Icons.Zap size={20} />
@@ -644,7 +643,7 @@ const ProcessEditor = () => {
             helpText="Describe your workflow steps. These icons correspond to Lucide React icons."
             onSave={() => updateContent('process', localProcess)}
         >
-            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 mb-8">
+            <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 mb-8">
                 <h3 className="text-white font-bold mb-4">Section Headings</h3>
                 <Input label="Title" value={localProcess.title || ''} onChange={(v: string) => setLocalProcess({ ...localProcess, title: v })} />
                 <TextArea label="Subtitle" value={localProcess.subtitle || ''} onChange={(v: string) => setLocalProcess({ ...localProcess, subtitle: v })} rows={2} />
@@ -693,7 +692,7 @@ const ServiceAreaEditor = () => {
             onSave={() => updateContent('serviceArea', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Text Content</h3>
                     <Input label="Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                     <TextArea label="Description" value={localData.description || ''} onChange={(v: string) => setLocalData({ ...localData, description: v })} rows={4} />
@@ -723,7 +722,7 @@ const ServiceAreaEditor = () => {
                     </div>
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Map Visual</h3>
                     <TextArea 
                         label="Google Maps Embed URL (Iframe src)" 
@@ -753,13 +752,13 @@ const SafetyEditor = () => {
             onSave={() => updateContent('safety', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Safety Promise</h3>
                     <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                     <TextArea label="Description" value={localData.description} onChange={(v: string) => setLocalData({ ...localData, description: v })} rows={4} />
                 </div>
                 
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Badges & Certs</h3>
                     <div className="flex items-center gap-2">
                         <Input label="Badge 1 Text" value={localData.badge1} onChange={(v: string) => setLocalData({ ...localData, badge1: v })} />
@@ -818,7 +817,7 @@ const FaqEditor = () => {
             
             <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {localFaqs.map((faq, idx) => (
-                    <div key={faq.id} className="bg-[#161817] p-4 md:p-6 rounded-2xl border border-white/5 relative group col-span-2 md:col-span-1">
+                    <div key={faq.id} className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 relative group col-span-1">
                         <button onClick={() => handleDelete(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
                         <Input label="Question" value={faq.question} onChange={(v: string) => handleUpdate(idx, 'question', v)} className="mb-4 font-bold" />
                         <TextArea label="Answer" value={faq.answer} onChange={(v: string) => handleUpdate(idx, 'answer', v)} rows={2} />
@@ -841,23 +840,23 @@ const SeoEditor = () => {
             helpText="Optimize for Google search. 'Meta Title' and 'Description' are what appear in search results."
             onSave={() => updateContent('seo', localData)}
         >
-            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 grid grid-cols-2 gap-3 md:gap-6">
+            <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 grid grid-cols-2 gap-3 md:gap-6">
                 <div className="col-span-2">
                     <Input label="Meta Title" value={localData.metaTitle} onChange={(v: string) => setLocalData({ ...localData, metaTitle: v })} />
                 </div>
                 <div className="col-span-2">
                      <TextArea label="Meta Description" value={localData.metaDescription} onChange={(v: string) => setLocalData({ ...localData, metaDescription: v })} rows={3} />
                 </div>
-                <div className="col-span-2 md:col-span-1">
+                <div className="col-span-1">
                      <TextArea label="Keywords" value={localData.keywords} onChange={(v: string) => setLocalData({ ...localData, keywords: v })} rows={2} />
                 </div>
-                <div className="col-span-2 md:col-span-1">
+                <div className="col-span-1">
                     <FileUpload label="Social Share Image (OG Image)" value={localData.ogImage} onChange={(v: string) => setLocalData({ ...localData, ogImage: v })} />
                 </div>
-                <div className="col-span-2 md:col-span-1">
+                <div className="col-span-1">
                     <Input label="Canonical URL" value={localData.canonicalUrl || ''} onChange={(v: string) => setLocalData({ ...localData, canonicalUrl: v })} />
                 </div>
-                 <div className="col-span-2 md:col-span-1">
+                 <div className="col-span-1">
                      <Input label="Robots" value={localData.robotsDirective || 'index, follow'} onChange={(v: string) => setLocalData({ ...localData, robotsDirective: v })} />
                  </div>
                  <div className="col-span-2">
@@ -883,17 +882,17 @@ const CreatorWidgetEditor = () => {
             onSave={() => updateContent('creatorWidget', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Text Content</h3>
                     <Input label="Slogan" value={localData.slogan} onChange={(v: string) => setLocalData({ ...localData, slogan: v })} />
                     <TextArea label="CTA Text" value={localData.ctaText} onChange={(v: string) => setLocalData({ ...localData, ctaText: v })} rows={3} />
                 </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Images</h3>
                     <FileUpload label="Logo" value={localData.logo} onChange={(v: string) => setLocalData({ ...localData, logo: v })} />
                     <FileUpload label="Background" value={localData.background} onChange={(v: string) => setLocalData({ ...localData, background: v })} />
                 </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
                     <h3 className="text-white font-bold mb-4">Contact Icons</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <FileUpload label="WhatsApp Icon" value={localData.whatsappIcon} onChange={(v: string) => setLocalData({ ...localData, whatsappIcon: v })} />
@@ -967,7 +966,7 @@ const EmployeeEditor = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 md:gap-6">
-                    <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                    <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                         <h3 className="text-white font-bold mb-2">Personal Details</h3>
                         <Input label="Full Name" value={tempEmp.fullName} onChange={(v: string) => setTempEmp({...tempEmp, fullName: v})} />
                         <Input label="Job Title" value={tempEmp.jobTitle} onChange={(v: string) => setTempEmp({...tempEmp, jobTitle: v})} />
@@ -975,7 +974,7 @@ const EmployeeEditor = () => {
                         <Input label="Phone" value={tempEmp.tel} onChange={(v: string) => setTempEmp({...tempEmp, tel: v})} />
                         <Input label="Start Date" type="date" value={tempEmp.startDate.split('T')[0]} onChange={(v: string) => setTempEmp({...tempEmp, startDate: new Date(v).toISOString()})} />
                     </div>
-                     <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2 md:col-span-1">
+                     <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                         <h3 className="text-white font-bold mb-2">System Access</h3>
                         <Input label="Login Name" value={tempEmp.loginName} onChange={(v: string) => setTempEmp({...tempEmp, loginName: v})} />
                         <Input label="PIN Code" value={tempEmp.pin} onChange={(v: string) => setTempEmp({...tempEmp, pin: v})} />
@@ -1019,7 +1018,7 @@ const EmployeeEditor = () => {
             
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {content.employees.map(emp => (
-                    <div key={emp.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group">
+                    <div key={emp.id} className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 relative group">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
                                 {emp.profileImage ? <img src={emp.profileImage} alt={emp.fullName} className="w-full h-full object-cover"/> : <User size={24} className="text-gray-400"/>}
@@ -1054,7 +1053,7 @@ const BookingManager = () => {
             <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {content.bookings.length === 0 && <p className="text-gray-500 italic col-span-2">No bookings yet.</p>}
                 {content.bookings.map(booking => (
-                    <div key={booking.id} className="bg-[#161817] p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col justify-between gap-4 col-span-2 md:col-span-1">
+                    <div key={booking.id} className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 flex flex-col justify-between gap-4 col-span-1">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
                                 <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${booking.status === 'New' ? 'bg-green-500 text-white' : 'bg-gray-500/20 text-gray-400'}`}>{booking.status}</span>
@@ -1247,9 +1246,92 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
     };
 
     return (
-        <div className="flex h-screen bg-[#0f1110] font-sans overflow-hidden text-white relative">
+        <div 
+            className="fixed inset-0 z-[9999] bg-[#0f1110] font-sans overflow-hidden text-white flex flex-col md:flex-row"
+            style={{ zoom: "133.333%" }}
+        >
             
-            {/* Sidebar Main */}
+            {/* FLOATING HAMBURGER (Mobile Only) */}
+            <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden fixed top-4 left-4 z-[120] bg-pestGreen text-white p-3 rounded-full shadow-3d hover:shadow-neon transition-all active:scale-95"
+            >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
+            {/* FLOATING DROPDOWN MENU (Mobile Only) */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, x: -50 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, x: -50 }}
+                        className="fixed top-20 left-4 z-[115] w-64 bg-[#161817] border border-white/10 rounded-2xl shadow-3d p-4 flex flex-col max-h-[70vh] overflow-y-auto md:hidden"
+                    >
+                         {/* Main Tabs Horizontal Scroll */}
+                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                             <button onClick={() => { setActiveTab('work'); setActiveSubTab('jobs'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'work' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Briefcase size={20}/></button>
+                             <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'homeLayout' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Layout size={20}/></button>
+                             <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'companyInfo' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Building2 size={20}/></button>
+                             <button onClick={() => { setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'servicesArea' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Zap size={20}/></button>
+                             <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'creator' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Code2 size={20}/></button>
+                        </div>
+
+                        {/* Sub Tabs List */}
+                        <div className="flex-1 space-y-2">
+                             {/* Re-use logic for showing sub-tabs based on activeTab */}
+                             {activeTab === 'work' && (
+                                <>
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Daily Tasks</div>
+                                    <NavItem id="jobs" label="Job Cards" icon={Briefcase} mainTab="work" />
+                                    <NavItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
+                                </>
+                            )}
+                            {activeTab === 'homeLayout' && (
+                                <>
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sections</div>
+                                    <NavItem id="hero" label="Hero Banner" icon={Image} mainTab="homeLayout" />
+                                    <NavItem id="about" label="About Intro" icon={Info} mainTab="homeLayout" />
+                                    <NavItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
+                                    <NavItem id="process" label="Process Steps" icon={Workflow} mainTab="homeLayout" />
+                                    <NavItem id="safety" label="Safety Badges" icon={Shield} mainTab="homeLayout" />
+                                    <NavItem id="cta" label="Call To Action" icon={Phone} mainTab="homeLayout" />
+                                </>
+                            )}
+                            {activeTab === 'companyInfo' && (
+                                <>
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Details</div>
+                                    <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
+                                    <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
+                                    <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">SEO & Help</div>
+                                    <NavItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
+                                    <NavItem id="seo" label="SEO Metadata" icon={Search} mainTab="companyInfo" />
+                                </>
+                            )}
+                            {activeTab === 'servicesArea' && (
+                                <>
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Offerings</div>
+                                    <NavItem id="servicesList" label="Service List" icon={Zap} mainTab="servicesArea" />
+                                    <NavItem id="serviceAreaMap" label="Service Area" icon={Map} mainTab="servicesArea" />
+                                </>
+                            )}
+                            {activeTab === 'creator' && (
+                                <>
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tools</div>
+                                    <NavItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
+                                </>
+                            )}
+                        </div>
+                        
+                        <div className="mt-8 pt-4 border-t border-white/10">
+                             <button onClick={onLogout} className="w-full bg-red-500/10 text-red-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2"><LogOut size={20}/> Logout</button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Sidebar Main (Desktop Only) */}
             <aside className="hidden md:flex w-20 bg-[#0a0a0a] border-r border-white/5 flex-col items-center py-6 gap-6 z-20">
                 <div className="w-10 h-10 bg-pestGreen rounded-xl flex items-center justify-center shadow-neon mb-4">
                    <Bug className="text-white" size={24} />
@@ -1266,7 +1348,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 </div>
             </aside>
 
-            {/* Sidebar Sub (Contextual) */}
+            {/* Sidebar Sub (Contextual - Desktop Only) */}
             <aside className="hidden md:flex w-64 bg-[#161817] border-r border-white/5 flex-col py-6 px-4 z-10">
                 <div className="mb-6 px-2">
                     <h2 className="text-xl font-black uppercase tracking-tight text-white mb-1">
@@ -1370,99 +1452,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 )}
             </aside>
 
-             {/* Mobile Menu Overlay */}
-             <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, x: '100%' }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: '100%' }}
-                        className="fixed inset-0 z-50 bg-[#161817] flex flex-col p-6 overflow-y-auto"
-                    >
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Menu</h2>
-                            <button onClick={() => setIsMobileMenuOpen(false)} className="text-white bg-white/10 p-2 rounded-full"><X size={24}/></button>
-                        </div>
-                        
-                        {/* Main Tabs Horizontal Scroll */}
-                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                             <button onClick={() => { setActiveTab('work'); setActiveSubTab('jobs'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'work' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Briefcase size={20}/> Work</button>
-                             <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'homeLayout' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Layout size={20}/> Layout</button>
-                             <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'companyInfo' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Building2 size={20}/> Company</button>
-                             <button onClick={() => { setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'servicesArea' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Zap size={20}/> Services</button>
-                             <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'creator' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Code2 size={20}/> System</button>
-                        </div>
-
-                        {/* Sub Tabs List */}
-                        <div className="flex-1 space-y-2">
-                             {/* Re-use logic for showing sub-tabs based on activeTab */}
-                             {activeTab === 'work' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Daily Tasks</div>
-                                    <NavItem id="jobs" label="Job Cards" icon={Briefcase} mainTab="work" />
-                                    <NavItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
-                                </>
-                            )}
-                            {activeTab === 'homeLayout' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sections</div>
-                                    <NavItem id="hero" label="Hero Banner" icon={Image} mainTab="homeLayout" />
-                                    <NavItem id="about" label="About Intro" icon={Info} mainTab="homeLayout" />
-                                    <NavItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
-                                    <NavItem id="process" label="Process Steps" icon={Workflow} mainTab="homeLayout" />
-                                    <NavItem id="safety" label="Safety Badges" icon={Shield} mainTab="homeLayout" />
-                                    <NavItem id="cta" label="Call To Action" icon={Phone} mainTab="homeLayout" />
-                                </>
-                            )}
-                            {activeTab === 'companyInfo' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Details</div>
-                                    <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
-                                    <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
-                                    <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">SEO & Help</div>
-                                    <NavItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
-                                    <NavItem id="seo" label="SEO Metadata" icon={Search} mainTab="companyInfo" />
-                                </>
-                            )}
-                            {activeTab === 'servicesArea' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Offerings</div>
-                                    <NavItem id="servicesList" label="Service List" icon={Zap} mainTab="servicesArea" />
-                                    <NavItem id="serviceAreaMap" label="Service Area" icon={Map} mainTab="servicesArea" />
-                                </>
-                            )}
-                            {activeTab === 'creator' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tools</div>
-                                    <NavItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
-                                </>
-                            )}
-                        </div>
-                        
-                        <div className="mt-8 pt-4 border-t border-white/10">
-                             <button onClick={onLogout} className="w-full bg-red-500/10 text-red-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2"><LogOut size={20}/> Logout</button>
-                        </div>
-                    </motion.div>
-                )}
-             </AnimatePresence>
-
-            {/* Mobile Menu Trigger Button */}
-            <button 
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden fixed bottom-6 right-6 z-40 bg-pestGreen text-white p-4 rounded-full shadow-2xl border-2 border-white/20 hover:scale-110 transition-transform"
-            >
-                <Menu size={24} />
-            </button>
 
             {/* Main Content Render */}
             <main className="flex-1 bg-[#0f1110] relative overflow-hidden flex flex-col">
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0f1110]/80 backdrop-blur z-20 sticky top-0">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-                        <span>Admin</span> <ChevronRight size={12}/> <span className="text-white capitalize">{activeTab.replace(/([A-Z])/g, ' $1')}</span> <ChevronRight size={12}/> <span className="text-pestGreen font-bold capitalize">{activeSubTab.replace(/([A-Z])/g, ' $1')}</span>
+                <header className="hidden md:flex h-16 border-b border-white/5 items-center justify-between px-6 bg-[#0f1110]/80 backdrop-blur z-20 sticky top-0">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+                            <span>Admin</span> <ChevronRight size={12}/> <span className="text-white capitalize">{activeTab.replace(/([A-Z])/g, ' $1')}</span> <ChevronRight size={12}/> <span className="text-pestGreen font-bold capitalize">{activeSubTab.replace(/([A-Z])/g, ' $1')}</span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
-                         <div className="text-right hidden md:block">
+                         <div className="text-right">
                              <p className="text-white text-sm font-bold">{loggedInUser?.fullName || 'Admin User'}</p>
                              <p className="text-xs text-gray-500">{loggedInUser?.jobTitle || 'Administrator'}</p>
                          </div>
@@ -1472,7 +1472,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     </div>
                 </header>
                 
-                <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar pb-24 md:pb-10">
+                <div className="flex-1 overflow-y-auto p-3 md:p-10 custom-scrollbar pb-10 pt-16 md:pt-10">
                      {renderMainArea()}
                 </div>
             </main>

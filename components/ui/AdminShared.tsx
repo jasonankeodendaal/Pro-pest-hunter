@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Component } from 'react';
+import React, { useState, useMemo, ReactNode } from 'react';
 import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase, Hammer, Trees, Heart, User, CheckCircle, Zap } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import * as LucideIcons from 'lucide-react'; 
@@ -29,19 +29,16 @@ const ValidIconNames = getValidIconNames();
 // --- ERROR BOUNDARY FOR ICONS ---
 // Prevents one bad icon from white-screening the entire app
 interface IconErrorBoundaryProps {
-  fallback: React.ReactNode;
-  children?: React.ReactNode;
+  fallback: ReactNode;
+  children?: ReactNode;
 }
 
 interface IconErrorBoundaryState {
   hasError: boolean;
 }
 
-export class IconErrorBoundary extends Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
-    constructor(props: IconErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false };
-    }
+export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+    state: IconErrorBoundaryState = { hasError: false };
 
     static getDerivedStateFromError() { return { hasError: true }; }
     
@@ -69,8 +66,8 @@ export const Input = ({ label, value, onChange, type = "text", placeholder, disa
   </div>
 );
 
-export const TextArea = ({ label, value, onChange, rows = 4, placeholder }: any) => (
-  <div className="space-y-1">
+export const TextArea = ({ label, value, onChange, rows = 4, placeholder, className = "" }: any) => (
+  <div className={`space-y-1 ${className}`}>
     {label && <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">{label}</label>}
     <textarea 
       value={value} 
