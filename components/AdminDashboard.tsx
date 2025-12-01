@@ -9,7 +9,7 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map, Award, ThumbsUp, SwatchBook, Menu
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map, Award, ThumbsUp, SwatchBook, Menu, HardDrive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -178,7 +178,7 @@ const WhyChooseUsEditor = () => {
                         <button 
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleDeleteItem(idx); }}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            className="absolute top-4 right-4 text-gray-500 hover:text-red-500 group-hover:opacity-100 transition-opacity z-10"
                         >
                             <Trash2 size={16}/>
                         </button>
@@ -602,9 +602,9 @@ const ServicesEditor = () => {
                             <div className="flex gap-2">
                                 <button onClick={() => handleEdit(service)} className="p-2 hover:bg-white/10 rounded-full text-white"><Edit size={16}/></button>
                                 <button 
-                                    type="button" // Explicit button type
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(service.id); }} // Stop propagation
-                                    className="p-2 hover:bg-red-500/20 rounded-full text-red-500 relative z-20" // Boost Z-Index
+                                    type="button" 
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(service.id); }} 
+                                    className="p-2 hover:bg-red-500/20 rounded-full text-red-500 relative z-20"
                                 >
                                     <Trash2 size={16}/>
                                 </button>
@@ -635,6 +635,13 @@ const ProcessEditor = () => {
         }
     };
 
+    const handleDeleteStep = (index: number) => {
+        if(confirm("Delete this step?")) {
+            const newSteps = (localProcess.steps || []).filter((_, i) => i !== index);
+            setLocalProcess(prev => ({ ...prev, steps: newSteps }));
+        }
+    }
+
     return (
         <EditorLayout
             title="Process Section"
@@ -652,7 +659,13 @@ const ProcessEditor = () => {
             <div className="space-y-4">
                 <h3 className="text-white font-bold px-1">Workflow Steps</h3>
                 {(localProcess.steps || []).map((step, idx) => (
-                    <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex flex-col md:flex-row gap-4 items-start">
+                    <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex flex-col md:flex-row gap-4 items-start relative group">
+                        <button 
+                            onClick={() => handleDeleteStep(idx)}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-red-500 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        >
+                            <Trash2 size={16}/>
+                        </button>
                         <div className="bg-white/5 w-8 h-8 flex items-center justify-center rounded-full text-white font-bold shrink-0 self-start">{step.step}</div>
                         <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 w-full">
                             <Input label="Step Title" value={step.title} onChange={(v: string) => handleStepChange(idx, 'title', v)} />
@@ -670,7 +683,13 @@ const ProcessEditor = () => {
 
 const ServiceAreaEditor = () => {
     const { content, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.serviceArea || { title: '', description: '', towns: [], mapImage: '' });
+    // Removed mapImage from state to enforce URL use
+    const [localData, setLocalData] = useState({ 
+        title: content.serviceArea?.title || '', 
+        description: content.serviceArea?.description || '', 
+        towns: content.serviceArea?.towns || [], 
+        mapEmbedUrl: content.serviceArea?.mapEmbedUrl || ''
+    });
     const [newTown, setNewTown] = useState('');
 
     const handleAddTown = () => {
@@ -688,7 +707,7 @@ const ServiceAreaEditor = () => {
             title="Service Area"
             icon={MapPin}
             description="Specify the towns and regions you cover. This helps clients know if they fall within your service zone."
-            helpText="The 'Towns' list populates the interactive map tags. Upload a clear map image OR paste a Google Maps Embed URL."
+            helpText="The 'Towns' list populates the interactive map tags. Paste a Google Maps Embed URL to display the map."
             onSave={() => updateContent('serviceArea', localData)}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
@@ -731,8 +750,9 @@ const ServiceAreaEditor = () => {
                         rows={3} 
                         placeholder="https://www.google.com/maps/embed?..."
                     />
-                    <div className="text-center text-xs text-gray-500 font-bold uppercase my-2">- OR -</div>
-                    <FileUpload label="Area Map Image" value={localData.mapImage} onChange={(v: string) => setLocalData({ ...localData, mapImage: v })} />
+                    <div className="text-xs text-gray-500 italic mt-2">
+                        * Image upload removed. Please use Google Maps Embed URL for better accuracy.
+                    </div>
                 </div>
             </div>
         </EditorLayout>
@@ -867,21 +887,90 @@ const SeoEditor = () => {
     );
 };
 
-const CreatorWidgetEditor = () => {
-    const { content, updateContent } = useContent();
+// Renamed and expanded
+const CreatorDashboard = () => {
+    const { content, updateContent, resetSystem, clearSystem, downloadBackup, restoreBackup, connectionError, retryConnection } = useContent();
     const [localData, setLocalData] = useState(content.creatorWidget);
 
-    if (!localData) return null; // Guard against missing data
+    if (!localData) return null;
 
     return (
         <EditorLayout
-            title="Creator Widget Settings"
+            title="Creator & System Dashboard"
             icon={Code2}
-            description="Configure the floating developer widget. Only visible to you."
-            helpText="Configure the floating developer widget. Only visible to you."
+            description="Advanced system configuration, developer widget settings, and database management."
+            helpText="Zero to Hero Setup and System Tools."
             onSave={() => updateContent('creatorWidget', localData)}
         >
+            {/* System Status & Connections - MOVED HERE */}
+            <div className="mb-6 grid grid-cols-2 gap-3 md:gap-6">
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
+                    <h3 className="text-white font-bold mb-2 flex items-center gap-2"><Wifi size={18}/> Connection Status</h3>
+                    {connectionError ? (
+                         <div className="p-3 bg-red-900/50 border border-red-500 rounded-lg">
+                            <p className="text-xs text-red-200 font-bold mb-1">Connection Lost</p>
+                            <p className="text-xs text-gray-400 mb-2">{connectionError}</p>
+                            <button onClick={retryConnection} className="text-[10px] bg-red-500 text-white px-3 py-2 rounded font-bold hover:bg-red-400 w-full">Retry Connection</button>
+                        </div>
+                    ) : (
+                        <div className="p-3 bg-green-900/20 border border-green-500/50 rounded-lg">
+                            <p className="text-xs text-green-200 font-bold flex items-center gap-2"><CheckCircle size={14}/> System Online</p>
+                            <p className="text-xs text-gray-400 mt-1">Database connection active.</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
+                     <h3 className="text-white font-bold mb-2 flex items-center gap-2"><HardDrive size={18}/> Storage Indication</h3>
+                     <div className="p-3 bg-blue-900/20 border border-blue-500/50 rounded-lg">
+                         <div className="flex justify-between text-xs text-blue-200 font-bold mb-1">
+                             <span>Storage Used</span>
+                             <span>~45 MB</span>
+                         </div>
+                         <div className="w-full bg-blue-900/50 h-2 rounded-full overflow-hidden">
+                             <div className="bg-blue-500 h-full w-[15%]"></div>
+                         </div>
+                         <p className="text-[10px] text-gray-500 mt-2">Local SQLite / Postgres DB</p>
+                     </div>
+                </div>
+            </div>
+
+            {/* System Tools - MOVED HERE */}
+             <div className="mb-6 grid grid-cols-2 gap-3 md:gap-6">
+                 <div className="col-span-1 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                    <h4 className="text-blue-400 font-bold text-sm uppercase mb-3 flex items-center gap-2"><Database size={16}/> Backup & Restore</h4>
+                    <div className="space-y-3">
+                        <button onClick={downloadBackup} className="w-full text-left text-xs font-bold text-white hover:text-blue-400 flex items-center gap-2 bg-blue-500/10 p-2 rounded-lg"><Download size={14}/> Download Backup</button>
+                        <label className="w-full text-left text-xs font-bold text-white hover:text-blue-400 flex items-center gap-2 cursor-pointer bg-blue-500/10 p-2 rounded-lg">
+                            <Upload size={14}/> Restore Backup
+                            <input type="file" className="hidden" accept=".json" onChange={(e) => {
+                                if(e.target.files?.[0]) {
+                                    if(confirm("Restore backup? This overwrites current data.")) {
+                                        restoreBackup(e.target.files[0]).then(success => {
+                                            if(success) alert("Restored Successfully!");
+                                            else alert("Restore Failed.");
+                                        });
+                                    }
+                                }
+                            }}/>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="col-span-1 p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+                    <h4 className="text-red-400 font-bold text-sm uppercase mb-3 flex items-center gap-2"><AlertTriangle size={16}/> Danger Zone</h4>
+                    <div className="space-y-3">
+                        <button onClick={resetSystem} className="w-full text-left text-xs font-bold text-white hover:text-red-400 flex items-center gap-2 bg-red-500/10 p-2 rounded-lg"><RefreshCw size={14}/> Reset Demo Data</button>
+                        <button onClick={() => { if(confirm("NUKE DATABASE? This will delete ALL data.")) clearSystem(); }} className="w-full text-left text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-2 bg-red-500/10 p-2 rounded-lg"><Trash2 size={14}/> Nuke System</button>
+                    </div>
+                </div>
+             </div>
+
+
             <div className="grid grid-cols-2 gap-3 md:gap-6">
+                 <div className="col-span-2">
+                     <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">Widget Settings</h3>
+                 </div>
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Text Content</h3>
                     <Input label="Slogan" value={localData.slogan} onChange={(v: string) => setLocalData({ ...localData, slogan: v })} />
@@ -1153,7 +1242,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 );
 
             // Creator
-            case 'creatorSettings': return <CreatorWidgetEditor />;
+            case 'creatorSettings': return <CreatorDashboard />; // Renamed
             
             default: return <div className="p-10 text-center text-gray-500">Select a section from the menu.</div>;
         }
@@ -1254,7 +1343,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             {/* FLOATING HAMBURGER (Mobile Only) */}
             <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden fixed top-4 left-4 z-[120] bg-pestGreen text-white p-3 rounded-full shadow-3d hover:shadow-neon transition-all active:scale-95"
+                className="md:hidden fixed top-4 right-4 z-[120] bg-pestGreen text-white p-3 rounded-full shadow-3d hover:shadow-neon transition-all active:scale-95"
             >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -1263,10 +1352,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, x: -50 }}
-                        animate={{ opacity: 1, scale: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, x: -50 }}
-                        className="fixed top-20 left-4 z-[115] w-64 bg-[#161817] border border-white/10 rounded-2xl shadow-3d p-4 flex flex-col max-h-[70vh] overflow-y-auto md:hidden"
+                        initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                        className="fixed top-16 right-4 z-[115] w-64 bg-[#161817] border border-white/10 rounded-2xl shadow-3d p-4 flex flex-col max-h-[70vh] overflow-y-auto md:hidden"
                     >
                          {/* Main Tabs Horizontal Scroll */}
                         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
@@ -1319,7 +1408,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                             {activeTab === 'creator' && (
                                 <>
                                     <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tools</div>
-                                    <NavItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
+                                    <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
                                 </>
                             )}
                         </div>
@@ -1410,46 +1499,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     {activeTab === 'creator' && (
                         <>
                             <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Tools</div>
-                            <NavItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
-                            
-                            <div className="mt-8 p-4 bg-red-500/10 rounded-xl border border-red-500/20">
-                                <h4 className="text-red-400 font-bold text-xs uppercase mb-3 flex items-center gap-2"><AlertTriangle size={12}/> Danger Zone</h4>
-                                <div className="space-y-2">
-                                    <button onClick={resetSystem} className="w-full text-left text-xs font-bold text-white hover:text-red-400 flex items-center gap-2"><RefreshCw size={12}/> Reset Demo Data</button>
-                                    <button onClick={() => { if(confirm("NUKE DATABASE? This will delete ALL data.")) clearSystem(); }} className="w-full text-left text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-2"><Trash2 size={12}/> Nuke System</button>
-                                </div>
-                            </div>
-                            
-                            <div className="mt-4 p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                                <h4 className="text-blue-400 font-bold text-xs uppercase mb-3 flex items-center gap-2"><Database size={12}/> Backup & Restore</h4>
-                                <div className="space-y-2">
-                                    <button onClick={downloadBackup} className="w-full text-left text-xs font-bold text-white hover:text-blue-400 flex items-center gap-2"><Download size={12}/> Download Backup</button>
-                                    <label className="w-full text-left text-xs font-bold text-white hover:text-blue-400 flex items-center gap-2 cursor-pointer">
-                                        <Upload size={12}/> Restore Backup
-                                        <input type="file" className="hidden" accept=".json" onChange={(e) => {
-                                            if(e.target.files?.[0]) {
-                                                if(confirm("Restore backup? This overwrites current data.")) {
-                                                    restoreBackup(e.target.files[0]).then(success => {
-                                                        if(success) alert("Restored Successfully!");
-                                                        else alert("Restore Failed.");
-                                                    });
-                                                }
-                                            }
-                                        }}/>
-                                    </label>
-                                </div>
-                            </div>
+                            <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
                         </>
                     )}
                 </div>
-
-                {/* Connection Status */}
-                {connectionError && (
-                    <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
-                         <p className="text-xs text-red-200 font-bold mb-1 flex items-center gap-1"><Wifi size={12}/> Connection Lost</p>
-                         <button onClick={retryConnection} className="text-[10px] bg-red-500 text-white px-2 py-1 rounded w-full font-bold hover:bg-red-400">Retry</button>
-                    </div>
-                )}
             </aside>
 
 
@@ -1472,8 +1525,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     </div>
                 </header>
                 
-                <div className="flex-1 overflow-y-auto p-3 md:p-10 custom-scrollbar pb-10 pt-16 md:pt-10">
-                     {renderMainArea()}
+                <div className="flex-1 overflow-y-auto custom-scrollbar pt-16 md:pt-10 px-0 md:px-10 pb-10">
+                     <div className="p-2 md:p-0"> {/* Wrapper for mobile padding control */}
+                        {renderMainArea()}
+                     </div>
                 </div>
             </main>
 

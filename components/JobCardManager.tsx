@@ -400,8 +400,8 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                             </h1>
                             
                             <div className="grid grid-cols-2 gap-3 md:gap-6">
-                                {/* Client Info - 2 COL ON MOBILE */}
-                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-2 md:col-span-1">
+                                {/* Client Info - Use col-span-1 to enforce side-by-side on mobile grid */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-1">
                                     <h3 className="text-pestGreen font-bold uppercase text-xs tracking-wider flex items-center gap-2"><User size={14}/> Client Details</h3>
                                     <Input label="Client Name" value={job.clientName} onChange={(v: string) => handleSaveJob({ clientName: v })} />
                                     <div className="grid grid-cols-2 gap-3">
@@ -412,8 +412,8 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <Input label="Business Name" value={job.clientCompanyName || ''} onChange={(v: string) => handleSaveJob({ clientCompanyName: v })} />
                                 </div>
 
-                                {/* Location Info - 2 COL ON MOBILE */}
-                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-2 md:col-span-1">
+                                {/* Location Info - Use col-span-1 to enforce side-by-side on mobile grid */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-1">
                                     <h3 className="text-pestGreen font-bold uppercase text-xs tracking-wider flex items-center gap-2"><MapPin size={14}/> Site Location</h3>
                                     <Input label="Street" value={job.clientAddressDetails.street} onChange={(v: string) => handleSaveJob({ clientAddressDetails: { ...job.clientAddressDetails, street: v } })} />
                                     <div className="grid grid-cols-2 gap-3">
