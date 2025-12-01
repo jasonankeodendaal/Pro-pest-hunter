@@ -37,8 +37,11 @@ interface IconErrorBoundaryState {
   hasError: boolean;
 }
 
-class IconErrorBoundary extends Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
-    state: IconErrorBoundaryState = { hasError: false };
+export class IconErrorBoundary extends Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+    constructor(props: IconErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
 
     static getDerivedStateFromError() { return { hasError: true }; }
     
