@@ -1,9 +1,13 @@
 
+
 import React from 'react';
-import { ShieldCheck, FileCheck, Leaf } from 'lucide-react';
+import { ShieldCheck, FileCheck, Leaf, Heart, Award } from 'lucide-react'; // Added Heart and Award for new defaults
 import { Section } from './ui/Section';
 import { useContent } from '../context/ContentContext';
 import { motion } from 'framer-motion';
+import * as LucideIcons from 'lucide-react'; // Import all Lucide icons
+
+const IconMap: Record<string, any> = LucideIcons; // Map all Lucide icons
 
 export const Safety: React.FC = () => {
   const { content } = useContent();
@@ -54,24 +58,27 @@ export const Safety: React.FC = () => {
             
             <div className="w-1/3 flex flex-col justify-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-sm shadow-glass">
                 {[
-                    { icon: ShieldCheck, text: content.safety.badge1 },
-                    { icon: FileCheck, text: content.safety.badge2 },
-                    { icon: Leaf, text: content.safety.badge3 }
-                ].map((item, i) => (
-                    <motion.div 
-                        key={i}
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ delay: 0.4 + (i * 0.1), duration: 0.6 }}
-                        className="flex items-center gap-3 text-pestGreen hover:text-white transition-colors group"
-                    >
-                        <div className="p-2 rounded-full bg-pestGreen/10 group-hover:bg-pestGreen/20 transition-colors">
-                            <item.icon size={16} className="md:w-6 md:h-6" />
-                        </div>
-                        <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider">{item.text}</span>
-                    </motion.div>
-                ))}
+                    { iconName: content.safety.badge1IconName, text: content.safety.badge1 },
+                    { iconName: content.safety.badge2IconName, text: content.safety.badge2 },
+                    { iconName: content.safety.badge3IconName, text: content.safety.badge3 }
+                ].map((item, i) => {
+                    const IconComponent = IconMap[item.iconName] || IconMap['Circle']; // Fallback to Circle
+                    return (
+                        <motion.div 
+                            key={i}
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, amount: 0.5 }}
+                            transition={{ delay: 0.4 + (i * 0.1), duration: 0.6 }}
+                            className="flex items-center gap-3 text-pestGreen hover:text-white transition-colors group"
+                        >
+                            <div className="p-2 rounded-full bg-pestGreen/10 group-hover:bg-pestGreen/20 transition-colors">
+                                <IconComponent size={16} className="md:w-6 md:h-6" />
+                            </div>
+                            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider">{item.text}</span>
+                        </motion.div>
+                    );
+                })}
             </div>
         </div>
     </Section>

@@ -1,4 +1,6 @@
 
+
+
 import { createRequire } from 'module';
 import dns from 'node:dns';
 const require = createRequire(import.meta.url);
@@ -653,8 +655,11 @@ function getDefaultSettings() {
             title: "Safety Compliance", 
             description: "We adhere to the strictest safety standards. All chemicals are SABS approved and applied according to Act 36 of 1947.", 
             badge1: "Pet Safe", 
+            badge1IconName: "Heart",
             badge2: "Eco Friendly", 
+            badge2IconName: "Leaf",    
             badge3: "Registered", 
+            badge3IconName: "Award",   
             certificates: [
                 "https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/SABS_logo.svg/1200px-SABS_logo.svg.png",
                 "https://sapca.org.za/wp-content/uploads/2020/02/sapca-logo.png"

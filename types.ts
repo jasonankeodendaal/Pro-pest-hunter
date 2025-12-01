@@ -6,11 +6,11 @@ export interface ServiceItem {
   id: string;
   title: string;
   description: string; // Shorter summary for card
-  fullDescription: string; // New: Longer, more detailed description for the panel
-  details: string[]; // New: Bullet points for the detail panel
+  fullDescription: string; // Longer, more detailed description for the panel
+  details: string[]; // Bullet points for the detail panel
   iconName: string;
   price?: string;
-  image?: string | null; // NEW: Image for the service detail panel
+  image?: string | null; // Image for the service detail panel
   visible: boolean;
   featured: boolean;
 }
@@ -28,20 +28,20 @@ export interface WhyChooseUsItem {
   iconName: string;
 }
 
-// NEW: About Item Interface for highlights
+// About Item Interface for highlights
 export interface AboutItem {
   text: string;
   iconName: string;
 }
 
-// NEW: FAQ Interface
+// FAQ Interface
 export interface FAQItem {
   id: string;
   question: string;
   answer: string;
 }
 
-// NEW: Testimonial Interface
+// Testimonial Interface
 export interface TestimonialItem {
   id: string;
   name: string;
@@ -50,7 +50,7 @@ export interface TestimonialItem {
   rating: number;
 }
 
-// NEW: Document interface for employee files
+// Document interface for employee files
 export interface Document {
   id: string;
   type: 'CV' | 'Certificate' | 'Training' | 'Other';
@@ -59,7 +59,7 @@ export interface Document {
   description?: string;
 }
 
-// NEW: Doctor contact interface for employee medical info
+// Doctor contact interface for employee medical info
 export interface DoctorContact {
   id: string;
   name: string;
@@ -77,7 +77,7 @@ export interface EmployeePermissions {
   canEditSiteContent: boolean; // Can change website text/images
 }
 
-// NEW: Employee interface
+// Employee interface
 export interface Employee {
   id: string;
   profileImage: string | null;
@@ -93,10 +93,10 @@ export interface Employee {
   doctorsNumbers: DoctorContact[];
   medicalIssues?: string;
   documents: Document[];
-  permissions: EmployeePermissions; // NEW: Granular permissions
+  permissions: EmployeePermissions; // Granular permissions
 }
 
-// NEW: Location/Shop interface
+// Location/Shop interface
 export interface Location {
   id: string;
   name: string;
@@ -115,10 +115,10 @@ export interface BookingModalConfig {
   stepDetailsTitle: string;
   successTitle: string;
   successMessage: string;
-  termsText?: string; // NEW: Footer terms text
+  termsText?: string; // Footer terms text
 }
 
-// --- NEW: JOB CARD SYSTEM TYPES ---
+// --- JOB CARD SYSTEM TYPES ---
 
 export interface Booking {
   id: string;
@@ -149,7 +149,7 @@ export interface Checkpoint {
   verifiedCode?: string; // The code entered by technician to verify location
 }
 
-// NEW: Quote Line Item
+// Quote Line Item
 export interface QuoteLineItem {
   id: string;
   name: string;
@@ -205,12 +205,12 @@ export interface JobCard {
     postalCode: string;
   };
   contactNumber: string;
-  contactNumberAlt?: string; // NEW: Second contact number
+  contactNumberAlt?: string; // Second contact number
   email: string;
   propertyType: 'Residential' | 'Business'; // Updated to match request
-  clientCompanyName?: string; // NEW: Optional client company name
-  clientVatNumber?: string; // NEW: Optional client VAT number
-  clientRegNumber?: string; // NEW: Optional client registration number
+  clientCompanyName?: string; // Optional client company name
+  clientVatNumber?: string; // Optional client VAT number
+  clientRegNumber?: string; // Optional client registration number
   
   // Dates & Techs
   assessmentDate: string;
@@ -220,9 +220,9 @@ export interface JobCard {
   // Data
   selectedServices: string[]; // IDs of services
   checkpoints: Checkpoint[];
-  isFirstTimeService: boolean; // NEW: Toggle to show codes for sticker setup
-  siteAccessCodes?: string; // NEW: For gate codes etc
-  billingNotes?: string; // NEW: Internal billing notes
+  isFirstTimeService: boolean; // Toggle to show codes for sticker setup
+  siteAccessCodes?: string; // For gate codes etc
+  billingNotes?: string; // Internal billing notes
   
   // Stages Data
   treatmentRecommendation: string;
@@ -255,7 +255,7 @@ export interface CreatorWidgetConfig {
   ctaText: string;
 }
 
-// NEW: Social Link Interface
+// Social Link Interface
 export interface SocialLink {
     id: string;
     name: string;
@@ -280,17 +280,17 @@ export interface ContentState {
         sunday: string;
     };
   };
-  bankDetails: BankDetails; // NEW: Company bank details
+  bankDetails: BankDetails; // Company bank details
   seo: {
     metaTitle: string;
     metaDescription: string;
     keywords: string;
     ogImage?: string; // Social share image
-    ogTitle?: string; // NEW
-    ogDescription?: string; // NEW
-    canonicalUrl?: string; // NEW
-    robotsDirective?: string; // NEW e.g. "index, follow"
-    structuredDataJSON?: string; // NEW JSON-LD schema
+    ogTitle?: string; // 
+    ogDescription?: string; // 
+    canonicalUrl?: string; // 
+    robotsDirective?: string; // e.g. "index, follow"
+    structuredDataJSON?: string; // JSON-LD schema
   };
   hero: {
     headline: string;
@@ -327,36 +327,39 @@ export interface ContentState {
     description: string;
     towns: string[];
     mapImage: string | null;
-    mapEmbedUrl?: string; // NEW: For iframe maps
+    mapEmbedUrl?: string; // For iframe maps
   };
   safety: {
     title: string;
     description: string;
     badge1: string;
+    badge1IconName: string; // Icon for badge 1
     badge2: string;
+    badge2IconName: string; // Icon for badge 2
     badge3: string;
+    badge3IconName: string; // Icon for badge 3
     certificates: string[]; // Updated to string array
   };
   bookCTA: {
     title: string;
     subtitle: string;
     buttonText: string;
-    bgImage?: string; // NEW: Background image for CTA
+    bgImage?: string; // Background image for CTA
   };
-  bookingModal: BookingModalConfig; // NEW: Editable booking modal text
+  bookingModal: BookingModalConfig; // Editable booking modal text
   contact: {
     title: string;
     subtitle: string;
     formTitle: string;
-    mapEmbedUrl?: string; // NEW: Google Maps Embed URL
+    mapEmbedUrl?: string; // Google Maps Embed URL
   };
-  creatorWidget: CreatorWidgetConfig; // NEW: Config for creator widget
+  creatorWidget: CreatorWidgetConfig; // Config for creator widget
   faqs: FAQItem[];
   testimonials: TestimonialItem[];
   employees: Employee[];
   locations: Location[];
-  bookings: Booking[]; // NEW: Incoming quotes
-  jobCards: JobCard[]; // NEW: Job cards
+  bookings: Booking[]; // Incoming quotes
+  jobCards: JobCard[]; // Job cards
 }
 
 export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator';
@@ -366,3 +369,9 @@ export type AdminSubTab =
   'companyDetails' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
   'jobs' | 'inquiries' | 
   'creatorSettings' | 'deploymentGuide';
+
+// AdminDashboardProps interface
+export interface AdminDashboardProps {
+  onLogout: () => void;
+  loggedInUser: Employee | null;
+}

@@ -10,12 +10,12 @@ import {
     User, HardHat, Mail, PhoneCall, Cake, Lock, FileText, Stethoscope, Heart, Clipboard, PlusCircle, Building2,
     MessageSquare, HelpCircle, MousePointerClick, FilePlus, PenTool, DollarSign, Download, Camera, ScanLine, Hash,
     Printer, CheckSquare, FileCheck, ArrowRightCircle, Send, ToggleLeft, ToggleRight,
-    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map, Award, ThumbsUp
+    CreditCard, Bug, QrCode, FileStack, Edit, BookOpen, Workflow, Server, Cloud, Link, Circle, Code2, Terminal, Copy, Palette, Upload, Zap, Database, RotateCcw, Wifi, GitBranch, Globe2, Inbox, Activity, AlertTriangle, RefreshCw, Layers, Map, Award, ThumbsUp, SwatchBook
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink } from '../types';
-import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps } from '../types';
+import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShared'; // Import IconPicker
 import { JobCardManager } from './JobCardManager';
 
 // --- HELPER COMPONENTS ---
@@ -43,7 +43,7 @@ const InfoBlock = ({ title, text, code }: { title: string; text: string, code?: 
   </div>
 );
 
-const SectionHeader = ({ title, icon: Icon, action, onHelp }: { title: string; icon: any; action?: React.ReactNode, onHelp?: () => void }) => (
+const SectionHeader = ({ title, icon: Icon, action, onHelp }: { title: string; icon: React.ElementType; action?: React.ReactNode, onHelp?: () => void }) => (
     <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
         <div className="flex items-center gap-3">
             <div className="p-2 bg-pestGreen/10 rounded-lg text-pestGreen">
@@ -66,7 +66,8 @@ const SectionHeader = ({ title, icon: Icon, action, onHelp }: { title: string; i
     </div>
 );
 
-const EditorLayout = ({ title, icon, helpText, onSave, children }: { title: string, icon: any, helpText: string, onSave: () => void, children: React.ReactNode }) => {
+// Explicitly define EditorLayout as a functional component to ensure children prop is recognized
+const EditorLayout: React.FC<{ title: string, icon: React.ElementType, helpText: string, onSave: () => void, children: React.ReactNode }> = ({ title, icon, helpText, onSave, children }) => {
     const [showHelp, setShowHelp] = useState(false);
 
     return (
@@ -154,7 +155,7 @@ const WhyChooseUsEditor = () => {
                         <button onClick={() => handleDeleteItem(idx)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
                         <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} className="mb-4" />
                         <TextArea label="Description" value={item.text} onChange={(v: string) => handleItemChange(idx, 'text', v)} rows={3} className="mb-4" />
-                        <Input label="Icon Name (Lucide)" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
+                        <IconPicker label="Icon Name" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
                     </div>
                 ))}
             </div>
@@ -504,7 +505,7 @@ const ServicesEditor = () => {
                     <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                         <Input label="Service Title" value={tempService.title} onChange={(v: string) => setTempService({ ...tempService, title: v })} />
                         <Input label="Price (e.g. From R850)" value={tempService.price} onChange={(v: string) => setTempService({ ...tempService, price: v })} />
-                        <Input label="Icon Name (Lucide)" value={tempService.iconName} onChange={(v: string) => setTempService({ ...tempService, iconName: v })} />
+                        <IconPicker label="Icon Name" value={tempService.iconName} onChange={(v: string) => setTempService({ ...tempService, iconName: v })} />
                         <div className="flex gap-4 pt-2">
                              <label className="flex items-center gap-2 text-white cursor-pointer">
                                  <input type="checkbox" checked={tempService.visible} onChange={e => setTempService({...tempService, visible: e.target.checked})} />
@@ -562,7 +563,7 @@ const ServicesEditor = () => {
                     <div key={service.id} className={`p-6 rounded-2xl border transition-all ${service.visible ? 'bg-[#161817] border-white/5' : 'bg-red-500/5 border-red-500/20 opacity-75'}`}>
                         <div className="flex justify-between items-start mb-4">
                             <div className="w-10 h-10 bg-pestGreen/20 rounded-lg flex items-center justify-center text-pestGreen">
-                                <Zap size={20} />
+                                <Icons.Zap size={20} />
                             </div>
                             <div className="flex gap-2">
                                 <button onClick={() => handleEdit(service)} className="p-2 hover:bg-white/10 rounded-full text-white"><Edit size={16}/></button>
@@ -612,7 +613,7 @@ const ProcessEditor = () => {
                         <div className="bg-white/5 w-8 h-8 flex items-center justify-center rounded-full text-white font-bold shrink-0">{step.step}</div>
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input label="Step Title" value={step.title} onChange={(v: string) => handleStepChange(idx, 'title', v)} />
-                            <Input label="Icon Name" value={step.iconName} onChange={(v: string) => handleStepChange(idx, 'iconName', v)} />
+                            <IconPicker label="Icon Name" value={step.iconName} onChange={(v: string) => handleStepChange(idx, 'iconName', v)} />
                             <div className="md:col-span-3">
                                 <TextArea label="Description" value={step.description} onChange={(v: string) => handleStepChange(idx, 'description', v)} rows={2} />
                             </div>
@@ -685,9 +686,18 @@ const SafetyEditor = () => {
                 
                 <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
                     <h3 className="text-white font-bold mb-4">Badges & Certs</h3>
-                    <Input label="Badge 1 Text" value={localData.badge1} onChange={(v: string) => setLocalData({ ...localData, badge1: v })} />
-                    <Input label="Badge 2 Text" value={localData.badge2} onChange={(v: string) => setLocalData({ ...localData, badge2: v })} />
-                    <Input label="Badge 3 Text" value={localData.badge3} onChange={(v: string) => setLocalData({ ...localData, badge3: v })} />
+                    <div className="flex items-center gap-2">
+                        <Input label="Badge 1 Text" value={localData.badge1} onChange={(v: string) => setLocalData({ ...localData, badge1: v })} />
+                        <IconPicker label="Icon" value={localData.badge1IconName} onChange={(v: string) => setLocalData({ ...localData, badge1IconName: v })} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Input label="Badge 2 Text" value={localData.badge2} onChange={(v: string) => setLocalData({ ...localData, badge2: v })} />
+                        <IconPicker label="Icon" value={localData.badge2IconName} onChange={(v: string) => setLocalData({ ...localData, badge2IconName: v })} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Input label="Badge 3 Text" value={localData.badge3} onChange={(v: string) => setLocalData({ ...localData, badge3: v })} />
+                        <IconPicker label="Icon" value={localData.badge3IconName} onChange={(v: string) => setLocalData({ ...localData, badge3IconName: v })} />
+                    </div>
                     <div className="mt-4">
                         <FileUpload label="Certificates (Images)" value={localData.certificates} onChange={(v: string[]) => setLocalData({ ...localData, certificates: v })} multiple={true} />
                     </div>
@@ -842,7 +852,7 @@ const ZeroToHeroGuide = () => {
                              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Database size={20}/> Phase 2: Supabase (Database)</h3>
                              <InfoBlock 
                                 title="1. Create Project" 
-                                text="Go to Supabase.com -> New Project. Name it 'pest-db'. Save your Database Password!" 
+                                text="Go to Supabase.com -> New Project. Name it 'pest-db'. Save your Database Password!!" 
                              />
                              <InfoBlock 
                                 title="2. Get Connection String" 
@@ -1178,11 +1188,7 @@ const SystemGuide = () => {
 
 // --- MAIN ADMIN DASHBOARD ---
 
-interface AdminDashboardProps {
-  onLogout: () => void;
-  loggedInUser: Employee | null;
-}
-
+// AdminDashboardProps interface is now imported from types.ts
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
   const { content, deleteJobCard } = useContent(); 
   
@@ -1223,14 +1229,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
       return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
   }
 
-  const handleDeleteJob = (e: React.MouseEvent, id: string) => {
+  const handleDeleteJob = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
     e.stopPropagation();
     if(window.confirm("Are you sure you want to delete this job card?")) {
         deleteJobCard(id);
     }
   };
 
-  const SidebarItem = ({ id, label, icon: Icon, mainTab }: { id: AdminSubTab, label: string, icon: any, mainTab: AdminMainTab }) => (
+  // Explicitly define SidebarItem as a functional component for proper typing
+  const SidebarItem: React.FC<{ id: AdminSubTab, label: string, icon: React.ElementType, mainTab: AdminMainTab }> = ({ id, label, icon: Icon, mainTab }) => (
       activeMainTab === mainTab ? (
         <button 
             onClick={() => setActiveSubTab(id)}
@@ -1321,8 +1328,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 {/* Creator Only */}
                 {isCreator && activeMainTab === 'creator' && (
                     <>
-                        <button onClick={() => setActiveSubTab('creatorSettings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'creatorSettings' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><Code2 size={16}/> Widget Settings</button>
-                        <button onClick={() => setActiveSubTab('deploymentGuide')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${activeSubTab === 'deploymentGuide' ? 'bg-purple-900/50 text-white' : 'text-gray-400 hover:text-white'}`}><GitBranch size={16}/> Zero-to-Hero Guide</button>
+                        <SidebarItem id="creatorSettings" label="Widget Settings" icon={Code2} mainTab="creator" />
+                        <SidebarItem id="deploymentGuide" label="Zero-to-Hero Guide" icon={GitBranch} mainTab="creator" />
                     </>
                 )}
 
