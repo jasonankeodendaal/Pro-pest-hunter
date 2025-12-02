@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails, SocialLink } from '../types';
+import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails, SocialLink, ClientUser, InventoryItem } from '../types';
 
 // Helper to get the current API URL (Local override > Env Var > Localhost)
 const getApiUrl = () => {
@@ -269,6 +269,7 @@ const defaultState: ContentState = {
             doctorsNumbers: [], documents: [], profileImage: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
         }
   ],
+  clientUsers: [],
   locations: [
       { id: 'loc-1', name: "Nelspruit HQ", address: "Unit 4, Rapid Falls Industrial Park", phone: "013 752 4899", email: "nelspruit@propesthunters.co.za", isHeadOffice: true, image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800" },
       { id: 'loc-2', name: "White River Branch", address: "Shop 12, Casterbridge Lifestyle Centre", phone: "013 750 1234", email: "whiteriver@propesthunters.co.za", isHeadOffice: false, image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=800" }
@@ -280,6 +281,12 @@ const defaultState: ContentState = {
             clientAddressDetails: { street: '12 Impala Street', suburb: 'West Acres', city: 'Nelspruit', province: 'MP', postalCode: '1200' },
             contactNumber: '082 111 2222', email: 'john@gmail.com', propertyType: 'Residential', assessmentDate: new Date().toISOString(), technicianId: 'emp-001', selectedServices: ['srv-02'], checkpoints: [], isFirstTimeService: true, treatmentRecommendation: 'Cockroach flush needed in kitchen.', quote: { lineItems: [], subtotal: 950, vatRate: 0.15, total: 1092.50, notes: '' }, status: 'Job_Scheduled', history: [] 
         }
+  ],
+  inventory: [
+      { id: 'inv-1', name: 'Termidor SC', category: 'Chemical', unit: 'L', costPerUnit: 1200, retailPricePerUnit: 2400, stockLevel: 5, minStockLevel: 2, activeIngredient: 'Fipronil', registrationNumber: 'L-12345' },
+      { id: 'inv-2', name: 'MaxForce Gel', category: 'Chemical', unit: 'g', costPerUnit: 150, retailPricePerUnit: 350, stockLevel: 20, minStockLevel: 5, activeIngredient: 'Imidacloprid', registrationNumber: 'L-54321' },
+      { id: 'inv-3', name: 'Rodent Wax Blocks', category: 'Chemical', unit: 'kg', costPerUnit: 400, retailPricePerUnit: 800, stockLevel: 10, minStockLevel: 2, activeIngredient: 'Brodifacoum' },
+      { id: 'inv-4', name: 'Bait Station (Tamper Proof)', category: 'Equipment', unit: 'unit', costPerUnit: 45, retailPricePerUnit: 95, stockLevel: 50, minStockLevel: 10 },
   ]
 };
 
@@ -295,6 +302,12 @@ interface ContentContextType {
   addEmployee: (employee: Employee) => void;
   updateEmployee: (employeeId: string, employeeData: Partial<Employee>) => void;
   deleteEmployee: (employeeId: string) => void;
+  
+  // Client Management
+  addClientUser: (client: ClientUser) => void;
+  updateClientUser: (clientId: string, data: Partial<ClientUser>) => void;
+  deleteClientUser: (clientId: string) => void;
+
   updateLocations: (locations: Location[]) => void;
   updateFaqs: (faqs: FAQItem[]) => void;
   addBooking: (booking: Booking) => void;
@@ -302,6 +315,12 @@ interface ContentContextType {
   addJobCard: (job: JobCard) => void;
   updateJobCard: (id: string, data: Partial<JobCard>) => void;
   deleteJobCard: (id: string) => void;
+  
+  // Inventory Management
+  addInventoryItem: (item: InventoryItem) => void;
+  updateInventoryItem: (id: string, data: Partial<InventoryItem>) => void;
+  deleteInventoryItem: (id: string) => void;
+
   resetSystem: () => Promise<void>;
   clearSystem: () => Promise<void>;
   downloadBackup: () => void;
@@ -358,9 +377,7 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
                 }
                 
                 // CRITICAL FIX: Sanitize 'socials' if it comes as object (Legacy Data)
-                // This prevents "map is not a function" crash
                 if (serverData.company && serverData.company.socials && !Array.isArray(serverData.company.socials)) {
-                    console.warn("Legacy social data detected. converting to array...");
                     const oldSocials = serverData.company.socials;
                     const newSocials = [];
                     if (oldSocials.facebook) newSocials.push({ id: 'fb', name: 'Facebook', url: oldSocials.facebook, icon: 'https://cdn-icons-png.flaticon.com/512/733/733547.png' });
@@ -371,6 +388,7 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
                 
                 // Fallback for missing arrays
                 if (serverData.company && !serverData.company.socials) serverData.company.socials = [];
+                if (!serverData.inventory) serverData.inventory = defaultState.inventory; // Default inventory if missing
 
                 // MIGRATION FOR ABOUT ITEMS: Ensure ID exists
                 if (serverData.about && serverData.about.items) {
@@ -406,22 +424,15 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const setApiUrl = (newUrl: string) => {
       let clean = newUrl.replace(/\/$/, "").trim();
-      // Auto-prefix if missing
-      if (!clean.startsWith('http')) {
-          clean = `https://${clean}`;
-      }
-      // If localhost but marked as https, fix it to http (optional safe-guard, though some use https locally)
-      // We will assume https for everything else
+      if (!clean.startsWith('http')) clean = `https://${clean}`;
       if (clean.includes('localhost') && clean.startsWith('https://')) {
-          // Allow https for localhost if user typed it, but if they just typed 'localhost:3000' we should prob default to http
-          // But strict replacing might be annoying. Let's just ensure protocol exists.
+          // Keep https for local if user specified
       } else if (clean.includes('localhost') && !clean.startsWith('http')) {
           clean = `http://${clean}`;
       }
-
       localStorage.setItem('custom_api_url', clean);
       setApiUrlState(clean);
-      window.location.reload(); // Force reload to ensure all components and hooks use new URL
+      window.location.reload(); 
   };
 
   // --- GENERIC SETTINGS UPDATER ---
@@ -497,6 +508,32 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
     api.delete(`/api/employees/${employeeId}`);
   };
 
+  // --- CLIENT USER MANAGEMENT ---
+
+  const addClientUser = (client: ClientUser) => {
+    setContent(prev => ({ ...prev, clientUsers: [...prev.clientUsers, client] }));
+    api.post('/api/clients', client);
+  };
+
+  const updateClientUser = (clientId: string, data: Partial<ClientUser>) => {
+    setContent(prev => {
+        const updatedList = prev.clientUsers.map(c => 
+            c.id === clientId ? { ...c, ...data } : c
+        );
+        const updatedClient = updatedList.find(c => c.id === clientId);
+        if (updatedClient) api.post('/api/clients', updatedClient);
+        return { ...prev, clientUsers: updatedList };
+    });
+  };
+
+  const deleteClientUser = (clientId: string) => {
+    setContent(prev => ({
+        ...prev,
+        clientUsers: prev.clientUsers.filter(c => c.id !== clientId)
+    }));
+    api.delete(`/api/clients/${clientId}`);
+  };
+
   // --- BOOKINGS ---
 
   const addBooking = (booking: Booking) => {
@@ -534,6 +571,32 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
     api.delete(`/api/jobs/${id}`);
   };
 
+  // --- INVENTORY MANAGEMENT ---
+
+  const addInventoryItem = (item: InventoryItem) => {
+      setContent(prev => {
+          const newInventory = [...prev.inventory, item];
+          api.post('/api/settings/inventory', newInventory);
+          return { ...prev, inventory: newInventory };
+      });
+  };
+
+  const updateInventoryItem = (id: string, data: Partial<InventoryItem>) => {
+      setContent(prev => {
+          const newInventory = prev.inventory.map(i => i.id === id ? { ...i, ...data } : i);
+          api.post('/api/settings/inventory', newInventory);
+          return { ...prev, inventory: newInventory };
+      });
+  };
+
+  const deleteInventoryItem = (id: string) => {
+      setContent(prev => {
+          const newInventory = prev.inventory.filter(i => i.id !== id);
+          api.post('/api/settings/inventory', newInventory);
+          return { ...prev, inventory: newInventory };
+      });
+  };
+
   // --- SYSTEM TOOLS ---
 
   const resetSystem = async () => {
@@ -543,7 +606,7 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const clearSystem = async () => {
     await api.post('/api/admin/nuke', {});
-    setContent({ ...defaultState, employees: [], jobCards: [], bookings: [], locations: [], services: [], testimonials: [], faqs: [] });
+    setContent({ ...defaultState, employees: [], jobCards: [], bookings: [], locations: [], services: [], testimonials: [], faqs: [], clientUsers: [] });
     loadData(); 
   };
 
@@ -574,8 +637,10 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
     <ContentContext.Provider value={{
       content, apiUrl, setApiUrl, updateContent, updateService, updateWhyChooseUsItems,
       updateProcessSteps, updateAboutItems, addEmployee, updateEmployee,
-      deleteEmployee, updateLocations, updateFaqs,
+      deleteEmployee, addClientUser, updateClientUser, deleteClientUser, 
+      updateLocations, updateFaqs,
       addBooking, updateBooking, addJobCard, updateJobCard, deleteJobCard,
+      addInventoryItem, updateInventoryItem, deleteInventoryItem,
       resetSystem, clearSystem, downloadBackup, restoreBackup, dbType,
       connectionError, isConnecting, retryConnection
     }}>

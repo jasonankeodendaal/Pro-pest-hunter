@@ -1,5 +1,4 @@
 
-
 import { createRequire } from 'module';
 import dns from 'node:dns';
 const require = createRequire(import.meta.url);
@@ -148,6 +147,7 @@ class DatabaseAdapter {
         const schema = [
             `CREATE TABLE IF NOT EXISTS settings (section TEXT PRIMARY KEY, data TEXT)`,
             `CREATE TABLE IF NOT EXISTS employees (id TEXT PRIMARY KEY, data TEXT)`,
+            `CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, data TEXT)`,
             `CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, technicianId TEXT, status TEXT, data TEXT)`,
             `CREATE TABLE IF NOT EXISTS bookings (id TEXT PRIMARY KEY, status TEXT, data TEXT)`,
             `CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, data TEXT)`
@@ -207,7 +207,7 @@ function checkAndSeed(tableName, dataItems) {
                      db.run("INSERT INTO jobs (id, technicianId, status, data) VALUES (?, ?, ?, ?)", [item.id, item.technicianId, item.status, JSON.stringify(item)]);
                  });
             } else {
-                 // employees, locations (id, data)
+                 // employees, clients, locations (id, data)
                  dataItems.forEach(item => {
                      db.run(`INSERT INTO ${tableName} (id, data) VALUES (?, ?)`, [item.id, JSON.stringify(item)]);
                  });
@@ -248,20 +248,23 @@ app.get('/api/init', (req, res) => {
         
         db.all("SELECT * FROM employees", [], (err, emps) => {
             responseData.employees = emps ? emps.map(e => JSON.parse(e.data)) : [];
-            db.all("SELECT * FROM jobs", [], (err, jobs) => {
-                responseData.jobCards = jobs ? jobs.map(j => JSON.parse(j.data)) : [];
-                db.all("SELECT * FROM bookings", [], (err, books) => {
-                    responseData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
-                    db.all("SELECT * FROM locations", [], (err, locs) => {
-                        responseData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
-                        
-                        // INCLUDE DB META INFO
-                        responseData.meta = {
-                            databaseType: db.type,
-                            isRender: !!process.env.RENDER
-                        };
-                        
-                        res.json(responseData);
+            db.all("SELECT * FROM clients", [], (err, clts) => {
+                responseData.clientUsers = clts ? clts.map(c => JSON.parse(c.data)) : [];
+                db.all("SELECT * FROM jobs", [], (err, jobs) => {
+                    responseData.jobCards = jobs ? jobs.map(j => JSON.parse(j.data)) : [];
+                    db.all("SELECT * FROM bookings", [], (err, books) => {
+                        responseData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
+                        db.all("SELECT * FROM locations", [], (err, locs) => {
+                            responseData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
+                            
+                            // INCLUDE DB META INFO
+                            responseData.meta = {
+                                databaseType: db.type,
+                                isRender: !!process.env.RENDER
+                            };
+                            
+                            res.json(responseData);
+                        });
                     });
                 });
             });
@@ -288,6 +291,20 @@ app.post('/api/employees', (req, res) => {
 });
 app.delete('/api/employees/:id', (req, res) => {
     db.run(`DELETE FROM employees WHERE id = ?`, [req.params.id], 
+        (err) => { if(err) res.status(500).send(err.message); else res.json({success: true}); }
+    );
+});
+
+app.post('/api/clients', (req, res) => {
+    const client = req.body;
+    const data = JSON.stringify(client);
+    db.run(`INSERT INTO clients (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = ?`, 
+        [client.id, data, data], 
+        (err) => { if(err) res.status(500).send(err.message); else res.json({success: true}); }
+    );
+});
+app.delete('/api/clients/:id', (req, res) => {
+    db.run(`DELETE FROM clients WHERE id = ?`, [req.params.id], 
         (err) => { if(err) res.status(500).send(err.message); else res.json({success: true}); }
     );
 });
@@ -343,7 +360,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 // RESET (Admin Button Click Only)
 app.post('/api/admin/seed', (req, res) => {
     // This is the ONLY place where data is wiped.
-    const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
+    const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations', 'clients'];
     let completed = 0;
     tables.forEach(table => {
         db.run(`DELETE FROM ${table}`, [], () => {
@@ -360,17 +377,114 @@ app.post('/api/admin/seed', (req, res) => {
     });
 });
 
-// NUKE (Delete All)
-app.post('/api/admin/nuke', (req, res) => {
-    const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
+// NUKE (Delete All) - UPDATED TO PRESERVE CREATOR DATA
+app.post('/api/admin/nuke', async (req, res) => {
+    const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations', 'clients'];
+    
+    let creatorWidgetData = null;
+    let creatorEmployeeData = null;
+    let adminEmployeeData = null;
+
+    // 1. Retrieve essential data BEFORE wiping
+    try {
+        const creatorSetting = await new Promise((resolve, reject) => {
+            db.get("SELECT data FROM settings WHERE section = 'creatorWidget'", [], (err, row) => {
+                if (err) return reject(err);
+                resolve(row ? JSON.parse(row.data) : null);
+            });
+        });
+        creatorWidgetData = creatorSetting;
+
+        // Preserve jstypme (Creator)
+        const creatorEmp = await new Promise((resolve, reject) => {
+            db.get("SELECT data FROM employees WHERE id = 'creator-admin'", [], (err, row) => {
+                if (err) return reject(err);
+                if (row) {
+                    resolve(JSON.parse(row.data));
+                } else {
+                    // Try by name just in case ID is different
+                    db.get("SELECT data FROM employees WHERE data LIKE '%jstypme%'", [], (err, row) => {
+                         if (err) return reject(err);
+                         resolve(row ? JSON.parse(row.data) : null);
+                    });
+                }
+            });
+        });
+        creatorEmployeeData = creatorEmp;
+
+        // Preserve Main Admin (Ruaan/emp-001) to avoid lockout
+        const adminEmp = await new Promise((resolve, reject) => {
+            db.get("SELECT data FROM employees WHERE id = 'emp-001'", [], (err, row) => {
+                if (err) return reject(err);
+                resolve(row ? JSON.parse(row.data) : null);
+            });
+        });
+        adminEmployeeData = adminEmp;
+
+    } catch (error) {
+        console.error("Error retrieving data before Nuke:", error);
+        // Continue with nuke, but log the error
+    }
+
     let completed = 0;
     tables.forEach(table => {
-        db.run(`DELETE FROM ${table}`, [], () => {
+        db.run(`DELETE FROM ${table}`, [], (err) => {
+            if (err) console.error(`Error clearing table ${table}:`, err);
             completed++;
             if (completed === tables.length) {
-                const adminEmp = getDefaultEmployees()[0]; // Restore at least the admin
-                db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [adminEmp.id, JSON.stringify(adminEmp)]);
-                res.json({ success: true, message: "Database completely cleared (Admin restored)." });
+                // 2. Re-insert preserved data AFTER tables are cleared
+                const reInsertPromises = [];
+
+                // Re-insert Creator Widget
+                if (creatorWidgetData) {
+                    reInsertPromises.push(new Promise(resolve => {
+                        db.run("INSERT INTO settings (section, data) VALUES (?, ?)", ['creatorWidget', JSON.stringify(creatorWidgetData)], (err) => {
+                            if (err) console.error("Error re-inserting creatorWidget:", err);
+                            resolve();
+                        });
+                    }));
+                } else {
+                    // Fallback default if lost
+                    const defaultCreatorWidget = getDefaultSettings().creatorWidget;
+                     reInsertPromises.push(new Promise(resolve => {
+                        db.run("INSERT INTO settings (section, data) VALUES (?, ?)", ['creatorWidget', JSON.stringify(defaultCreatorWidget)], (err) => {
+                            if (err) console.error("Error re-inserting default creatorWidget:", err);
+                            resolve();
+                        });
+                    }));
+                }
+
+                // Re-insert Creator User
+                if (creatorEmployeeData) {
+                    reInsertPromises.push(new Promise(resolve => {
+                        db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [creatorEmployeeData.id, JSON.stringify(creatorEmployeeData)], (err) => {
+                            if (err) console.error("Error re-inserting creator employee:", err);
+                            resolve();
+                        });
+                    }));
+                }
+
+                // Re-insert Admin User
+                if (adminEmployeeData) {
+                    reInsertPromises.push(new Promise(resolve => {
+                        db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [adminEmployeeData.id, JSON.stringify(adminEmployeeData)], (err) => {
+                            if (err) console.error("Error re-inserting admin employee:", err);
+                            resolve();
+                        });
+                    }));
+                } else {
+                    const defaultAdmin = getDefaultEmployees()[0];
+                    reInsertPromises.push(new Promise(resolve => {
+                        db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [defaultAdmin.id, JSON.stringify(defaultAdmin)], (err) => {
+                            if (err) console.error("Error re-inserting default admin employee:", err);
+                            resolve();
+                        });
+                    }));
+                }
+
+                Promise.all(reInsertPromises).then(() => {
+                    res.json({ success: true, message: "Database wiped. Creator data and Admin access preserved." });
+                });
             }
         });
     });
@@ -382,15 +496,18 @@ app.get('/api/admin/backup', (req, res) => {
         if(rows) rows.forEach(r => backupData[r.section] = JSON.parse(r.data));
         db.all("SELECT * FROM employees", [], (err, emps) => {
             backupData.employees = emps ? emps.map(e => JSON.parse(e.data)) : [];
-            db.all("SELECT * FROM jobs", [], (err, jobs) => {
-                backupData.jobCards = jobs ? jobs.map(j => JSON.parse(j.data)) : [];
-                db.all("SELECT * FROM bookings", [], (err, books) => {
-                    backupData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
-                    db.all("SELECT * FROM locations", [], (err, locs) => {
-                        backupData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
-                        res.setHeader('Content-Type', 'application/json');
-                        res.setHeader('Content-Disposition', `attachment; filename=pro_pest_backup_${Date.now()}.json`);
-                        res.send(JSON.stringify(backupData, null, 2));
+            db.all("SELECT * FROM clients", [], (err, clts) => {
+                backupData.clients = clts ? clts.map(c => JSON.parse(c.data)) : [];
+                db.all("SELECT * FROM jobs", [], (err, jobs) => {
+                    backupData.jobCards = jobs ? jobs.map(j => JSON.parse(j.data)) : [];
+                    db.all("SELECT * FROM bookings", [], (err, books) => {
+                        backupData.bookings = books ? books.map(b => JSON.parse(b.data)) : [];
+                        db.all("SELECT * FROM locations", [], (err, locs) => {
+                            backupData.locations = locs ? locs.map(l => JSON.parse(l.data)) : [];
+                            res.setHeader('Content-Type', 'application/json');
+                            res.setHeader('Content-Disposition', `attachment; filename=pro_pest_backup_${Date.now()}.json`);
+                            res.send(JSON.stringify(backupData, null, 2));
+                        });
                     });
                 });
             });
@@ -404,7 +521,7 @@ app.post('/api/admin/restore', upload.single('backupFile'), (req, res) => {
         if (err) return res.status(500).send('Error reading backup file');
         try {
             const backup = JSON.parse(data);
-            const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations'];
+            const tables = ['settings', 'employees', 'jobs', 'bookings', 'locations', 'clients'];
             let cleared = 0;
             tables.forEach(table => {
                 db.run(`DELETE FROM ${table}`, [], () => {
@@ -415,6 +532,7 @@ app.post('/api/admin/restore', upload.single('backupFile'), (req, res) => {
                             if (backup[sec]) db.run("INSERT INTO settings (section, data) VALUES (?, ?)", [sec, JSON.stringify(backup[sec])]);
                         });
                         if (backup.employees) backup.employees.forEach(i => db.run("INSERT INTO employees (id, data) VALUES (?, ?)", [i.id, JSON.stringify(i)]));
+                        if (backup.clients) backup.clients.forEach(i => db.run("INSERT INTO clients (id, data) VALUES (?, ?)", [i.id, JSON.stringify(i)]));
                         if (backup.jobCards) backup.jobCards.forEach(i => db.run("INSERT INTO jobs (id, technicianId, status, data) VALUES (?, ?, ?, ?)", [i.id, i.technicianId, i.status, JSON.stringify(i)]));
                         if (backup.bookings) backup.bookings.forEach(i => db.run("INSERT INTO bookings (id, status, data) VALUES (?, ?, ?)", [i.id, i.status, JSON.stringify(i)]));
                         if (backup.locations) backup.locations.forEach(i => db.run("INSERT INTO locations (id, data) VALUES (?, ?)", [i.id, JSON.stringify(i)]));

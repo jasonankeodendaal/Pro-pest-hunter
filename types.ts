@@ -97,6 +97,20 @@ export interface Employee {
   permissions: EmployeePermissions; // Granular permissions
 }
 
+// Client User Interface (Portal Access)
+export interface ClientUser {
+  id: string;
+  email: string; // Used for login AND linking to jobs
+  pin: string; // Login password
+  fullName: string;
+  companyName?: string;
+  phone: string;
+  address: string;
+  profileImage?: string | null; // Identity Icon
+  notes?: string;
+  linkedEmails?: string[]; // Emails associated with this client for job linking
+}
+
 // Location/Shop interface
 export interface Location {
   id: string;
@@ -119,6 +133,34 @@ export interface BookingModalConfig {
   termsText?: string; // Footer terms text
 }
 
+// --- INVENTORY SYSTEM ---
+
+export interface InventoryItem {
+    id: string;
+    name: string;
+    category: 'Chemical' | 'Equipment' | 'Consumable' | 'PPE';
+    unit: 'ml' | 'L' | 'g' | 'kg' | 'unit' | 'box';
+    costPerUnit: number; // Cost price per unit (e.g. 0.50 per ml)
+    retailPricePerUnit: number; // Selling/Quoting price per unit
+    stockLevel: number; // Current stock
+    minStockLevel: number; // Alert level
+    batchNumber?: string;
+    expiryDate?: string;
+    activeIngredient?: string; // For Chemicals
+    registrationNumber?: string; // L-Number for chemicals
+    description?: string;
+}
+
+export interface MaterialUsage {
+    id: string;
+    inventoryItemId: string;
+    itemName: string;
+    qtyUsed: number;
+    unit: string;
+    cost: number; // Captured at time of usage
+    date: string;
+}
+
 // --- JOB CARD SYSTEM TYPES ---
 
 export interface Booking {
@@ -133,6 +175,13 @@ export interface Booking {
   clientAddress: string;
   submittedAt: string;
   status: 'New' | 'Contacted' | 'Converted' | 'Archived';
+}
+
+export interface CheckpointTask {
+    id: string;
+    description: string;
+    completed: boolean;
+    timestamp?: string;
 }
 
 export interface Checkpoint {
@@ -150,13 +199,20 @@ export interface Checkpoint {
 
   // Execution Details
   treatmentNotes?: string; // Notes added during execution
-  chemicalUsed?: string; // Specific chemical used here
+  chemicalUsed?: string; // Specific chemical used here (Legacy text field)
   pestType: string;
   severity: 'Low' | 'Medium' | 'High';
   photos: string[]; // Assessment photos
   servicePhotos?: string[]; // Proof of treatment photos
-  timestamp: string; // When the checkpoint was recorded
-  isTreated: boolean; // True when technician finishes
+  timestamp: string; // Creation timestamp
+  
+  // Tasks Checklist (New Request)
+  tasks: CheckpointTask[];
+
+  // Verification Logic (Double Scan)
+  scanStart?: string; // Timestamp when tech scanned to start
+  scanEnd?: string;   // Timestamp when tech scanned to finish
+  isTreated: boolean; // True when cycle complete
   verifiedCode?: string; // The code entered by technician to verify location
 }
 
@@ -164,9 +220,11 @@ export interface Checkpoint {
 export interface QuoteLineItem {
   id: string;
   name: string;
+  description?: string; // NEW: Detailed description for quote
   qty: number;
   unitPrice: number;
   total: number; // Calculated: qty * unitPrice
+  inventoryItemId?: string; // Linked inventory item
 }
 
 export interface JobQuote {
@@ -177,7 +235,9 @@ export interface JobQuote {
   notes: string; // General quote notes
   
   // Quote Details
-  depositRequired?: number; // e.g. 50%
+  depositType?: 'None' | 'Percentage' | 'Fixed'; // NEW
+  depositValue?: number; // NEW: e.g. 50 (for %) or 1000 (for Fixed)
+  depositRequired?: number; // Legacy, map to depositValue
   warranty?: string; // e.g. "3 Months"
   validUntil?: string; // Date string
   estimatedDuration?: string; // e.g. "2 Hours"
@@ -205,7 +265,16 @@ export type JobStatus =
   | 'Job_In_Progress'  // Tech is on site treating
   | 'Job_Review'       // Tech done, Admin reviewing
   | 'Invoiced'         // Bill sent
-  | 'Completed';       // Paid and closed
+  | 'Completed'        // Paid and closed
+  | 'Cancelled';       // Job/Quote Cancelled
+
+export interface PaymentRecord {
+    method: 'Cash' | 'Card' | 'EFT' | 'Other';
+    amount: number;
+    date: string;
+    reference?: string;
+    notes?: string;
+}
 
 export interface JobCard {
   id: string;
@@ -250,6 +319,7 @@ export interface JobCard {
   windSpeed?: string; // NEW
   temperature?: string; // NEW
   safetyChecklist?: string[]; // NEW: ["Pets Removed", "Food Covered", "Smoke Alarms Off"]
+  materialUsage?: MaterialUsage[]; // NEW: Track chemicals used
 
   ppeUsed?: string[]; // Array of PPE items e.g. "Gloves", "Mask"
   chemicalBatchNumbers?: string; // Traceability
@@ -260,6 +330,8 @@ export interface JobCard {
   treatmentRecommendation: string;
   quote: JobQuote;
   invoice?: JobInvoice;
+  paymentRecord?: PaymentRecord; // NEW: Track final payment
+  depositPaid?: number; // NEW: Track if deposit was paid
   
   // Signatures
   clientSignature?: string; // URL or base64
@@ -389,9 +461,11 @@ export interface ContentState {
   faqs: FAQItem[];
   testimonials: TestimonialItem[];
   employees: Employee[];
+  clientUsers: ClientUser[]; // Portal users
   locations: Location[];
   bookings: Booking[]; // Incoming quotes
   jobCards: JobCard[]; // Job cards
+  inventory: InventoryItem[]; // NEW: Inventory System
 }
 
 export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator';
@@ -399,7 +473,7 @@ export type AdminSubTab =
   'systemGuide' | 'hero' | 'about' | 'whyChooseUs' | 'process' | 'safety' | 'cta' |
   'servicesList' | 'serviceAreaMap' |
   'companyDetails' | 'locations' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
-  'jobs' | 'inquiries' | 'bookingSettings' |
+  'jobs' | 'inquiries' | 'bookingSettings' | 'clients' | 'inventory' |
   'creatorSettings' | 'deploymentGuide';
 
 // AdminDashboardProps interface

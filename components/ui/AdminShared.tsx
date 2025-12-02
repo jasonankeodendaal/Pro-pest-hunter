@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, ReactNode } from 'react';
 import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase, Hammer, Trees, Heart, User, CheckCircle, Zap } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -163,8 +164,8 @@ export const FileUpload = ({ label, value, onChange, onClear, accept = "image/*"
         {multiple ? (
             <div className="flex flex-wrap gap-2">
                 {(Array.isArray(value) ? value : []).map((url: string, i: number) => (
-                    <div key={i} className="relative w-24 h-24 bg-white/5 rounded-lg overflow-hidden border border-white/10 group">
-                        {url.match(/\.(mp4|webm|mov)$/i) ? <video src={url} className="w-full h-full object-cover" /> : <img src={url} className="w-full h-full object-cover" />}
+                    <div key={url} className="relative w-24 h-24 bg-white/5 rounded-lg overflow-hidden border border-white/10 group">
+                        {url.match(/\.(mp4|webm|mov)$/i) ? <video key={url} src={url} className="w-full h-full object-cover" /> : <img key={url} src={url} className="w-full h-full object-cover" />}
                         <button onClick={() => {
                             const newValue = (value as string[]).filter((_, idx) => idx !== i);
                             onChange(newValue);

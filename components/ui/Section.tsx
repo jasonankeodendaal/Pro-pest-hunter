@@ -12,10 +12,9 @@ export const Section: React.FC<SectionProps> = ({ id, className = "", children }
     <section id={id} className={`py-16 md:py-24 px-4 md:px-8 lg:px-12 ${className}`}>
       {/* 
           Updated Container: 
-          Removed restrictive 1440px max-width. 
-          Increased to 1800px and removed percentage constraint to allow "fill the page" effect.
+          Removed max-width restriction completely to allow full-screen "corner to corner" layout as requested.
       */}
-      <div className="w-full max-w-[1800px] mx-auto">
+      <div className="w-full mx-auto">
         {children}
       </div>
     </section>

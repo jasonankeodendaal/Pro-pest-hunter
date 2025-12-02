@@ -12,18 +12,19 @@ import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
+import { ClientPortal } from './components/ClientPortal'; // New Component
 import { ServicesPage } from './components/ServicesPage';
 import { AboutPage } from './components/AboutPage';
 import { ProcessPage } from './components/ProcessPage';
 import { ContactPage } from './components/ContactPage';
-import { CreatorWidget } from './components/CreatorWidget'; // NEW IMPORT
-import { Employee } from './types';
+import { CreatorWidget } from './components/CreatorWidget'; 
+import { Employee, ClientUser } from './types';
 
 // AppContent represents the home page sections
 const Home: React.FC<{ onBookClick: () => void; onAdminClick: () => void; navigateTo: (pageName: 'home' | 'services' | 'about' | 'process' | 'contact') => void; }> = ({ onBookClick, onAdminClick, navigateTo }) => {
   return (
     <>
-      <Navigation onBookClick={onBookClick} navigateTo={navigateTo} />
+      <Navigation onBookClick={onBookClick} onAdminClick={onAdminClick} navigateTo={navigateTo} />
       <Hero navigateTo={navigateTo} />
       <About />
       <WhyChooseUs />
@@ -43,9 +44,13 @@ type Page = 'home' | 'services' | 'about' | 'process' | 'contact';
 
 const App: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState<Employee | null>(null); // null for admin, Employee object for employee
+  const [isClientPortalOpen, setIsClientPortalOpen] = useState(false);
+  
+  const [loggedInUser, setLoggedInUser] = useState<Employee | null>(null);
+  const [loggedInClient, setLoggedInClient] = useState<ClientUser | null>(null);
+  
   const [currentPage, setCurrentPage] = useState<Page>('home');
 
   // Function to navigate between pages
@@ -54,18 +59,36 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleLogin = (user: Employee | ClientUser | null, type: 'employee' | 'client') => {
+      setIsLoginOpen(false);
+      if (type === 'employee' && user) {
+          setLoggedInUser(user as Employee);
+          setIsAdminDashboardOpen(true);
+      } else if (type === 'client' && user) {
+          setLoggedInClient(user as ClientUser);
+          setIsClientPortalOpen(true);
+      }
+  };
+
+  const handleLogout = () => {
+      setIsAdminDashboardOpen(false);
+      setIsClientPortalOpen(false);
+      setLoggedInUser(null);
+      setLoggedInClient(null);
+  };
+
   return (
     <ContentProvider>
       <main className="w-full min-h-screen bg-pestLight relative">
         
-        {/* PUBLIC INTERFACE - Only render if Admin Dashboard is CLOSED */}
-        {!isAdminDashboardOpen && (
+        {/* PUBLIC INTERFACE - Only render if NO dashboards are open */}
+        {!isAdminDashboardOpen && !isClientPortalOpen && (
           <>
             {/* Router Logic */}
             {currentPage === 'home' && (
                 <Home
                     onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    onAdminClick={() => setIsLoginOpen(true)}
                     navigateTo={navigateToPage}
                 />
             )}
@@ -73,7 +96,7 @@ const App: React.FC = () => {
             {currentPage === 'services' && (
                 <ServicesPage
                     onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    onAdminClick={() => setIsLoginOpen(true)}
                     navigateTo={navigateToPage}
                 />
             )}
@@ -81,7 +104,7 @@ const App: React.FC = () => {
             {currentPage === 'about' && (
                 <AboutPage
                     onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    onAdminClick={() => setIsLoginOpen(true)}
                     navigateTo={navigateToPage}
                 />
             )}
@@ -89,7 +112,7 @@ const App: React.FC = () => {
             {currentPage === 'process' && (
                 <ProcessPage
                     onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    onAdminClick={() => setIsLoginOpen(true)}
                     navigateTo={navigateToPage}
                 />
             )}
@@ -97,7 +120,7 @@ const App: React.FC = () => {
             {currentPage === 'contact' && (
                 <ContactPage
                     onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsAdminLoginOpen(true)}
+                    onAdminClick={() => setIsLoginOpen(true)}
                     navigateTo={navigateToPage}
                 />
             )}
@@ -108,26 +131,28 @@ const App: React.FC = () => {
           </>
         )}
 
-        {/* ADMIN INTERFACE */}
-        {isAdminLoginOpen && (
+        {/* LOGIN MODAL */}
+        {isLoginOpen && (
           <AdminLogin 
-            onLogin={(employee) => {
-              setIsAdminLoginOpen(false);
-              setIsAdminDashboardOpen(true);
-              setLoggedInUser(employee);
-            }}
-            onCancel={() => setIsAdminLoginOpen(false)}
+            onLogin={handleLogin}
+            onCancel={() => setIsLoginOpen(false)}
           />
         )}
 
+        {/* ADMIN DASHBOARD */}
         {isAdminDashboardOpen && (
           <AdminDashboard 
-            onLogout={() => {
-              setIsAdminDashboardOpen(false);
-              setLoggedInUser(null);
-            }}
+            onLogout={handleLogout}
             loggedInUser={loggedInUser}
           />
+        )}
+
+        {/* CLIENT PORTAL */}
+        {isClientPortalOpen && loggedInClient && (
+            <ClientPortal 
+                client={loggedInClient}
+                onLogout={handleLogout}
+            />
         )}
       </main>
     </ContentProvider>
