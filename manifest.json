@@ -1,7 +1,7 @@
 {
-  "name": "Pro Pest Hunters",
+  "name": "Pro Pest Hunters (Pty) Ltd",
   "short_name": "Pest Hunters",
-  "description": "Premium local pest control services for the Lowveld area.",
+  "description": "Premium local pest control services for the Lowveld area featuring a modern, responsive design.",
   "id": "/",
   "start_url": "/",
   "display": "standalone",
@@ -17,7 +17,13 @@
       "src": "https://i.ibb.co/zHBzVwRV/image.png",
       "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co/5xYk6jZb/maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
