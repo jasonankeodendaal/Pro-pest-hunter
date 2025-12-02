@@ -1,7 +1,9 @@
-const CACHE_NAME = 'pest-control-v1';
-const DYNAMIC_CACHE = 'pest-control-dynamic-v1';
 
-// Assets that must be cached immediately
+const CACHE_NAME = 'pro-pest-v2';
+const DYNAMIC_CACHE = 'pro-pest-dynamic-v2';
+const OFFLINE_URL = '/index.html';
+
+// Critical assets to cache on install
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -10,7 +12,7 @@ const ASSETS_TO_CACHE = [
 
 // Install Event: Cache core assets
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  self.skipWaiting(); // Activate worker immediately
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -29,59 +31,59 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Claim clients immediately
   );
-  return self.clients.claim();
 });
 
-// Fetch Event: Handle requests with Offline Logic
+// Fetch Event: Network First for Navigation, Stale-While-Revalidate for Assets
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // STRATEGY 1: API Calls -> Network Only (Don't cache dynamic data)
+  // 1. API Calls -> Network Only
   if (url.pathname.startsWith('/api/')) {
-    return; // Let the browser handle it (Network only)
-  }
-
-  // STRATEGY 2: External CDNs (Tailwind, Fonts, Images) -> Stale-While-Revalidate
-  // This serves from cache fast, but updates in background
-  if (url.origin !== self.location.origin || url.pathname.match(/\.(png|jpg|jpeg|svg|gif)$/)) {
-    event.respondWith(
-      caches.open(DYNAMIC_CACHE).then((cache) => {
-        return cache.match(event.request).then((cachedResponse) => {
-          const fetchPromise = fetch(event.request).then((networkResponse) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          }).catch(() => {
-             // If offline and image missing, return nothing or a placeholder if configured
-          });
-          return cachedResponse || fetchPromise;
-        });
-      })
-    );
     return;
   }
 
-  // STRATEGY 3: Navigation (HTML) -> Network First, Fallback to Cache
+  // 2. Navigation (HTML) -> Network First, Fallback to Offline Page
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          return caches.match('/index.html');
+          return caches.match(OFFLINE_URL);
         })
     );
     return;
   }
 
-  // STRATEGY 4: Static Files (JS/CSS) -> Cache First
+  // 3. Static Assets (JS, CSS, Images) -> Stale-While-Revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        // Check if we received a valid response
+        if (!networkResponse || (networkResponse.status !== 200 && networkResponse.status !== 0)) {
+          return networkResponse;
+        }
+
+        // Clone the response
+        const responseToCache = networkResponse.clone();
+
+        caches.open(DYNAMIC_CACHE).then((cache) => {
+          try {
+             cache.put(event.request, responseToCache);
+          } catch (err) {
+             // Quota exceeded or other error
+          }
+        });
+
+        return networkResponse;
+      }).catch(() => {
+         // Network failed, nothing to do here if cache missed (it will return undefined below)
+      });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
-
-// --- ADVANCED PWA FEATURES ---
 
 // Push Notifications
 self.addEventListener('push', (event) => {
@@ -101,26 +103,36 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      if (clientList.length > 0) {
-        return clientList[0].focus();
+      // If a window is already open, focus it
+      for (const client of clientList) {
+        if (client.url === event.notification.data.url && 'focus' in client) {
+          return client.focus();
+        }
       }
-      return clients.openWindow(event.notification.data.url || '/');
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(event.notification.data.url);
+      }
     })
   );
 });
 
-// Background Sync (Queuing offline requests)
+// Background Sync
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-bookings') {
-    // Logic to sync offline bookings would go here
-    console.log('[ServiceWorker] Background Syncing Bookings...');
+  if (event.tag === 'sync-data') {
+    event.waitUntil(
+      // Logic to sync data when connectivity returns
+      Promise.resolve()
+    );
   }
 });
 
-// Periodic Sync (Updating content in background)
+// Periodic Sync
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'update-content') {
-    console.log('[ServiceWorker] Periodic Sync Triggered');
-    // Logic to fetch fresh content
+    event.waitUntil(
+      // Logic to fetch fresh content in background
+      Promise.resolve()
+    );
   }
 });

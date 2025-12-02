@@ -123,6 +123,13 @@
           navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
               console.log('SW registered: ', registration);
+              
+              // Optional: Periodic Sync Registration
+              // if ('periodicSync' in registration) {
+              //   registration.periodicSync.register('update-content', {
+              //     minInterval: 24 * 60 * 60 * 1000 // 1 day
+              //   });
+              // }
             })
             .catch(registrationError => {
               console.log('SW registration failed: ', registrationError);
