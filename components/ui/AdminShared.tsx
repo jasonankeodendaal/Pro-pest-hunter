@@ -39,10 +39,7 @@ interface IconErrorBoundaryState {
 }
 
 export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
-    constructor(props: IconErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false };
-    }
+    public state: IconErrorBoundaryState = { hasError: false };
 
     static getDerivedStateFromError(error: any): IconErrorBoundaryState { 
         return { hasError: true }; 

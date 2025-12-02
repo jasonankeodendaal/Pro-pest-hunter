@@ -25,14 +25,14 @@ export const About: React.FC = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ type: "spring", stiffness: 50, duration: 0.8 }}
-            className="bg-pestStone/90 backdrop-blur-xl p-6 md:p-10 rounded-[30px] shadow-glass border border-white/60 relative h-full flex flex-col"
+            className="bg-pestStone/90 backdrop-blur-xl p-6 md:p-10 rounded-[30px] shadow-glass border border-white/60 relative h-full flex flex-col pt-12 md:pt-16"
           >
-            {/* "Since Year" Badge - Fixed to prevent overlap */}
-            <div className="absolute -top-6 -left-2 md:-left-4 bg-pestBrown text-white px-6 py-3 rounded-2xl shadow-thick-dark font-black text-sm md:text-base transform -rotate-2 border-2 border-white">
+            {/* "Since Year" Badge - Fixed positioning to avoid overlap */}
+            <div className="absolute top-0 left-6 md:-left-4 -translate-y-1/2 bg-pestBrown text-white px-6 py-3 rounded-2xl shadow-thick-dark font-black text-sm md:text-base transform -rotate-2 border-2 border-white z-20">
                Since {new Date().getFullYear() - content.company.yearsExperience}
             </div>
 
-            <span className="text-pestGreen font-black text-xs md:text-sm uppercase tracking-widest mb-3 block mt-6">Who We Are</span>
+            <span className="text-pestGreen font-black text-xs md:text-sm uppercase tracking-widest mb-3 block mt-2">Who We Are</span>
             
             <h2 className="text-3xl md:text-5xl font-black text-pestBrown mb-6 leading-tight drop-shadow-sm">
               {content.about.title}
@@ -80,8 +80,8 @@ export const About: React.FC = () => {
                 </div>
             </div>
 
-            {/* Bottom: Detailed Feature Cards (Grid) */}
-            <div className="grid grid-cols-1 gap-4">
+            {/* Bottom: Detailed Feature Cards (Grid - 2 cols on mobile) */}
+            <div className="grid grid-cols-2 gap-4">
                 {content.about.items.map((item, i) => {
                     const IconComponent = IconMap[item.iconName] || IconMap['Circle'];
                     return (
@@ -90,18 +90,16 @@ export const About: React.FC = () => {
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 * i, duration: 0.5 }}
-                            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-pestGreen/30 transition-all"
+                            className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-pestGreen/30 transition-all flex flex-col h-full"
                         >
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-pestGreen/10 flex items-center justify-center text-pestGreen shrink-0">
-                                    <IconComponent size={24} />
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-pestBrown text-xl mb-1">{item.title}</h4>
-                                    <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                                        {item.description || "Detailed service standard description goes here."}
-                                    </p>
-                                </div>
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-pestGreen/10 flex items-center justify-center text-pestGreen shrink-0 mb-3">
+                                <IconComponent size={20} className="md:w-6 md:h-6" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-pestBrown text-sm md:text-xl mb-1 md:mb-2">{item.title}</h4>
+                                <p className="text-xs md:text-sm text-gray-500 leading-relaxed font-medium line-clamp-3">
+                                    {item.description || "Detailed service standard description goes here."}
+                                </p>
                             </div>
                         </motion.div>
                     );

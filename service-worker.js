@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'pro-pest-v6';
-const DYNAMIC_CACHE = 'pro-pest-dynamic-v6';
+const CACHE_NAME = 'pro-pest-v7';
+const DYNAMIC_CACHE = 'pro-pest-dynamic-v7';
 const OFFLINE_URL = '/index.html';
 
 const ASSETS_TO_CACHE = [
@@ -122,7 +122,6 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-bookings') {
     event.waitUntil(
       // Logic to sync localDB bookings to server when online
-      // In a real app, you'd iterate IndexedDB pending requests and fetch() them.
       console.log('[ServiceWorker] Background Sync Executed')
     );
   }
