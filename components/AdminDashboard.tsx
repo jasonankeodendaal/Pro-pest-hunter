@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -13,7 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps, Location } from '../types';
 import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShared'; // Import IconPicker
 import { JobCardManager } from './JobCardManager';
 
@@ -307,6 +309,87 @@ const CompanyEditor = () => {
     );
 };
 
+const LocationsEditor = () => {
+    const { content, updateLocations } = useContent();
+    const [localData, setLocalData] = useState(content.locations);
+
+    const handleUpdate = (index: number, field: keyof Location, value: any) => {
+        const newData = [...localData];
+        newData[index] = { ...newData[index], [field]: value };
+        // Ensure only one HQ
+        if (field === 'isHeadOffice' && value === true) {
+            newData.forEach((loc, i) => {
+                if (i !== index) loc.isHeadOffice = false;
+            });
+        }
+        setLocalData(newData);
+    };
+
+    const handleAdd = () => {
+        const newLoc: Location = {
+            id: `loc-${Date.now()}`,
+            name: 'New Branch',
+            address: '',
+            phone: '',
+            email: '',
+            isHeadOffice: false,
+            image: null
+        };
+        setLocalData([...localData, newLoc]);
+    };
+
+    const handleDelete = (index: number) => {
+        if(confirm("Delete location?")) {
+            setLocalData(localData.filter((_, i) => i !== index));
+        }
+    };
+
+    return (
+        <EditorLayout
+            title="Physical Locations"
+            icon={MapPin}
+            description="Manage your physical shop or office addresses displayed on the Contact page."
+            helpText="Add or remove branch locations. Mark one as 'Head Office'."
+            onSave={() => updateLocations(localData)}
+        >
+             <div className="flex justify-end mb-4">
+                <button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Location</button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {localData.map((loc, idx) => (
+                    <div key={loc.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative group space-y-4">
+                         <div className="flex justify-between items-start">
+                             <h3 className="text-white font-bold text-lg">Location #{idx+1}</h3>
+                             <button onClick={() => handleDelete(idx)} className="text-gray-500 hover:text-red-500"><Trash2 size={16}/></button>
+                         </div>
+                         
+                         <Input label="Name" value={loc.name} onChange={(v: string) => handleUpdate(idx, 'name', v)} />
+                         <TextArea label="Address" value={loc.address} onChange={(v: string) => handleUpdate(idx, 'address', v)} rows={2} />
+                         
+                         <div className="grid grid-cols-2 gap-4">
+                            <Input label="Phone" value={loc.phone} onChange={(v: string) => handleUpdate(idx, 'phone', v)} />
+                            <Input label="Email" value={loc.email} onChange={(v: string) => handleUpdate(idx, 'email', v)} />
+                         </div>
+
+                         <div className="flex items-center gap-2 pt-2">
+                             <input 
+                                type="checkbox" 
+                                checked={loc.isHeadOffice} 
+                                onChange={(e) => handleUpdate(idx, 'isHeadOffice', e.target.checked)}
+                                className="w-4 h-4 accent-pestGreen"
+                             />
+                             <label className="text-white text-sm font-bold">Head Office / HQ</label>
+                         </div>
+
+                         <FileUpload label="Location Image" value={loc.image} onChange={(v: string) => handleUpdate(idx, 'image', v)} />
+                    </div>
+                ))}
+            </div>
+        </EditorLayout>
+    );
+};
+
 const ContactEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.contact);
@@ -350,6 +433,26 @@ const ContactEditor = () => {
                         rows={3} 
                         placeholder="Paste URL or <iframe> here..."
                     />
+                     <div className="text-xs text-gray-500 italic mt-2 bg-blue-500/10 p-2 rounded border border-blue-500/20 text-blue-300">
+                        <Info size={12} className="inline mr-1"/>
+                        Tip: You must use the "Embed a map" URL from Google Maps (it starts with <code>https://www.google.com/maps/embed</code>). Normal sharing links (<code>maps.app.goo.gl</code>) will not work.
+                    </div>
+                    {/* PREVIEW */}
+                    <div className="mt-4 rounded-xl overflow-hidden h-48 border border-white/10 bg-black/20 relative">
+                        {localData.mapEmbedUrl ? (
+                                <iframe 
+                                src={localData.mapEmbedUrl} 
+                                className="w-full h-full" 
+                                title="Map Preview"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-600 font-bold text-xs uppercase tracking-widest">
+                                No Valid Map URL
+                            </div>
+                        )}
+                        <div className="absolute top-0 right-0 bg-pestGreen text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">PREVIEW</div>
+                    </div>
                 </div>
 
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
@@ -777,7 +880,23 @@ const ServiceAreaEditor = () => {
                     />
                     <div className="text-xs text-gray-500 italic mt-2 bg-blue-500/10 p-2 rounded border border-blue-500/20 text-blue-300">
                         <Info size={12} className="inline mr-1"/>
-                        Tip: Go to Google Maps {'>'} Share {'>'} Embed a map {'>'} Copy HTML. Paste it here, and we will extract the link automatically.
+                        Tip: You must use the "Embed a map" URL from Google Maps (it starts with <code>https://www.google.com/maps/embed</code>). Normal sharing links (<code>maps.app.goo.gl</code>) will not work.
+                    </div>
+                    {/* PREVIEW */}
+                    <div className="mt-4 rounded-xl overflow-hidden h-48 border border-white/10 bg-black/20 relative">
+                        {localData.mapEmbedUrl ? (
+                                <iframe 
+                                src={localData.mapEmbedUrl} 
+                                className="w-full h-full" 
+                                title="Map Preview"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-600 font-bold text-xs uppercase tracking-widest">
+                                No Valid Map URL
+                            </div>
+                        )}
+                        <div className="absolute top-0 right-0 bg-pestGreen text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">PREVIEW</div>
                     </div>
                 </div>
             </div>
@@ -1223,6 +1342,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             
             // Company Info
             case 'companyDetails': return <CompanyEditor />;
+            case 'locations': return <LocationsEditor />; // Added Locations Editor
             case 'contactPage': return <ContactEditor />; // Shared editor
             case 'faqs': return <FaqEditor />;
             case 'seo': return <SeoEditor />;
@@ -1429,6 +1549,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                                 <>
                                     <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Details</div>
                                     <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
+                                    <NavItem id="locations" label="Locations" icon={MapPin} mainTab="companyInfo" />
                                     <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
                                     <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
                                     <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">SEO & Help</div>
@@ -1518,6 +1639,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         <>
                             <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Details</div>
                             <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
+                            <NavItem id="locations" label="Locations" icon={MapPin} mainTab="companyInfo" />
                             <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
                             <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
                             <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-6 px-2">SEO & Help</div>

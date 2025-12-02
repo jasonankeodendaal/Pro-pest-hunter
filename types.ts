@@ -28,7 +28,7 @@ export interface WhyChooseUsItem {
   iconName: string;
 }
 
-// About Item Interface for highlights
+// About Item Interface for functionality highlights
 export interface AboutItem {
   text: string;
   iconName: string;
@@ -397,7 +397,7 @@ export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work
 export type AdminSubTab = 
   'systemGuide' | 'hero' | 'about' | 'whyChooseUs' | 'process' | 'safety' | 'cta' |
   'servicesList' | 'serviceAreaMap' |
-  'companyDetails' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
+  'companyDetails' | 'locations' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
   'jobs' | 'inquiries' | 
   'creatorSettings' | 'deploymentGuide';
 

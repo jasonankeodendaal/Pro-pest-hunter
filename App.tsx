@@ -53,7 +53,7 @@ const App: React.FC = () => {
 
   return (
     <ContentProvider>
-      <main className="w-full min-h-screen bg-pestLight relative">
+      <main className="w-[133.33%] min-h-[133.33vh] bg-pestLight relative origin-top-left">
         
         {/* PUBLIC INTERFACE - Only render if Admin Dashboard is CLOSED */}
         {!isAdminDashboardOpen && (
