@@ -13,118 +13,117 @@ export const Contact: React.FC<ContactProps> = ({ onBookNow }) => {
   const { content } = useContent();
 
   return (
-    // DRASTICALLY REDUCED PADDING for mobile: py-4
-    <Section id="contact" className="bg-pestStone py-4 md:py-20 relative overflow-hidden">
+    <Section id="contact" className="bg-pestStone py-8 md:py-20 relative overflow-hidden">
+       {/* Decorative Background Elements - Hidden on mobile to save space/performance */}
        <div id="booking" className="absolute -top-24 left-0"></div>
-       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-pestBrown/5 to-transparent pointer-events-none"></div>
+       <div className="hidden md:block absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-pestBrown/5 to-transparent pointer-events-none"></div>
 
-       <div className="mx-auto perspective-1000">
-          {/* UPDATED: Removed inner max-width to use Section's 1440px. 
-              Flex row forced. Min-height removed on mobile to shrink to fit content. */}
-          <div className="bg-pestLight rounded-[24px] md:rounded-[40px] shadow-3d overflow-hidden flex flex-row min-h-0 md:min-h-[500px] border-4 border-white/50 transform hover:scale-[1.01] transition-transform duration-500 group">
+       <div className="mx-auto perspective-1000 max-w-[98%] xl:max-w-[1440px]">
+          {/* Main Card Container */}
+          <div className="bg-pestLight rounded-[20px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-row min-h-0 md:min-h-[500px] border border-white/50 transform transition-transform duration-500 hover:scale-[1.005]">
             
-            {/* Left Panel: Call To Action - TIGHT PACKING */}
-            <motion.div 
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                // Reduced padding to p-2 on mobile
-                className="w-1/2 bg-pestGreen text-white p-2 md:p-16 relative overflow-hidden flex flex-col justify-center items-start"
-            >
-                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-                <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-
-                <div className="relative z-10 w-full">
-                    {/* Compact Badge */}
-                    <div className="flex items-center gap-1 md:gap-2 text-pestBrown font-bold bg-pestLight w-fit px-1.5 py-0.5 md:px-4 md:py-2 rounded-lg md:rounded-xl shadow-thick mb-2 md:mb-8 transform -rotate-2 group-hover:rotate-0 transition-transform duration-300">
-                        <CalendarCheck size={10} className="md:w-5 md:h-5" />
-                        <span className="text-[6px] md:text-xs uppercase tracking-wider whitespace-nowrap">Online Priority</span>
+            {/* Left Panel: Call To Action */}
+            <div className="w-1/2 bg-pestGreen text-white p-2 sm:p-3 md:p-12 relative overflow-hidden flex flex-col justify-center items-center md:items-start text-center md:text-left">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                
+                <div className="relative z-10 flex flex-col items-center md:items-start h-full justify-center w-full py-4 md:py-0">
+                    {/* Badge */}
+                    <div className="hidden md:flex items-center gap-2 text-pestBrown font-bold bg-pestLight px-4 py-2 rounded-xl shadow-thick mb-6 transform -rotate-2">
+                        <CalendarCheck size={18} />
+                        <span className="text-xs uppercase tracking-wider">Online Priority</span>
                     </div>
 
-                    {/* Scaled Heading - Smaller text-sm on mobile to prevent wrapping/cramping */}
-                    <h2 className="text-sm md:text-7xl font-black leading-tight mb-1 md:mb-6 drop-shadow-md" style={{ textShadow: '0 4px 0 rgba(0,0,0,0.1)' }}>
+                    {/* Mobile Badge - Ultra Compact */}
+                    <div className="md:hidden flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full mb-1">
+                         <CalendarCheck size={8} className="text-white"/>
+                         <span className="text-[6px] font-bold uppercase tracking-wide">Priority</span>
+                    </div>
+
+                    <h2 className="text-xs sm:text-sm md:text-6xl lg:text-7xl font-black leading-none mb-1 md:mb-6 drop-shadow-md">
                         {content.bookCTA.title}
                     </h2>
                     
-                    {/* Scaled Subtitle - Tiny text on mobile */}
-                    <p className="text-[8px] md:text-2xl mb-3 md:mb-12 text-white/90 font-medium max-w-lg border-l-2 md:border-l-4 border-white/30 pl-2 md:pl-6 leading-tight">
+                    {/* Desktop Subtitle */}
+                    <p className="hidden md:block text-xl mb-8 text-white/90 font-medium max-w-lg border-l-4 border-white/30 pl-6">
+                        {content.bookCTA.subtitle}
+                    </p>
+                    
+                    {/* Mobile Subtitle */}
+                    <p className="md:hidden text-[7px] text-white/90 font-medium mb-2 max-w-[95%] leading-tight opacity-90 line-clamp-2">
                         {content.bookCTA.subtitle}
                     </p>
 
                     <button 
                         onClick={onBookNow}
-                        // Compact Button
-                        className="bg-pestBrown text-white font-black text-[9px] md:text-xl px-3 py-2 md:px-12 md:py-6 rounded-lg md:rounded-2xl shadow-thick-dark hover:translate-y-1 hover:shadow-xl transition-all duration-200 flex items-center gap-1 md:gap-4 group/btn border border-white/10 w-fit"
+                        className="bg-pestBrown hover:bg-pestDarkGreen text-white font-black text-[8px] md:text-xl px-4 py-2 md:px-10 md:py-5 rounded-lg md:rounded-2xl shadow-lg hover:shadow-xl hover:translate-y-[-2px] transition-all duration-300 flex items-center gap-1 md:gap-3 group/btn border border-white/10 mt-1 md:mt-0"
                     >
                         <span>{content.bookCTA.buttonText}</span>
-                        <div className="bg-white/10 p-0.5 md:p-2 rounded-md md:rounded-lg group-hover/btn:bg-pestGreen transition-colors">
-                            <ArrowRight className="w-3 h-3 md:w-6 md:h-6 group-hover/btn:translate-x-1 transition-transform" />
-                        </div>
+                        <ArrowRight className="w-2 h-2 md:w-5 md:h-5 group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                 </div>
-            </motion.div>
+            </div>
 
-            {/* Right Panel: Contact Details - TIGHT PACKING */}
-            <motion.div 
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                // Reduced padding to p-2 on mobile
-                className="w-1/2 bg-pestBrown text-white p-2 md:p-12 flex flex-col justify-center relative overflow-hidden"
-            >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-pestGreen/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+            {/* Right Panel: Contact Details */}
+            <div className="w-1/2 bg-pestBrown text-white p-2 sm:p-3 md:p-12 flex flex-col justify-center relative overflow-hidden">
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-pestGreen/10 rounded-full blur-3xl pointer-events-none"></div>
                 
-                <div className="relative z-10 flex flex-col h-full justify-center w-full">
-                    <div className="mb-1 md:mb-8">
-                        <div className="w-6 h-6 md:w-12 md:h-12 bg-white/5 rounded-lg md:rounded-2xl flex items-center justify-center mb-2 md:mb-8 border border-white/10 shadow-lg backdrop-blur-sm">
-                           <MessageSquare className="text-pestGreen w-3 h-3 md:w-6 md:h-6" />
-                        </div>
-                        
-                        <span className="block text-[6px] md:text-xs font-bold text-pestGreen mb-0.5 md:mb-3 uppercase tracking-widest">{content.contact.subtitle}</span>
-                        <h3 className="text-lg md:text-4xl font-black mb-3 md:mb-12 uppercase tracking-tight leading-none text-white">
-                            {content.contact.title}
-                        </h3>
-                        
-                        <div className="space-y-2 md:space-y-8">
-                            <div className="flex items-center gap-1.5 md:gap-4 group/item">
-                                <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover/item:bg-pestGreen transition-all duration-300 shadow-inner border border-white/5 flex-shrink-0">
-                                    <Phone className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <span className="block text-[6px] md:text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0 md:mb-0.5">Phone</span>
-                                    <a href={`tel:${content.company.phone}`} className="font-bold text-[9px] md:text-xl leading-tight hover:text-pestGreen transition-colors truncate block">{content.company.phone}</a>
-                                </div>
-                            </div>
+                <div className="relative z-10 flex flex-col h-full justify-center w-full py-4 md:py-0">
+                    {/* Header Icon */}
+                    <div className="hidden md:flex w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mb-8 border border-white/10 shadow-lg backdrop-blur-sm">
+                       <MessageSquare className="text-pestGreen w-6 h-6" />
+                    </div>
 
-                            <div className="flex items-center gap-1.5 md:gap-4 group/item">
-                                <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover/item:bg-pestGreen transition-all duration-300 shadow-inner border border-white/5 flex-shrink-0">
-                                    <Mail className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <span className="block text-[6px] md:text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0 md:mb-0.5">Email</span>
-                                    <a href={`mailto:${content.company.email}`} className="font-bold text-[9px] md:text-xl leading-tight hover:text-pestGreen transition-colors break-all block">{content.company.email}</a>
-                                </div>
-                            </div>
+                    {/* Mobile Header - Compact */}
+                    <div className="md:hidden mb-1 flex items-center justify-center gap-1 opacity-60">
+                        <MessageSquare size={10} className="text-pestGreen" />
+                        <span className="text-[6px] font-bold uppercase tracking-widest text-pestGreen">Contact</span>
+                    </div>
+                    
+                    <h3 className="hidden md:block text-4xl font-black mb-12 uppercase tracking-tight leading-none text-white">
+                        {content.contact.title}
+                    </h3>
 
-                            <div className="flex items-center gap-1.5 md:gap-4 group/item">
-                                <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover/item:bg-pestGreen transition-all duration-300 shadow-inner border border-white/5 flex-shrink-0">
-                                    <MapPin className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <span className="block text-[6px] md:text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0 md:mb-0.5">Address</span>
-                                    <span className="font-bold text-[9px] md:text-xl leading-tight block truncate">{content.company.address}</span>
-                                </div>
+                    <div className="space-y-2 md:space-y-8 flex flex-col justify-center">
+                        {/* Phone */}
+                        <a href={`tel:${content.company.phone}`} className="flex flex-col md:flex-row items-center md:items-start gap-0.5 md:gap-4 group text-center md:text-left">
+                            <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-pestGreen transition-colors duration-300">
+                                <Phone className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="hidden md:block text-xs text-gray-400 uppercase font-bold tracking-wider mb-0.5">Phone</span>
+                                <span className="font-bold text-[8px] md:text-xl leading-tight truncate block">{content.company.phone}</span>
+                            </div>
+                        </a>
+
+                        {/* Email */}
+                        <a href={`mailto:${content.company.email}`} className="flex flex-col md:flex-row items-center md:items-start gap-0.5 md:gap-4 group text-center md:text-left">
+                            <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-pestGreen transition-colors duration-300">
+                                <Mail className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
+                            </div>
+                            <div className="min-w-0 w-full">
+                                <span className="hidden md:block text-xs text-gray-400 uppercase font-bold tracking-wider mb-0.5">Email</span>
+                                <span className="font-bold text-[8px] md:text-xl leading-tight break-all md:break-normal block line-clamp-1 px-1">{content.company.email}</span>
+                            </div>
+                        </a>
+
+                        {/* Address */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-0.5 md:gap-4 group text-center md:text-left">
+                            <div className="w-5 h-5 md:w-12 md:h-12 rounded-md md:rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-pestGreen transition-colors duration-300">
+                                <MapPin className="text-white w-2.5 h-2.5 md:w-5 md:h-5" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="hidden md:block text-xs text-gray-400 uppercase font-bold tracking-wider mb-0.5">Address</span>
+                                <span className="font-bold text-[7px] md:text-xl leading-tight block line-clamp-2 md:line-clamp-none opacity-80 md:opacity-100 px-1">{content.company.address}</span>
                             </div>
                         </div>
                     </div>
                     
-                    {/* HIDE MAP STRICTLY ON MOBILE (hidden lg:block) - ONLY visible on Desktop */}
+                    {/* Desktop Map Frame */}
                     {content.contact.mapEmbedUrl && (
-                        <div className="mt-auto pt-2 md:pt-4 border-t border-white/10 hidden lg:block">
-                            <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg h-32 md:h-48">
+                        <div className="mt-auto pt-4 border-t border-white/10 hidden lg:block">
+                            <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg h-48">
                                 <iframe 
                                     src={content.contact.mapEmbedUrl} 
                                     width="100%" 
@@ -138,7 +137,7 @@ export const Contact: React.FC<ContactProps> = ({ onBookNow }) => {
                         </div>
                     )}
                 </div>
-            </motion.div>
+            </div>
 
           </div>
        </div>
