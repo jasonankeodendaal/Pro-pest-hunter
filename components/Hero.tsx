@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Play, Volume2, VolumeX, Bug } from 'lucide-react';
@@ -14,7 +13,9 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
   const { content } = useContent();
   const [isMuted, setIsMuted] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Ref for video control
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
 
   const toggleMute = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -22,7 +23,7 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
   };
 
   return (
-    <section className="relative w-full min-h-[40vh] md:min-h-[80vh] flex items-center bg-pestDarkGreen overflow-hidden pt-24 pb-12 md:py-0">
+    <section className="relative w-full min-h-[60vh] flex items-center bg-pestDarkGreen overflow-hidden pt-24 pb-12">
       {/* Dynamic Background (Fallback/Overlay) */}
       <div className="absolute inset-0 z-0">
           {content.hero.bgImage && !content.hero.mediaVideo ? (
@@ -38,21 +39,19 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-pestGreen/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-pestBrown/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Wider max-width to match page layout lines (1800px) */}
+      {/* Container */}
       <div className="w-full max-w-[1800px] mx-auto px-4 md:px-12 relative z-10">
-        {/* Grid layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
             
             {/* LEFT COLUMN: Text & Icons */}
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-6 md:space-y-8 min-w-0 flex flex-col items-start text-left"
+              className="space-y-6 md:space-y-8 flex-1 w-full max-w-3xl"
             >
                 {/* HEADLINE / LOGO LOCKUP */}
                 <div className="flex flex-row items-center gap-6 md:gap-8 w-full">
-                     {/* Logo - Positioned LEFT of text, and MUCH LARGER per request */}
                      <div className="flex-shrink-0">
                         {content.company.logo ? (
                             <motion.img 
@@ -61,11 +60,11 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
                                 transition={{ delay: 0.2, type: "spring" }}
                                 src={content.company.logo} 
                                 alt="Company Logo" 
-                                className="h-32 w-auto md:h-64 drop-shadow-2xl object-contain" 
+                                className="h-32 w-auto md:h-48 drop-shadow-2xl object-contain" 
                             />
                         ) : (
-                            <div className="w-32 h-32 md:w-56 md:h-56 bg-pestGreen rounded-full flex items-center justify-center shadow-neon">
-                                <Bug className="w-16 h-16 md:w-28 md:h-28 text-white" />
+                            <div className="w-32 h-32 md:w-40 md:h-40 bg-pestGreen rounded-full flex items-center justify-center shadow-neon">
+                                <Bug className="w-16 h-16 md:w-20 md:h-20 text-white" />
                             </div>
                         )}
                      </div>
@@ -114,12 +113,9 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
                             const IconComponent = (IconMap as any)[item.iconName] || IconMap['Circle'];
                             return (
                                 <div key={i} className="group relative flex items-center">
-                                    {/* Icon */}
                                     <div className="w-10 h-10 md:w-12 md:h-12 bg-pestGreen rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-neon cursor-pointer z-20 hover:bg-white/20 hover:text-pestGreen transition-all duration-300 hover:scale-110">
                                         <IconComponent size={20} className="md:w-6 md:h-6" />
                                     </div>
-                                    
-                                    {/* Pop-out Label */}
                                     <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-300 pointer-events-none border border-white/10 shadow-xl z-10">
                                         {item.title}
                                     </div>
@@ -143,21 +139,18 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
                 </div>
             </motion.div>
 
-            {/* RIGHT COLUMN: Video */}
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.9, x: 50 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative w-full aspect-video flex items-center justify-center min-w-0"
-            >
-                {/* Organic Shape Background */}
-                <div className="absolute inset-0 bg-pestGreen/20 rounded-[1rem] md:rounded-[2rem] rotate-3 blur-sm scale-105"></div>
-                
-                <div className="relative w-full h-full bg-[#0f1f0e] rounded-[0.8rem] md:rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 group">
+            {/* RIGHT COLUMN: VIDEO (Visible on Tablet & Desktop) */}
+            <div className="hidden md:flex flex-1 items-center justify-center perspective-2000">
+                <motion.div 
+                    initial={{ opacity: 0, rotateY: -10, x: 50 }}
+                    animate={{ opacity: 1, rotateY: 0, x: 0 }}
+                    transition={{ duration: 1, delay: 0.2 }}
+                    className="relative w-full max-w-xl aspect-video bg-[#0f1f0e] rounded-[30px] overflow-hidden shadow-3d-hover border-8 border-white/10 group transform transition-transform duration-500 hover:scale-105"
+                >
                     {content.hero.mediaVideo ? (
                         <>
                             <video 
-                                ref={videoRef}
+                                ref={desktopVideoRef}
                                 src={content.hero.mediaVideo} 
                                 autoPlay 
                                 muted={isMuted}
@@ -165,29 +158,25 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
                                 playsInline 
                                 className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
                             />
-                            {/* Mute/Unmute Button */}
                             <button 
                                 onClick={toggleMute}
-                                className="absolute bottom-4 right-4 p-3 bg-black/40 hover:bg-pestGreen backdrop-blur-md rounded-full text-white transition-all duration-300 z-30 border border-white/10 shadow-lg group-hover:scale-110"
-                                title={isMuted ? "Unmute Video" : "Mute Video"}
+                                className="absolute bottom-6 right-6 p-4 bg-black/40 hover:bg-pestGreen backdrop-blur-md rounded-full text-white transition-all duration-300 z-30 border border-white/10 shadow-lg group-hover:scale-110"
                             >
-                                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
                             </button>
                         </>
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 relative overflow-hidden">
-                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #4CAF50 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                             <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center max-w-xs relative z-10">
-                                <div className="w-12 h-12 bg-pestGreen rounded-full flex items-center justify-center mx-auto mb-3 shadow-neon animate-pulse">
-                                    <Play size={24} className="text-white ml-1" />
-                                </div>
-                                <p className="text-white font-bold text-sm">Brand Video</p>
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 relative">
+                             <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 text-center">
+                                <Play size={40} className="text-pestGreen mx-auto mb-2" />
+                                <p className="text-white font-bold text-lg">Brand Video</p>
                              </div>
                         </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
-                </div>
-            </motion.div>
+                    {/* Reflection/Gloss */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none"></div>
+                </motion.div>
+            </div>
         </div>
       </div>
     </section>

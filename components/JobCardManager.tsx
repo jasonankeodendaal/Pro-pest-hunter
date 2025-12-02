@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
-import { JobCard, Checkpoint, QuoteLineItem, JobStatus, Employee, PaymentRecord, InventoryItem, MaterialUsage } from '../types';
-import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info, Calculator, Percent, Clock, Cloud, Thermometer, Box, FileCheck, ThumbsUp, Send, RefreshCw, CreditCard, Banknote, Coins, CheckSquare, Square, Repeat, FileX, Timer, LogIn, LogOut, Package } from 'lucide-react';
+import { JobCard, Checkpoint, QuoteLineItem, JobStatus, Employee, PaymentRecord, InventoryItem, MaterialUsage, CheckpointTask, RiskAssessment, WeatherConditions } from '../types';
+import { X, Save, Plus, Trash2, CheckCircle, AlertTriangle, FileText, DollarSign, PenTool, Camera, MapPin, Calendar, User, Phone, Mail, ArrowRight, Shield, Zap, Lock, Download, QrCode, Printer, HelpCircle, Info, Calculator, Percent, Clock, Cloud, Thermometer, Box, FileCheck, ThumbsUp, Send, RefreshCw, CreditCard, Banknote, Coins, CheckSquare, Square, Repeat, FileX, Timer, LogIn, LogOut, Package, ClipboardList, ListPlus, Minus, Wind, Droplets, FlaskConical, AlertOctagon, Microscope, ScanLine } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input, TextArea, Select, FileUpload } from './ui/AdminShared';
 import { HelpButton } from './ui/HelpSystem';
@@ -30,12 +30,21 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
         infestationLevel: 'Low', actionPriority: 'Routine', tasks: []
     });
     
+    // Temp state for building specific tasks for a new checkpoint
+    const [newTaskDescription, setNewTaskDescription] = useState('');
+
     // Quote State
     const [newLineItem, setNewLineItem] = useState<Partial<QuoteLineItem>>({ name: '', description: '', qty: 1, unitPrice: 0 });
     const [selectedInventoryForQuote, setSelectedInventoryForQuote] = useState<string>('');
 
     // Execution State
-    const [materialUsageForm, setMaterialUsageForm] = useState<{invId: string, qty: number}>({ invId: '', qty: 0 });
+    const [materialUsageForm, setMaterialUsageForm] = useState<Partial<MaterialUsage>>({ 
+        inventoryItemId: '', qtyUsed: 0, applicationMethod: 'Spray', dilutionRate: 'None', batchNumber: '' 
+    });
+    
+    // PPE Acknowledgement State
+    const [ppeCheck, setPpeCheck] = useState({ gloves: false, mask: false, boots: false, overall: false });
+    const isPpeConfirmed = ppeCheck.gloves && ppeCheck.mask && ppeCheck.boots && ppeCheck.overall;
 
     // Payment State
     const [paymentForm, setPaymentForm] = useState<PaymentRecord>({ method: 'EFT', amount: 0, date: new Date().toISOString().split('T')[0], reference: '', notes: '' });
@@ -199,16 +208,66 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
         if (newStatus === 'Invoiced') setActiveTab('invoice');
     };
 
-    const addCheckpoint = () => {
-        if (!newCheckpoint.area || !newCheckpoint.pestType) return;
+    const loadServiceTemplate = (serviceId: string) => {
+        const service = content.services.find(s => s.id === serviceId);
+        if (!service || !service.assessmentTemplate || service.assessmentTemplate.length === 0) return alert("No template found for this service.");
         
-        // Default tasks based on standard procedure
+        if (!confirm(`This will add ${service.assessmentTemplate.length} locations/checkpoints to the list. Proceed?`)) return;
+
+        const newCheckpoints = service.assessmentTemplate.map(step => ({
+            id: Date.now().toString() + Math.random(),
+            code: `CHK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            area: step.areaName,
+            pestType: step.defaultPest,
+            severity: 'Low' as const,
+            notes: '',
+            rootCause: '',
+            accessNotes: '',
+            recommendation: '',
+            photos: [],
+            timestamp: new Date().toISOString(),
+            isTreated: false,
+            infestationLevel: 'Low' as const,
+            actionPriority: 'Routine' as const,
+            tasks: [{ id: `t-${Date.now()}`, description: step.defaultTask, completed: false }]
+        }));
+
+        handleSaveJob({ checkpoints: [...job.checkpoints, ...newCheckpoints] });
+    };
+
+    const addNewTaskToCheckpointBuilder = () => {
+        if (!newTaskDescription.trim()) return;
+        const newTask: CheckpointTask = {
+            id: `task-${Date.now()}`,
+            description: newTaskDescription,
+            completed: false
+        };
+        setNewCheckpoint(prev => ({
+            ...prev,
+            tasks: [...(prev.tasks || []), newTask]
+        }));
+        setNewTaskDescription('');
+    };
+
+    const removeTaskFromBuilder = (taskId: string) => {
+        setNewCheckpoint(prev => ({
+            ...prev,
+            tasks: (prev.tasks || []).filter(t => t.id !== taskId)
+        }));
+    };
+
+    const addCheckpoint = () => {
+        if (!newCheckpoint.area || !newCheckpoint.pestType) return alert("Area Name and Pest Found are required.");
+        
+        // Use custom tasks or default if empty
         const defaultTasks = [
             { id: 't1', description: 'Inspect Area & Risks', completed: false },
             { id: 't2', description: 'Put on PPE', completed: false },
             { id: 't3', description: 'Apply Treatment', completed: false },
             { id: 't4', description: 'Clean Area', completed: false }
         ];
+
+        const finalTasks = (newCheckpoint.tasks && newCheckpoint.tasks.length > 0) ? newCheckpoint.tasks : defaultTasks;
 
         const checkpoint: Checkpoint = {
             id: Date.now().toString(),
@@ -225,7 +284,8 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             isTreated: false,
             infestationLevel: newCheckpoint.infestationLevel as any || 'Low',
             actionPriority: newCheckpoint.actionPriority as any || 'Routine',
-            tasks: defaultTasks
+            tasks: finalTasks,
+            monitorData: { activity: 'None', baitCondition: 'Intact', stationStatus: 'Secure' }
         };
         handleSaveJob({ checkpoints: [...job.checkpoints, checkpoint] });
         setNewCheckpoint({ area: '', pestType: '', severity: 'Low', notes: '', photos: [], rootCause: '', accessNotes: '', recommendation: '', infestationLevel: 'Low', actionPriority: 'Routine', tasks: [] });
@@ -245,26 +305,30 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     };
 
     const handleRecordUsage = () => {
-        const invItem = content.inventory.find(i => i.id === materialUsageForm.invId);
-        if (!invItem || materialUsageForm.qty <= 0) return alert("Invalid item or quantity");
+        const invItem = content.inventory.find(i => i.id === materialUsageForm.inventoryItemId);
+        if (!invItem || (materialUsageForm.qtyUsed || 0) <= 0) return alert("Invalid item or quantity");
 
         const usage: MaterialUsage = {
             id: Date.now().toString(),
             inventoryItemId: invItem.id,
             itemName: invItem.name,
-            qtyUsed: materialUsageForm.qty,
+            qtyUsed: materialUsageForm.qtyUsed || 0,
             unit: invItem.unit,
-            cost: invItem.costPerUnit * materialUsageForm.qty,
-            date: new Date().toISOString()
+            cost: invItem.costPerUnit * (materialUsageForm.qtyUsed || 0),
+            date: new Date().toISOString(),
+            batchNumber: materialUsageForm.batchNumber || invItem.batchNumber || 'N/A',
+            applicationMethod: materialUsageForm.applicationMethod as any || 'Spray',
+            dilutionRate: materialUsageForm.dilutionRate || 'Ready-to-Use',
+            targetPest: materialUsageForm.targetPest || 'General'
         };
 
         // Deduct from Stock
-        updateInventoryItem(invItem.id, { stockLevel: invItem.stockLevel - materialUsageForm.qty });
+        updateInventoryItem(invItem.id, { stockLevel: invItem.stockLevel - (materialUsageForm.qtyUsed || 0) });
 
         // Add to Job
         const newUsageList = [...(job.materialUsage || []), usage];
         handleSaveJob({ materialUsage: newUsageList });
-        setMaterialUsageForm({ invId: '', qty: 0 });
+        setMaterialUsageForm({ inventoryItemId: '', qtyUsed: 0, batchNumber: '', applicationMethod: 'Spray', dilutionRate: 'None' });
         alert("Usage recorded and stock updated.");
     };
 
@@ -301,7 +365,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
         onClose(); 
     };
 
-    const generatePrintDocument = (type: 'QUOTE' | 'INVOICE') => {
+    const generatePrintDocument = (type: 'QUOTE' | 'INVOICE' | 'REPORT') => {
         const win = window.open('', '', 'width=900,height=1200');
         if (!win) return;
         const company = content.company;
@@ -331,6 +395,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                 .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
                 .notes-box { margin-top: 20px; padding: 10px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; font-size: 12px; }
                 .desc-text { font-size: 11px; color: #666; margin-top: 4px; display: block; }
+                .checkpoint-box { border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 8px; page-break-inside: avoid; }
+                .checkpoint-header { background: #f9f9f9; padding: 5px 10px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+                .photo-grid { display: flex; gap: 10px; margin-top: 10px; }
+                .photo-item { width: 100px; height: 100px; object-fit: cover; border: 1px solid #ddd; }
+                .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; }
             </style>
         `;
         
@@ -346,16 +415,44 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             </tr>
         `).join('');
 
+        // Generate Checkpoint/Report HTML
+        const reportHtml = job.checkpoints.map(cp => `
+            <div class="checkpoint-box">
+                <div class="checkpoint-header">
+                    <span>${cp.area}</span>
+                    <span style="color: ${cp.actionPriority === 'Critical' ? 'red' : '#4CAF50'}">${cp.actionPriority} - ${cp.pestType}</span>
+                </div>
+                <div style="padding: 10px;">
+                    <p><strong>Infestation Level:</strong> ${cp.infestationLevel}</p>
+                    <p><strong>Treatment Notes:</strong> ${cp.treatmentNotes || 'Pending treatment'}</p>
+                    ${cp.monitorData ? `<p style="font-size:11px;"><strong>Monitor:</strong> Activity: ${cp.monitorData.activity}, Bait: ${cp.monitorData.baitCondition}</p>` : ''}
+                    
+                    <div style="margin-top:10px; font-size:11px; color:#555;">
+                        <strong>Work Checklist:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            ${cp.tasks.map(t => `<li>[${t.completed ? 'X' : ' '}] ${t.description}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    ${cp.photos.length > 0 ? `
+                        <div class="photo-grid">
+                            ${cp.photos.map(p => `<img src="${p}" class="photo-item"/>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+
         win.document.write(`
             <html>
-                <head><title>${type === 'QUOTE' ? 'Quotation' : 'Tax Invoice'} - ${job.refNumber}</title>${styles}</head>
+                <head><title>${type === 'QUOTE' ? 'Quotation' : type === 'REPORT' ? 'Assessment Report' : 'Tax Invoice'} - ${job.refNumber}</title>${styles}</head>
                 <body>
                     <div class="header">
                         <div>
                             ${company.logo ? `<img src="${company.logo}" class="logo"/>` : `<h2>${company.name}</h2>`}
                         </div>
                         <div class="company-info">
-                            <h1>${type === 'QUOTE' ? 'QUOTATION' : 'TAX INVOICE'}</h1>
+                            <h1>${type === 'QUOTE' ? 'QUOTATION' : type === 'REPORT' ? 'SITE REPORT' : 'TAX INVOICE'}</h1>
                             <p><strong>Ref:</strong> ${job.refNumber}</p>
                             <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
                             <p>${company.address}</p>
@@ -364,7 +461,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                     </div>
 
                     <div class="bill-to">
-                        <h3>Bill To:</h3>
+                        <h3>Client Details:</h3>
                         <p><strong>${job.clientName}</strong> ${job.clientCompanyName ? `(${job.clientCompanyName})` : ''}</p>
                         <p>${job.clientAddressDetails.street}, ${job.clientAddressDetails.suburb}</p>
                         <p>${job.clientAddressDetails.city}, ${job.clientAddressDetails.postalCode}</p>
@@ -372,6 +469,14 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         ${job.clientVatNumber ? `<p>Client VAT: ${job.clientVatNumber}</p>` : ''}
                     </div>
 
+                    ${(type === 'REPORT' && job.weather) ? `
+                        <div class="notes-box" style="margin-bottom:20px;">
+                            <strong>Environmental Conditions:</strong><br/>
+                            Temp: ${job.weather.temperature}°C, Wind: ${job.weather.windSpeed}, Condition: ${job.weather.condition}
+                        </div>
+                    ` : ''}
+
+                    ${type !== 'REPORT' ? `
                     <table class="table">
                         <thead>
                             <tr>
@@ -405,6 +510,13 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         ` : ''}
                     </div>
                     <div style="clear:both;"></div>
+                    ` : ''}
+
+                    ${(type === 'REPORT' || type === 'QUOTE') && job.checkpoints.length > 0 ? `
+                        <div class="section-title">Site Assessment Findings</div>
+                        <div class="desc-text" style="margin-bottom: 20px;">Detailed findings from inspection on ${new Date(job.assessmentDate).toLocaleDateString()}.</div>
+                        ${reportHtml}
+                    ` : ''}
 
                     ${type === 'QUOTE' && job.quote.notes ? `
                         <div class="notes-box">
@@ -420,6 +532,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         </div>
                     ` : ''}
 
+                    ${type !== 'REPORT' ? `
                     <div class="bank-details">
                         <h4>Banking Details</h4>
                         <p><strong>Bank:</strong> ${bank.bankName}</p>
@@ -428,6 +541,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         <p><strong>Branch Code:</strong> ${bank.branchCode}</p>
                         <p>Please use <strong>${job.refNumber}</strong> as payment reference.</p>
                     </div>
+                    ` : ''}
 
                     <div class="footer">
                         <p>Terms & Conditions Apply. Thank you for your business!</p>
@@ -449,6 +563,69 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             </div>
         `).join('');
         win.document.write(`<html><head><title>Print QR Codes</title></head><body>${qrHtml}<script>window.onload=function(){window.print()}</script></body></html>`);
+        win.document.close();
+    };
+
+    const printMainQRCard = () => {
+        const win = window.open('', '', 'width=600,height=800');
+        if (!win) return;
+        
+        // This URL points to the Public Job Viewer via App.tsx
+        const qrDataUrl = `${window.location.origin}/?jobRef=${job.id}`;
+        
+        // We ensure we encode the URL properly for the QR generator API
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrDataUrl)}`;
+
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Client Job QR</title>
+                <style>
+                    body { font-family: 'Helvetica', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f0f0f0; }
+                    .card { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 400px; border: 2px solid #4CAF50; }
+                    .logo { max-height: 80px; margin-bottom: 20px; }
+                    h1 { margin: 0 0 5px 0; color: #333; font-size: 24px; text-transform: uppercase; }
+                    h2 { margin: 0 0 20px 0; color: #4CAF50; font-size: 16px; }
+                    .qr-container { background: #f9f9f9; padding: 20px; border-radius: 10px; display: inline-block; margin: 20px 0; border: 1px dashed #ccc; }
+                    .qr-code { width: 250px; height: 250px; }
+                    .info { margin-top: 20px; text-align: left; background: #f0f8f0; padding: 15px; border-radius: 10px; }
+                    .info p { margin: 5px 0; font-size: 14px; color: #555; }
+                    .info strong { color: #333; }
+                    .footer { margin-top: 20px; font-size: 11px; color: #999; }
+                    @media print {
+                        body { background: white; }
+                        .card { box-shadow: none; width: 100%; border: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    ${content.company.logo ? `<img src="${content.company.logo}" class="logo" />` : ''}
+                    <h1>${content.company.name}</h1>
+                    <h2>Scan to View Reports & Certs</h2>
+                    
+                    <div class="qr-container">
+                        <img src="${qrApiUrl}" class="qr-code" />
+                    </div>
+
+                    <div class="info">
+                        <p><strong>Job Ref:</strong> ${job.refNumber}</p>
+                        <p><strong>Reg No:</strong> ${content.company.regNumber || 'N/A'}</p>
+                        <p><strong>Tel:</strong> ${content.company.phone}</p>
+                        <p><strong>Email:</strong> ${content.company.email}</p>
+                    </div>
+
+                    <div class="footer">
+                         Scan this code with your phone camera to access your digital job card, reports, and certificates instantly.
+                    </div>
+                </div>
+                <script>window.onload = function() { window.print(); }</script>
+            </body>
+            </html>
+        `;
+
+        win.document.write(html);
         win.document.close();
     };
 
@@ -619,7 +796,12 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <Shield size={32} className="text-pestGreen"/> Site Assessment
                                     <HelpButton topic="assessment" />
                                 </h1>
-                                {job.status === 'Assessment' && <button onClick={() => advanceStatus('Quote_Builder')} className="bg-white text-pestBrown hover:bg-pestGreen hover:text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">Complete & Quote <ArrowRight size={16}/></button>}
+                                <div className="flex gap-2">
+                                     <button onClick={() => generatePrintDocument('REPORT')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 border border-white/10">
+                                         <Printer size={16}/> Print Report
+                                     </button>
+                                    {job.status === 'Assessment' && <button onClick={() => advanceStatus('Quote_Builder')} className="bg-white text-pestBrown hover:bg-pestGreen hover:text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">Complete & Quote <ArrowRight size={16}/></button>}
+                                </div>
                              </div>
 
                              {/* SCANNER MODAL */}
@@ -631,6 +813,67 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                  </div>
                              )}
 
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Environmental Conditions */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl">
+                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Cloud size={18} className="text-blue-400"/> Weather & Environment (Law Requirement)</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500 uppercase">Temperature (°C)</label>
+                                            <div className="relative">
+                                                <input type="number" className="w-full p-2 bg-black/30 border border-white/10 rounded text-white" value={job.weather?.temperature || ''} onChange={e => handleSaveJob({ weather: { ...job.weather!, temperature: e.target.value } })} placeholder="24" />
+                                                <Thermometer size={14} className="absolute right-2 top-3 text-gray-500"/>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500 uppercase">Wind Speed (km/h)</label>
+                                            <div className="relative">
+                                                <input type="text" className="w-full p-2 bg-black/30 border border-white/10 rounded text-white" value={job.weather?.windSpeed || ''} onChange={e => handleSaveJob({ weather: { ...job.weather!, windSpeed: e.target.value } })} placeholder="10" />
+                                                <Wind size={14} className="absolute right-2 top-3 text-gray-500"/>
+                                            </div>
+                                        </div>
+                                        <div className="col-span-2 space-y-1">
+                                            <label className="text-xs font-bold text-gray-500 uppercase">Condition</label>
+                                            <div className="flex gap-2">
+                                                {['Sunny', 'Cloudy', 'Rain', 'Windy'].map(c => (
+                                                    <button 
+                                                        key={c}
+                                                        onClick={() => handleSaveJob({ weather: { ...job.weather!, condition: c as any } })}
+                                                        className={`flex-1 py-2 text-xs font-bold rounded border ${job.weather?.condition === c ? 'bg-pestGreen border-pestGreen text-white' : 'bg-black/20 border-white/10 text-gray-400'}`}
+                                                    >
+                                                        {c}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Risk Assessment Checklist */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl">
+                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2"><AlertTriangle size={18} className="text-yellow-500"/> Site Risk Assessment</h3>
+                                    <div className="space-y-2">
+                                        {[
+                                            { key: 'petsRemoved', label: 'Pets Removed / Safe' },
+                                            { key: 'foodCovered', label: 'Food Covered / Stored' },
+                                            { key: 'electricalHazards', label: 'Electrical Hazards Checked' },
+                                            { key: 'waterTanksCovered', label: 'Water Tanks / Fish Ponds Covered' },
+                                            { key: 'ventilationChecked', label: 'Ventilation Adequate' }
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/5 cursor-pointer hover:border-pestGreen/50">
+                                                <span className="text-sm text-gray-300">{item.label}</span>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={(job.riskAssessment as any)?.[item.key] || false} 
+                                                    onChange={e => handleSaveJob({ riskAssessment: { ...job.riskAssessment!, [item.key]: e.target.checked } })}
+                                                    className="w-5 h-5 accent-pestGreen"
+                                                />
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                             </div>
+
                              <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl w-full mb-6">
                                  <h3 className="text-white font-bold mb-3">Overall Treatment Plan</h3>
                                  <TextArea label="Treatment Recommendation" value={job.treatmentRecommendation} onChange={(v: string) => handleSaveJob({ treatmentRecommendation: v })} rows={3} placeholder="Based on findings, we recommend..." />
@@ -638,9 +881,24 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
                              {/* Add Checkpoint Form */}
                              <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl w-full">
-                                 <div className="flex items-center justify-between mb-6">
-                                     <h3 className="text-white font-bold text-lg">Add New Finding</h3>
-                                     <div className="flex gap-2">
+                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+                                     <div>
+                                         <h3 className="text-white font-bold text-lg">Add New Location / Area</h3>
+                                         <p className="text-xs text-gray-500">Establish specific location finding checkpoints for this job.</p>
+                                     </div>
+                                     <div className="flex gap-2 flex-wrap">
+                                         <select 
+                                            onChange={(e) => {
+                                                if(e.target.value) {
+                                                    loadServiceTemplate(e.target.value);
+                                                    e.target.value = "";
+                                                }
+                                            }}
+                                            className="bg-black/30 text-white text-xs border border-white/10 rounded-lg p-2"
+                                         >
+                                             <option value="">Load Protocol Template...</option>
+                                             {content.services.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                                         </select>
                                         <button onClick={printQRCodes} className="bg-white/10 hover:bg-white text-white hover:text-pestBrown px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-white/10">
                                             <Printer size={14} /> Print QRs
                                         </button>
@@ -651,17 +909,47 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                  </div>
                                  
                                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-                                     <div className="col-span-1"><Input label="Area Name" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} placeholder="e.g. Kitchen Cupboard" /></div>
+                                     <div className="col-span-1"><Input label="Area Name / Location" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} placeholder="e.g. Kitchen Cupboard" /></div>
                                      <div className="col-span-1"><Input label="Pest Found" value={newCheckpoint.pestType} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, pestType: v }))} placeholder="e.g. German Cockroach" /></div>
                                      <div className="col-span-1"><Select label="Infestation Level" value={newCheckpoint.infestationLevel} options={[{label:'Trace',value:'Trace'},{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'},{label:'Severe',value:'Severe'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, infestationLevel: v as any }))} /></div>
                                      <div className="col-span-1"><Select label="Action Priority" value={newCheckpoint.actionPriority} options={[{label:'Routine',value:'Routine'},{label:'Urgent',value:'Urgent'},{label:'Critical',value:'Critical'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, actionPriority: v as any }))} /></div>
+                                 </div>
+
+                                 {/* Task Builder */}
+                                 <div className="mb-6 bg-black/20 p-4 rounded-xl border border-white/5">
+                                     <h4 className="text-white font-bold text-sm mb-2 flex items-center gap-2"><ListPlus size={16}/> Specific Tasks / Checkdowns (1 by 1)</h4>
+                                     <p className="text-xs text-gray-500 mb-3">Add specific steps the technician must verify at this location.</p>
+                                     
+                                     <div className="flex flex-col gap-2">
+                                         {newCheckpoint.tasks && newCheckpoint.tasks.map((task) => (
+                                             <div key={task.id} className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
+                                                 <span className="text-sm text-gray-300">{task.description}</span>
+                                                 <button onClick={() => removeTaskFromBuilder(task.id)} className="text-red-500 hover:text-white"><Trash2 size={14}/></button>
+                                             </div>
+                                         ))}
+                                         {(!newCheckpoint.tasks || newCheckpoint.tasks.length === 0) && (
+                                             <p className="text-xs text-gray-600 italic">No tasks added yet. Will use defaults if left empty.</p>
+                                         )}
+                                     </div>
+
+                                     <div className="flex gap-2 mt-3">
+                                         <input 
+                                            type="text" 
+                                            value={newTaskDescription}
+                                            onChange={(e) => setNewTaskDescription(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addNewTaskToCheckpointBuilder()}
+                                            placeholder="Add specific task (e.g., Check moisture meter)"
+                                            className="flex-1 bg-[#0f1110] border border-white/10 rounded-lg p-2 text-sm text-white focus:border-pestGreen outline-none"
+                                         />
+                                         <button onClick={addNewTaskToCheckpointBuilder} className="bg-pestGreen text-white px-3 py-2 rounded-lg font-bold text-xs">Add Step</button>
+                                     </div>
                                  </div>
                                  
                                  <div className="mb-6">
                                      <FileUpload label="Photos" value={newCheckpoint.photos} onChange={(v: string[]) => setNewCheckpoint(prev => ({ ...prev, photos: v }))} multiple={true} capture="environment" />
                                  </div>
                                  <button onClick={addCheckpoint} className="w-full bg-pestGreen hover:bg-white hover:text-pestGreen text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
-                                     <Plus size={20}/> Add Finding
+                                     <Plus size={20}/> Add Location Checkpoint
                                  </button>
                              </div>
 
@@ -708,7 +996,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
                                             {job.status === 'Quote_Builder' && (
                                                 <button 
-                                                    onClick={() => { advanceStatus('Quote_Sent'); alert("Status updated to SENT."); }} 
+                                                    onClick={() => { advanceStatus('Quote_Sent'); alert("Quote saved as Pending. Status updated to Quote Sent."); }} 
                                                     className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-bold transition-colors flex items-center gap-2 text-sm"
                                                 >
                                                     <Send size={16}/> Save (Pending)
@@ -874,6 +1162,22 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 {job.status === 'Job_In_Progress' && <button onClick={() => advanceStatus('Job_Review')} className="bg-white text-pestBrown hover:bg-pestGreen hover:text-white px-4 py-2 rounded-xl font-bold transition-colors flex items-center gap-2 text-sm">Finish <ArrowRight size={14}/></button>}
                             </div>
 
+                            {/* PPE CHECKLIST LOCK */}
+                            {!isPpeConfirmed && (
+                                <div className="bg-red-900/20 border border-red-500/30 p-6 rounded-2xl mb-6">
+                                    <h3 className="text-red-400 font-bold mb-4 flex items-center gap-2"><AlertOctagon size={20}/> Pre-Work Safety Check (Mandatory)</h3>
+                                    <div className="flex flex-wrap gap-4">
+                                        {[{key:'gloves', label:'Gloves'}, {key:'mask', label:'Respirator/Mask'}, {key:'boots', label:'Safety Boots'}, {key:'overall', label:'Overalls'}].map(p => (
+                                            <label key={p.key} className="flex items-center gap-2 p-3 bg-black/30 rounded-lg cursor-pointer border border-white/10 hover:border-red-400">
+                                                <input type="checkbox" checked={(ppeCheck as any)[p.key]} onChange={e => setPpeCheck(prev => ({...prev, [p.key]: e.target.checked}))} className="accent-red-500 w-5 h-5"/>
+                                                <span className="text-white font-bold">{p.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-2">* By checking these, you confirm you are wearing appropriate PPE for the chemicals used.</p>
+                                </div>
+                            )}
+
                             {/* SCANNER OVERLAY */}
                              {showScanner && (
                                  <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-4">
@@ -883,11 +1187,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                  </div>
                              )}
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${!isPpeConfirmed ? 'opacity-50 pointer-events-none filter blur-sm' : ''}`}>
                                 <div className="lg:col-span-2 space-y-4">
                                     <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center gap-3 text-gray-300 text-sm">
                                         <Info size={16} className="text-pestGreen" />
-                                        <span>Double-Scan Required: Scan QR to START tasks, Complete Checklist, then Scan AGAIN to Finish.</span>
+                                        <span>Double-Scan Protocol: Scan QR to START tasks, Complete Checklist, then Scan AGAIN to Finish.</span>
                                     </div>
 
                                     {job.checkpoints.map((cp, idx) => {
@@ -906,6 +1210,55 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                                         </div>
                                                         <p className="text-sm text-gray-400 mb-1">Target: <span className="text-white">{cp.pestType}</span> | Severity: {cp.severity}</p>
                                                         
+                                                        {/* MONITORING DATA (Always Visible) */}
+                                                        <div className="mt-4 bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg grid grid-cols-3 gap-2">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] text-blue-300 font-bold uppercase">Activity</span>
+                                                                <select 
+                                                                    disabled={!hasStarted || hasEnded}
+                                                                    value={cp.monitorData?.activity || 'None'}
+                                                                    onChange={e => {
+                                                                        const newCps = [...job.checkpoints];
+                                                                        newCps[idx].monitorData = { ...newCps[idx].monitorData!, activity: e.target.value as any };
+                                                                        handleSaveJob({ checkpoints: newCps });
+                                                                    }}
+                                                                    className="bg-black/20 text-white text-xs p-1 rounded border border-white/10"
+                                                                >
+                                                                    <option value="None">None</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] text-blue-300 font-bold uppercase">Bait Cond.</span>
+                                                                <select 
+                                                                    disabled={!hasStarted || hasEnded}
+                                                                    value={cp.monitorData?.baitCondition || 'Intact'}
+                                                                    onChange={e => {
+                                                                        const newCps = [...job.checkpoints];
+                                                                        newCps[idx].monitorData = { ...newCps[idx].monitorData!, baitCondition: e.target.value as any };
+                                                                        handleSaveJob({ checkpoints: newCps });
+                                                                    }}
+                                                                    className="bg-black/20 text-white text-xs p-1 rounded border border-white/10"
+                                                                >
+                                                                    <option value="Intact">Intact</option><option value="Moldy">Moldy</option><option value="Consumed">Consumed</option><option value="Missing">Missing</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] text-blue-300 font-bold uppercase">Station</span>
+                                                                <select 
+                                                                    disabled={!hasStarted || hasEnded}
+                                                                    value={cp.monitorData?.stationStatus || 'Secure'}
+                                                                    onChange={e => {
+                                                                        const newCps = [...job.checkpoints];
+                                                                        newCps[idx].monitorData = { ...newCps[idx].monitorData!, stationStatus: e.target.value as any };
+                                                                        handleSaveJob({ checkpoints: newCps });
+                                                                    }}
+                                                                    className="bg-black/20 text-white text-xs p-1 rounded border border-white/10"
+                                                                >
+                                                                    <option value="Secure">Secure</option><option value="Damaged">Damaged</option><option value="Blocked">Blocked</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
                                                         {/* CHECKLIST */}
                                                         {hasStarted && !hasEnded && (
                                                             <div className="mt-4 bg-black/20 p-4 rounded-xl border border-white/5 space-y-2">
@@ -994,37 +1347,52 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     })}
                                 </div>
 
-                                {/* MATERIAL USAGE TRACKER */}
+                                {/* MATERIAL USAGE TRACKER (Advanced) */}
                                 <div className="lg:col-span-1">
                                     <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 sticky top-6">
-                                        <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Package size={18}/> Material Usage</h3>
+                                        <h3 className="text-white font-bold mb-4 flex items-center gap-2"><FlaskConical size={18} className="text-pestGreen"/> Chemical Application</h3>
                                         <div className="space-y-4 mb-6">
                                             <div>
-                                                <label className="text-xs text-gray-500 uppercase font-bold">Select Inventory Item</label>
+                                                <label className="text-xs text-gray-500 uppercase font-bold">Select Chemical</label>
                                                 <select 
-                                                    value={materialUsageForm.invId}
-                                                    onChange={(e) => setMaterialUsageForm({ ...materialUsageForm, invId: e.target.value })}
+                                                    value={materialUsageForm.inventoryItemId}
+                                                    onChange={(e) => setMaterialUsageForm({ ...materialUsageForm, inventoryItemId: e.target.value })}
                                                     className="w-full p-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm"
                                                 >
-                                                    <option value="">Select chemical...</option>
+                                                    <option value="">Select inventory...</option>
                                                     {content.inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
                                                 </select>
                                             </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Input label="Qty Used" type="number" value={materialUsageForm.qtyUsed} onChange={(v: string) => setMaterialUsageForm({ ...materialUsageForm, qtyUsed: parseFloat(v) })} />
+                                                <Input label="Dilution" value={materialUsageForm.dilutionRate} onChange={(v: string) => setMaterialUsageForm({ ...materialUsageForm, dilutionRate: v })} placeholder="e.g. 5ml/1L" />
+                                            </div>
                                             <div>
-                                                <Input label="Quantity Used" type="number" value={materialUsageForm.qty} onChange={(v: string) => setMaterialUsageForm({ ...materialUsageForm, qty: parseFloat(v) })} />
+                                                <label className="text-xs text-gray-500 uppercase font-bold">Application Method</label>
+                                                <select 
+                                                    value={materialUsageForm.applicationMethod}
+                                                    onChange={(e) => setMaterialUsageForm({ ...materialUsageForm, applicationMethod: e.target.value as any })}
+                                                    className="w-full p-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm"
+                                                >
+                                                    <option value="Spray">Spray</option><option value="Gel">Gel</option><option value="Dust">Dust</option><option value="Bait Station">Bait Station</option><option value="Gas">Gas/Fumigation</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <Input label="Batch Number" value={materialUsageForm.batchNumber} onChange={(v: string) => setMaterialUsageForm({ ...materialUsageForm, batchNumber: v })} placeholder="Required for Compliance" />
                                             </div>
                                             <button onClick={handleRecordUsage} className="w-full bg-pestGreen text-white py-2 rounded-lg font-bold text-sm">Record Usage</button>
                                         </div>
 
                                         <div className="space-y-2">
                                             {job.materialUsage?.map(usage => (
-                                                <div key={usage.id} className="bg-black/20 p-3 rounded-lg border border-white/5 flex justify-between items-center">
-                                                    <div>
+                                                <div key={usage.id} className="bg-black/20 p-3 rounded-lg border border-white/5 flex flex-col gap-1">
+                                                    <div className="flex justify-between items-center">
                                                         <div className="font-bold text-white text-sm">{usage.itemName}</div>
-                                                        <div className="text-xs text-gray-500">{new Date(usage.date).toLocaleTimeString()}</div>
+                                                        <div className="text-white font-bold">{usage.qtyUsed} {usage.unit}</div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <span className="block text-white font-bold">{usage.qtyUsed} {usage.unit}</span>
+                                                    <div className="text-xs text-gray-500 flex justify-between">
+                                                        <span>{usage.applicationMethod}</span>
+                                                        <span>Batch: {usage.batchNumber || 'N/A'}</span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -1075,6 +1443,34 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                             </button>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                            
+                            {/* Documentation & Completion */}
+                            <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 mt-6">
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2"><FileText size={20}/> Job Documentation</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <p className="text-xs text-gray-400">Upload PDF Certificates (COC, Clearance) for the client to view online.</p>
+                                        <FileUpload 
+                                            label="Upload Certificates" 
+                                            value={job.jobCertificates || []} 
+                                            onChange={(urls: string[]) => handleSaveJob({ jobCertificates: urls })} 
+                                            multiple={true}
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col justify-end">
+                                        <button 
+                                            onClick={printMainQRCard} 
+                                            className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 border border-white/10 transition-colors"
+                                        >
+                                            <QrCode size={24}/> Print Client QR Card
+                                        </button>
+                                        <p className="text-[10px] text-gray-500 mt-2 text-center">
+                                            Generates a printable card for the client to scan. Links to Report & WhatsApp.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 

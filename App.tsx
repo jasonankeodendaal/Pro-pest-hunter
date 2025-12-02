@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ContentProvider } from './context/ContentContext';
 import { Navigation } from './components/Navigation';
 import { Hero } from './components/Hero';
@@ -12,12 +12,13 @@ import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
-import { ClientPortal } from './components/ClientPortal'; // New Component
+import { ClientPortal } from './components/ClientPortal'; 
 import { ServicesPage } from './components/ServicesPage';
 import { AboutPage } from './components/AboutPage';
 import { ProcessPage } from './components/ProcessPage';
 import { ContactPage } from './components/ContactPage';
-import { CreatorWidget } from './components/CreatorWidget'; 
+import { CreatorWidget } from './components/CreatorWidget';
+import { PublicJobViewer } from './components/PublicJobViewer'; 
 import { Employee, ClientUser } from './types';
 
 // AppContent represents the home page sections
@@ -47,11 +48,21 @@ const App: React.FC = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isClientPortalOpen, setIsClientPortalOpen] = useState(false);
+  const [publicJobId, setPublicJobId] = useState<string | null>(null);
   
   const [loggedInUser, setLoggedInUser] = useState<Employee | null>(null);
   const [loggedInClient, setLoggedInClient] = useState<ClientUser | null>(null);
   
   const [currentPage, setCurrentPage] = useState<Page>('home');
+
+  // Check URL for Job Reference on Mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const jobRef = params.get('jobRef');
+    if (jobRef) {
+      setPublicJobId(jobRef);
+    }
+  }, []);
 
   // Function to navigate between pages
   const navigateToPage = (pageName: Page) => {
@@ -81,78 +92,85 @@ const App: React.FC = () => {
     <ContentProvider>
       <main className="w-full min-h-screen bg-pestLight relative">
         
-        {/* PUBLIC INTERFACE - Only render if NO dashboards are open */}
-        {!isAdminDashboardOpen && !isClientPortalOpen && (
-          <>
-            {/* Router Logic */}
-            {currentPage === 'home' && (
-                <Home
-                    onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsLoginOpen(true)}
-                    navigateTo={navigateToPage}
+        {/* PUBLIC JOB VIEW (No Login Required) */}
+        {publicJobId ? (
+            <PublicJobViewer jobId={publicJobId} />
+        ) : (
+            <>
+                {/* PUBLIC INTERFACE - Only render if NO dashboards are open */}
+                {!isAdminDashboardOpen && !isClientPortalOpen && (
+                <>
+                    {/* Router Logic */}
+                    {currentPage === 'home' && (
+                        <Home
+                            onBookClick={() => setIsBookingOpen(true)}
+                            onAdminClick={() => setIsLoginOpen(true)}
+                            navigateTo={navigateToPage}
+                        />
+                    )}
+                    
+                    {currentPage === 'services' && (
+                        <ServicesPage
+                            onBookClick={() => setIsBookingOpen(true)}
+                            onAdminClick={() => setIsLoginOpen(true)}
+                            navigateTo={navigateToPage}
+                        />
+                    )}
+
+                    {currentPage === 'about' && (
+                        <AboutPage
+                            onBookClick={() => setIsBookingOpen(true)}
+                            onAdminClick={() => setIsLoginOpen(true)}
+                            navigateTo={navigateToPage}
+                        />
+                    )}
+
+                    {currentPage === 'process' && (
+                        <ProcessPage
+                            onBookClick={() => setIsBookingOpen(true)}
+                            onAdminClick={() => setIsLoginOpen(true)}
+                            navigateTo={navigateToPage}
+                        />
+                    )}
+
+                    {currentPage === 'contact' && (
+                        <ContactPage
+                            onBookClick={() => setIsBookingOpen(true)}
+                            onAdminClick={() => setIsLoginOpen(true)}
+                            navigateTo={navigateToPage}
+                        />
+                    )}
+                
+                    <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+                    
+                    <CreatorWidget />
+                </>
+                )}
+
+                {/* LOGIN MODAL */}
+                {isLoginOpen && (
+                <AdminLogin 
+                    onLogin={handleLogin}
+                    onCancel={() => setIsLoginOpen(false)}
                 />
-            )}
-            
-            {currentPage === 'services' && (
-                <ServicesPage
-                    onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsLoginOpen(true)}
-                    navigateTo={navigateToPage}
+                )}
+
+                {/* ADMIN DASHBOARD */}
+                {isAdminDashboardOpen && (
+                <AdminDashboard 
+                    onLogout={handleLogout}
+                    loggedInUser={loggedInUser}
                 />
-            )}
+                )}
 
-            {currentPage === 'about' && (
-                <AboutPage
-                    onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsLoginOpen(true)}
-                    navigateTo={navigateToPage}
-                />
-            )}
-
-            {currentPage === 'process' && (
-                <ProcessPage
-                    onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsLoginOpen(true)}
-                    navigateTo={navigateToPage}
-                />
-            )}
-
-            {currentPage === 'contact' && (
-                <ContactPage
-                    onBookClick={() => setIsBookingOpen(true)}
-                    onAdminClick={() => setIsLoginOpen(true)}
-                    navigateTo={navigateToPage}
-                />
-            )}
-          
-            <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
-            
-            <CreatorWidget />
-          </>
-        )}
-
-        {/* LOGIN MODAL */}
-        {isLoginOpen && (
-          <AdminLogin 
-            onLogin={handleLogin}
-            onCancel={() => setIsLoginOpen(false)}
-          />
-        )}
-
-        {/* ADMIN DASHBOARD */}
-        {isAdminDashboardOpen && (
-          <AdminDashboard 
-            onLogout={handleLogout}
-            loggedInUser={loggedInUser}
-          />
-        )}
-
-        {/* CLIENT PORTAL */}
-        {isClientPortalOpen && loggedInClient && (
-            <ClientPortal 
-                client={loggedInClient}
-                onLogout={handleLogout}
-            />
+                {/* CLIENT PORTAL */}
+                {isClientPortalOpen && loggedInClient && (
+                    <ClientPortal 
+                        client={loggedInClient}
+                        onLogout={handleLogout}
+                    />
+                )}
+            </>
         )}
       </main>
     </ContentProvider>

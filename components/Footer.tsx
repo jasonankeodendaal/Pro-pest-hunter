@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Lock, ArrowUpRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -14,9 +13,9 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
   return (
     <footer className="bg-[#1a1a1a] text-gray-400 py-12 md:py-16 border-t border-white/5">
       <div className="w-full max-w-[95%] xl:max-w-[1440px] mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-            {/* Brand */}
-            <div className="col-span-1 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+            {/* Brand - Spans 2 cols on mobile for cleaner look, then links side-by-side below */}
+            <div className="col-span-2 md:col-span-1">
                 <h4 className="text-white font-bold text-lg md:text-xl mb-4">{content.company.name}</h4>
                 <div className="flex flex-wrap gap-3 mb-6">
                     {Array.isArray(content.company.socials) && content.company.socials.map((social) => (
@@ -41,7 +40,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
                 )}
             </div>
             
-            {/* Links 1 */}
+            {/* Links 1 - Navigate */}
             <div className="col-span-1">
                 <h5 className="text-white font-bold text-base md:text-lg mb-4">Navigate</h5>
                 <ul className="space-y-3 text-sm md:text-base">
@@ -52,7 +51,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
                 </ul>
             </div>
 
-            {/* Links 2 */}
+            {/* Links 2 - Action */}
             <div className="col-span-1">
                 <h5 className="text-white font-bold text-base md:text-lg mb-4">Action</h5>
                 <ul className="space-y-3 text-sm md:text-base">

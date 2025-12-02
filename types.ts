@@ -1,17 +1,25 @@
 
 import { LucideIcon } from 'lucide-react';
 
+export interface AssessmentTemplateStep {
+  id: string;
+  areaName: string;
+  defaultPest: string;
+  defaultTask: string;
+}
+
 export interface ServiceItem {
   id: string;
   title: string;
-  description: string; // Shorter summary for card
-  fullDescription: string; // Longer, more detailed description for the panel
-  details: string[]; // Bullet points for the detail panel
+  description: string;
+  fullDescription: string;
+  details: string[];
   iconName: string;
   price?: string;
-  image?: string | null; // Image for the service detail panel
+  image?: string | null;
   visible: boolean;
   featured: boolean;
+  assessmentTemplate?: AssessmentTemplateStep[]; // New: Pre-defined steps for assessment
 }
 
 export interface ProcessStep {
@@ -27,22 +35,19 @@ export interface WhyChooseUsItem {
   iconName: string;
 }
 
-// About Item Interface for functionality highlights
 export interface AboutItem {
   id: string;
   title: string; 
-  description: string; // Detailed description
+  description: string;
   iconName: string;
 }
 
-// FAQ Interface
 export interface FAQItem {
   id: string;
   question: string;
   answer: string;
 }
 
-// Testimonial Interface
 export interface TestimonialItem {
   id: string;
   name: string;
@@ -51,16 +56,14 @@ export interface TestimonialItem {
   rating: number;
 }
 
-// Document interface for employee files
 export interface Document {
   id: string;
   type: 'CV' | 'Certificate' | 'Training' | 'Other';
-  name: string; // User-friendly name for the document
-  fileUrl: string; // URL to the uploaded file
+  name: string;
+  fileUrl: string;
   description?: string;
 }
 
-// Doctor contact interface for employee medical info
 export interface DoctorContact {
   id: string;
   name: string;
@@ -68,17 +71,16 @@ export interface DoctorContact {
 }
 
 export interface EmployeePermissions {
-  isAdmin: boolean; // Full access to everything
-  canDoAssessment: boolean; // Can fill out on-site forms
-  canCreateQuotes: boolean; // Can build quotes
-  canExecuteJob: boolean; // Can see job execution tab
-  canInvoice: boolean; // Can generate invoices
-  canViewReports: boolean; // Can access reports tab
-  canManageEmployees: boolean; // Can add/edit other employees
-  canEditSiteContent: boolean; // Can change website text/images
+  isAdmin: boolean;
+  canDoAssessment: boolean;
+  canCreateQuotes: boolean;
+  canExecuteJob: boolean;
+  canInvoice: boolean;
+  canViewReports: boolean;
+  canManageEmployees: boolean;
+  canEditSiteContent: boolean;
 }
 
-// Employee interface
 export interface Employee {
   id: string;
   profileImage: string | null;
@@ -87,31 +89,29 @@ export interface Employee {
   email: string;
   tel: string;
   jobTitle: string;
-  startDate: string; // ISO date string
+  startDate: string;
   loginName: string;
-  pin: string; // Hashed in a real app, here plain for simplicity
+  pin: string;
   allergies?: string;
   doctorsNumbers: DoctorContact[];
   medicalIssues?: string;
   documents: Document[];
-  permissions: EmployeePermissions; // Granular permissions
+  permissions: EmployeePermissions;
 }
 
-// Client User Interface (Portal Access)
 export interface ClientUser {
   id: string;
-  email: string; // Used for login AND linking to jobs
-  pin: string; // Login password
+  email: string;
+  pin: string;
   fullName: string;
   companyName?: string;
   phone: string;
   address: string;
-  profileImage?: string | null; // Identity Icon
+  profileImage?: string | null;
   notes?: string;
-  linkedEmails?: string[]; // Emails associated with this client for job linking
+  linkedEmails?: string[];
 }
 
-// Location/Shop interface
 export interface Location {
   id: string;
   name: string;
@@ -130,7 +130,10 @@ export interface BookingModalConfig {
   stepDetailsTitle: string;
   successTitle: string;
   successMessage: string;
-  termsText?: string; // Footer terms text
+  termsText?: string;
+  showPrices: boolean; // New
+  showTimeSlots: boolean; // New
+  maintenanceMode: boolean; // New
 }
 
 // --- INVENTORY SYSTEM ---
@@ -159,6 +162,11 @@ export interface MaterialUsage {
     unit: string;
     cost: number; // Captured at time of usage
     date: string;
+    // Advanced Tracking
+    batchNumber?: string;
+    applicationMethod?: 'Spray' | 'Gel' | 'Dust' | 'Bait Station' | 'Gas' | 'Fogging';
+    dilutionRate?: string; // e.g. "5ml/1L"
+    targetPest?: string;
 }
 
 // --- JOB CARD SYSTEM TYPES ---
@@ -186,61 +194,67 @@ export interface CheckpointTask {
 
 export interface Checkpoint {
   id: string;
-  code: string; // Auto-generated: CHK-YYYYMMDD-XXX
+  code: string;
   area: string;
-  notes: string; // Assessment notes
+  notes: string;
   
   // Assessment Details
-  rootCause?: string; // e.g. "Structural Gap", "Hygiene", "Imported Goods"
-  accessNotes?: string; // e.g. "Need ladder", "Locked"
-  recommendation?: string; // e.g. "Seal cracks", "Install brush strip"
-  infestationLevel?: 'Trace' | 'Low' | 'Medium' | 'High' | 'Severe'; // NEW
-  actionPriority?: 'Routine' | 'Urgent' | 'Critical'; // NEW
+  rootCause?: string;
+  accessNotes?: string;
+  recommendation?: string;
+  infestationLevel?: 'Trace' | 'Low' | 'Medium' | 'High' | 'Severe';
+  actionPriority?: 'Routine' | 'Urgent' | 'Critical';
 
   // Execution Details
-  treatmentNotes?: string; // Notes added during execution
-  chemicalUsed?: string; // Specific chemical used here (Legacy text field)
+  treatmentNotes?: string;
+  chemicalUsed?: string;
   pestType: string;
   severity: 'Low' | 'Medium' | 'High';
-  photos: string[]; // Assessment photos
-  servicePhotos?: string[]; // Proof of treatment photos
-  timestamp: string; // Creation timestamp
+  photos: string[];
+  servicePhotos?: string[];
+  timestamp: string;
+  
+  // Monitoring Data (For Bait Stations/Traps)
+  monitorData?: {
+      activity: 'None' | 'Low' | 'Medium' | 'High';
+      baitCondition: 'Intact' | 'Moldy' | 'Consumed' | 'Missing';
+      stationStatus: 'Secure' | 'Damaged' | 'Blocked';
+  };
   
   // Tasks Checklist (New Request)
   tasks: CheckpointTask[];
 
   // Verification Logic (Double Scan)
-  scanStart?: string; // Timestamp when tech scanned to start
-  scanEnd?: string;   // Timestamp when tech scanned to finish
-  isTreated: boolean; // True when cycle complete
-  verifiedCode?: string; // The code entered by technician to verify location
+  scanStart?: string;
+  scanEnd?: string;
+  isTreated: boolean;
+  verifiedCode?: string;
 }
 
-// Quote Line Item
 export interface QuoteLineItem {
   id: string;
   name: string;
-  description?: string; // NEW: Detailed description for quote
+  description?: string;
   qty: number;
   unitPrice: number;
-  total: number; // Calculated: qty * unitPrice
-  inventoryItemId?: string; // Linked inventory item
+  total: number;
+  inventoryItemId?: string;
 }
 
 export interface JobQuote {
   lineItems: QuoteLineItem[];
   subtotal: number;
-  vatRate: number; // e.g., 0.15 for 15%
-  total: number; // subtotal + (subtotal * vatRate)
-  notes: string; // General quote notes
+  vatRate: number;
+  total: number;
+  notes: string;
   
   // Quote Details
-  depositType?: 'None' | 'Percentage' | 'Fixed'; // NEW
-  depositValue?: number; // NEW: e.g. 50 (for %) or 1000 (for Fixed)
-  depositRequired?: number; // Legacy, map to depositValue
-  warranty?: string; // e.g. "3 Months"
-  validUntil?: string; // Date string
-  estimatedDuration?: string; // e.g. "2 Hours"
+  depositType?: 'None' | 'Percentage' | 'Fixed';
+  depositValue?: number;
+  depositRequired?: number;
+  warranty?: string;
+  validUntil?: string;
+  estimatedDuration?: string;
   
   generatedDate?: string;
 }
@@ -249,7 +263,7 @@ export interface JobInvoice {
   invoiceNumber: string;
   generatedDate: string;
   dueDate: string;
-  lineItems: { description: string; amount: number }[]; // Can use QuoteLineItem fields if needed
+  lineItems: { description: string; amount: number }[];
   subtotal: number;
   vat: number;
   total: number;
@@ -258,15 +272,15 @@ export interface JobInvoice {
 }
 
 export type JobStatus = 
-  | 'Assessment'       // Initial site visit, gathering checkpoints
-  | 'Quote_Builder'    // Assessment done, creating price
-  | 'Quote_Sent'       // Waiting for client
-  | 'Job_Scheduled'    // Quote Accepted, ready for tech
-  | 'Job_In_Progress'  // Tech is on site treating
-  | 'Job_Review'       // Tech done, Admin reviewing
-  | 'Invoiced'         // Bill sent
-  | 'Completed'        // Paid and closed
-  | 'Cancelled';       // Job/Quote Cancelled
+  | 'Assessment'
+  | 'Quote_Builder'
+  | 'Quote_Sent'
+  | 'Job_Scheduled'
+  | 'Job_In_Progress'
+  | 'Job_Review'
+  | 'Invoiced'
+  | 'Completed'
+  | 'Cancelled';
 
 export interface PaymentRecord {
     method: 'Cash' | 'Card' | 'EFT' | 'Other';
@@ -276,14 +290,28 @@ export interface PaymentRecord {
     notes?: string;
 }
 
+export interface RiskAssessment {
+    petsRemoved: boolean;
+    foodCovered: boolean;
+    electricalHazards: boolean;
+    waterTanksCovered: boolean;
+    ventilationChecked: boolean;
+    ppeRequired: boolean;
+    notes?: string;
+}
+
+export interface WeatherConditions {
+    temperature: string; // e.g. "24"
+    windSpeed: string; // e.g. "10km/h" - Critical for outdoor spraying
+    condition: 'Sunny' | 'Cloudy' | 'Rain' | 'Windy';
+}
+
 export interface JobCard {
   id: string;
-  refNumber: string; // Auto-generated
-  bookingId?: string; // Linked booking if applicable
+  refNumber: string;
+  bookingId?: string;
   
-  // Client Details
   clientName: string;
-  // Structured address
   clientAddressDetails: {
     street: string;
     suburb: string;
@@ -292,54 +320,50 @@ export interface JobCard {
     postalCode: string;
   };
   contactNumber: string;
-  contactNumberAlt?: string; // Second contact number
+  contactNumberAlt?: string;
   email: string;
-  propertyType: 'Residential' | 'Business'; // Updated to match request
-  clientCompanyName?: string; // Optional client company name
-  clientVatNumber?: string; // Optional client VAT number
-  clientRegNumber?: string; // Optional client registration number
+  propertyType: 'Residential' | 'Business';
+  clientCompanyName?: string;
+  clientVatNumber?: string;
+  clientRegNumber?: string;
   
-  // Dates & Techs
   assessmentDate: string;
   serviceDate?: string;
-  technicianId: string; // Link to Employee
+  technicianId: string;
   
-  // Data
-  selectedServices: string[]; // IDs of services
+  selectedServices: string[];
   checkpoints: Checkpoint[];
-  isFirstTimeService: boolean; // Toggle to show codes for sticker setup
-  siteAccessCodes?: string; // For gate codes etc
-  billingNotes?: string; // Internal billing notes
+  isFirstTimeService: boolean;
+  siteAccessCodes?: string;
+  billingNotes?: string;
   
-  // Expanded Assessment Data
-  equipmentNeeded?: string[]; // NEW: Ladders, Torch, Thermal Camera
+  equipmentNeeded?: string[];
   
-  // Execution Log
-  weatherNotes?: string; // e.g. "Rainy"
-  windSpeed?: string; // NEW
-  temperature?: string; // NEW
-  safetyChecklist?: string[]; // NEW: ["Pets Removed", "Food Covered", "Smoke Alarms Off"]
-  materialUsage?: MaterialUsage[]; // NEW: Track chemicals used
+  // Advanced Compliance Fields
+  weather?: WeatherConditions;
+  riskAssessment?: RiskAssessment;
+  safetyChecklist?: string[]; // PPE Checklist acknowledged by tech
+  
+  materialUsage?: MaterialUsage[];
 
-  ppeUsed?: string[]; // Array of PPE items e.g. "Gloves", "Mask"
-  chemicalBatchNumbers?: string; // Traceability
+  ppeUsed?: string[];
+  chemicalBatchNumbers?: string;
   timeStarted?: string;
   timeFinished?: string;
   
-  // Stages Data
   treatmentRecommendation: string;
   quote: JobQuote;
   invoice?: JobInvoice;
-  paymentRecord?: PaymentRecord; // NEW: Track final payment
-  depositPaid?: number; // NEW: Track if deposit was paid
+  paymentRecord?: PaymentRecord;
+  depositPaid?: number;
   
-  // Signatures
-  clientSignature?: string; // URL or base64
+  jobCertificates?: string[]; // New: Uploaded certificates
+
+  clientSignature?: string;
   technicianSignature?: string;
   
   status: JobStatus;
   
-  // History log for reports
   history: { date: string; action: string; user: string }[];
 }
 
@@ -359,7 +383,6 @@ export interface CreatorWidgetConfig {
   ctaText: string;
 }
 
-// Social Link Interface
 export interface SocialLink {
     id: string;
     name: string;
@@ -377,24 +400,24 @@ export interface ContentState {
     address: string;
     logo: string | null;
     yearsExperience: number;
-    socials: SocialLink[]; // Updated to dynamic array
+    socials: SocialLink[];
     hours: {
         weekdays: string;
         saturday: string;
         sunday: string;
     };
   };
-  bankDetails: BankDetails; // Company bank details
+  bankDetails: BankDetails;
   seo: {
     metaTitle: string;
     metaDescription: string;
     keywords: string;
-    ogImage?: string; // Social share image
-    ogTitle?: string; // 
-    ogDescription?: string; // 
-    canonicalUrl?: string; // 
-    robotsDirective?: string; // e.g. "index, follow"
-    structuredDataJSON?: string; // JSON-LD schema
+    ogImage?: string;
+    ogTitle?: string;
+    ogDescription?: string;
+    canonicalUrl?: string;
+    robotsDirective?: string;
+    structuredDataJSON?: string;
   };
   hero: {
     headline: string;
@@ -431,41 +454,41 @@ export interface ContentState {
     description: string;
     towns: string[];
     mapImage: string | null;
-    mapEmbedUrl?: string; // For iframe maps
+    mapEmbedUrl?: string;
   };
   safety: {
     title: string;
     description: string;
     badge1: string;
-    badge1IconName: string; // Icon for badge 1
+    badge1IconName: string;
     badge2: string;
-    badge2IconName: string; // Icon for badge 2
+    badge2IconName: string;
     badge3: string;
-    badge3IconName: string; // Icon for badge 3
-    certificates: string[]; // Updated to string array
+    badge3IconName: string;
+    certificates: string[];
   };
   bookCTA: {
     title: string;
     subtitle: string;
     buttonText: string;
-    bgImage?: string; // Background image for CTA
+    bgImage?: string;
   };
-  bookingModal: BookingModalConfig; // Editable booking modal text
+  bookingModal: BookingModalConfig;
   contact: {
     title: string;
     subtitle: string;
     formTitle: string;
-    mapEmbedUrl?: string; // Google Maps Embed URL
+    mapEmbedUrl?: string;
   };
-  creatorWidget: CreatorWidgetConfig; // Config for creator widget
+  creatorWidget: CreatorWidgetConfig;
   faqs: FAQItem[];
   testimonials: TestimonialItem[];
   employees: Employee[];
-  clientUsers: ClientUser[]; // Portal users
+  clientUsers: ClientUser[];
   locations: Location[];
-  bookings: Booking[]; // Incoming quotes
-  jobCards: JobCard[]; // Job cards
-  inventory: InventoryItem[]; // NEW: Inventory System
+  bookings: Booking[];
+  jobCards: JobCard[];
+  inventory: InventoryItem[];
 }
 
 export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator';
@@ -476,7 +499,6 @@ export type AdminSubTab =
   'jobs' | 'inquiries' | 'bookingSettings' | 'clients' | 'inventory' |
   'creatorSettings' | 'deploymentGuide';
 
-// AdminDashboardProps interface
 export interface AdminDashboardProps {
   onLogout: () => void;
   loggedInUser: Employee | null;

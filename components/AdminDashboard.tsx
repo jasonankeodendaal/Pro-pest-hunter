@@ -6,9 +6,9 @@ import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShare
 import { HelpButton } from './ui/HelpSystem';
 import { Employee, ClientUser, JobCard, Booking, AdminMainTab, AdminSubTab, AdminDashboardProps, FAQItem, AboutItem, ServiceItem, WhyChooseUsItem, ProcessStep, Location, InventoryItem } from '../types';
 import { 
-  Clipboard, Inbox, Users, HelpCircle, Layout, Briefcase, Map, Info, Workflow, ThumbsUp, Shield, PhoneCall, Building2, MapPin, MousePointerClick, Search, Database, LogOut, PlusCircle, 
+  Clipboard, Inbox, Users, HelpCircle, Layout, Briefcase, Map as MapIcon, Info, Workflow, ThumbsUp, Shield, PhoneCall, Building2, MapPin, MousePointerClick, Search, Database, LogOut, PlusCircle, 
   ChevronRight, Mail, Phone, Edit, Lock, Plus, CheckCircle, Video, Camera, Save, X, Trash2, ArrowRight, Download, Upload, Zap, User, FileText, Globe, Key, AlertTriangle, Monitor, RotateCcw,
-  Calendar, Package
+  Calendar, Package, ClipboardList
 } from 'lucide-react';
 
 // --- HELPER COMPONENTS ---
@@ -103,29 +103,90 @@ const ServicesEditor = () => {
         updateService(updated);
     };
 
+    const addTemplateStep = (serviceId: string) => {
+        const updated = services.map(s => {
+            if(s.id === serviceId) {
+                const current = s.assessmentTemplate || [];
+                return { 
+                    ...s, 
+                    assessmentTemplate: [...current, { id: `ast-${Date.now()}`, areaName: '', defaultPest: '', defaultTask: '' }] 
+                };
+            }
+            return s;
+        });
+        updateService(updated);
+    };
+
+    const updateTemplateStep = (serviceId: string, stepId: string, field: string, value: string) => {
+        const updated = services.map(s => {
+            if(s.id === serviceId) {
+                const template = (s.assessmentTemplate || []).map(t => t.id === stepId ? { ...t, [field]: value } : t);
+                return { ...s, assessmentTemplate: template };
+            }
+            return s;
+        });
+        updateService(updated);
+    };
+
+    const removeTemplateStep = (serviceId: string, stepId: string) => {
+        const updated = services.map(s => {
+            if(s.id === serviceId) {
+                return { ...s, assessmentTemplate: (s.assessmentTemplate || []).filter(t => t.id !== stepId) };
+            }
+            return s;
+        });
+        updateService(updated);
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in">
-             <SectionHeader title="Services" description="Manage your service offerings." icon={Briefcase} helpTopic="editors" />
+             <SectionHeader title="Services & Protocols" description="Manage offerings and Site Assessment Templates (SOPs)." icon={Briefcase} helpTopic="editors" />
              <div className="grid grid-cols-1 gap-6">
                  {services.map((service, idx) => (
-                     <div key={service.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-6">
-                         <div className="flex-1 space-y-4">
-                             <div className="flex justify-between items-center">
-                                 <h3 className="text-xl font-bold text-white">{service.title}</h3>
-                                 <div className="flex gap-2">
-                                     <button onClick={() => toggleFeatured(service.id)} className={`px-3 py-1 rounded text-xs font-bold ${service.featured ? 'bg-yellow-500 text-black' : 'bg-white/10 text-gray-500'}`}>Featured</button>
-                                     <button onClick={() => toggleVisibility(service.id)} className={`px-3 py-1 rounded text-xs font-bold ${service.visible ? 'bg-pestGreen text-white' : 'bg-red-500/20 text-red-500'}`}>{service.visible ? 'Visible' : 'Hidden'}</button>
-                                 </div>
+                     <div key={service.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 flex flex-col gap-6">
+                         
+                         <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex-1 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-xl font-bold text-white">{service.title}</h3>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => toggleFeatured(service.id)} className={`px-3 py-1 rounded text-xs font-bold ${service.featured ? 'bg-yellow-500 text-black' : 'bg-white/10 text-gray-500'}`}>Featured</button>
+                                        <button onClick={() => toggleVisibility(service.id)} className={`px-3 py-1 rounded text-xs font-bold ${service.visible ? 'bg-pestGreen text-white' : 'bg-red-500/20 text-red-500'}`}>{service.visible ? 'Visible' : 'Hidden'}</button>
+                                    </div>
+                                </div>
+                                <Input label="Service Title" value={service.title} onChange={(v: string) => { const n = [...services]; n[idx].title = v; updateService(n); }} />
+                                <TextArea label="Short Description" value={service.description} onChange={(v: string) => { const n = [...services]; n[idx].description = v; updateService(n); }} rows={2} />
+                                <TextArea label="Full Details" value={service.fullDescription} onChange={(v: string) => { const n = [...services]; n[idx].fullDescription = v; updateService(n); }} rows={4} />
+                                <Input label="Price Range" value={service.price || ''} onChange={(v: string) => { const n = [...services]; n[idx].price = v; updateService(n); }} />
+                            </div>
+                            <div className="w-full md:w-64 space-y-4 flex-shrink-0">
+                                <IconPicker label="Icon" value={service.iconName} onChange={(v: string) => { const n = [...services]; n[idx].iconName = v; updateService(n); }} />
+                                <FileUpload label="Service Image" value={service.image} onChange={(v: string) => { const n = [...services]; n[idx].image = v; updateService(n); }} />
+                            </div>
+                         </div>
+
+                         {/* Assessment Template Builder */}
+                         <div className="border-t border-white/10 pt-4">
+                             <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+                                 <ClipboardList size={16} className="text-pestGreen"/> Assessment Protocol (Template)
+                             </h4>
+                             <p className="text-xs text-gray-500 mb-3">Define standard checkpoints that will be auto-loaded when performing an assessment for this service.</p>
+                             
+                             <div className="space-y-2">
+                                 {service.assessmentTemplate && service.assessmentTemplate.map((step) => (
+                                     <div key={step.id} className="flex flex-col md:flex-row gap-2 bg-black/20 p-2 rounded-lg border border-white/5 items-start md:items-center">
+                                         <div className="flex-1 w-full"><Input placeholder="Area (e.g. Kitchen)" value={step.areaName} onChange={(v:string) => updateTemplateStep(service.id, step.id, 'areaName', v)} className="text-xs"/></div>
+                                         <div className="flex-1 w-full"><Input placeholder="Default Pest" value={step.defaultPest} onChange={(v:string) => updateTemplateStep(service.id, step.id, 'defaultPest', v)} className="text-xs"/></div>
+                                         <div className="flex-1 w-full"><Input placeholder="Default Task" value={step.defaultTask} onChange={(v:string) => updateTemplateStep(service.id, step.id, 'defaultTask', v)} className="text-xs"/></div>
+                                         <button onClick={() => removeTemplateStep(service.id, step.id)} className="p-2 text-red-500 hover:text-white"><Trash2 size={14}/></button>
+                                     </div>
+                                 ))}
+                                 <button onClick={() => addTemplateStep(service.id)} className="text-xs font-bold text-pestGreen hover:text-white flex items-center gap-1 mt-2">
+                                     <Plus size={14}/> Add Template Step
+                                 </button>
                              </div>
-                             <Input label="Service Title" value={service.title} onChange={(v: string) => { const n = [...services]; n[idx].title = v; updateService(n); }} />
-                             <TextArea label="Short Description" value={service.description} onChange={(v: string) => { const n = [...services]; n[idx].description = v; updateService(n); }} rows={2} />
-                             <TextArea label="Full Details" value={service.fullDescription} onChange={(v: string) => { const n = [...services]; n[idx].fullDescription = v; updateService(n); }} rows={4} />
-                             <Input label="Price Range" value={service.price || ''} onChange={(v: string) => { const n = [...services]; n[idx].price = v; updateService(n); }} />
                          </div>
-                         <div className="w-full md:w-64 space-y-4 flex-shrink-0">
-                             <IconPicker label="Icon" value={service.iconName} onChange={(v: string) => { const n = [...services]; n[idx].iconName = v; updateService(n); }} />
-                             <FileUpload label="Service Image" value={service.image} onChange={(v: string) => { const n = [...services]; n[idx].image = v; updateService(n); }} />
-                         </div>
+
                      </div>
                  ))}
              </div>
@@ -236,7 +297,7 @@ const ServiceAreaEditor = () => {
     const update = (k: string, v: any) => updateContent('serviceArea', { [k]: v });
     return (
          <div className="space-y-6 animate-in fade-in">
-            <SectionHeader title="Service Area" description="Where do you operate?" icon={Map} helpTopic="editors" />
+            <SectionHeader title="Service Area" description="Where do you operate?" icon={MapIcon} helpTopic="editors" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input label="Title" value={content.serviceArea.title} onChange={(v: string) => update('title', v)} />
                 <TextArea label="Description" value={content.serviceArea.description} onChange={(v: string) => update('description', v)} rows={3} />
@@ -358,7 +419,26 @@ const BookingModalEditor = () => {
     const update = (k: string, v: any) => updateContent('bookingModal', { [k]: v });
     return (
         <div className="space-y-6 animate-in fade-in">
-            <SectionHeader title="Booking Flow" description="Customize the booking popup text." icon={MousePointerClick} helpTopic="editors" />
+            <SectionHeader title="Booking Flow" description="Customize the booking popup text and behavior." icon={MousePointerClick} helpTopic="editors" />
+            
+            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 mb-6">
+                 <h3 className="text-white font-bold mb-4 flex items-center gap-2"><SettingsIcon/> Global Settings</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="bg-black/20 p-4 rounded-xl flex items-center justify-between border border-white/5">
+                         <span className="text-sm font-bold text-gray-300">Show Prices</span>
+                         <input type="checkbox" checked={content.bookingModal.showPrices} onChange={(e) => update('showPrices', e.target.checked)} className="scale-125 accent-pestGreen" />
+                     </div>
+                     <div className="bg-black/20 p-4 rounded-xl flex items-center justify-between border border-white/5">
+                         <span className="text-sm font-bold text-gray-300">Show Time Slots</span>
+                         <input type="checkbox" checked={content.bookingModal.showTimeSlots} onChange={(e) => update('showTimeSlots', e.target.checked)} className="scale-125 accent-pestGreen" />
+                     </div>
+                     <div className="bg-black/20 p-4 rounded-xl flex items-center justify-between border border-white/5">
+                         <span className="text-sm font-bold text-gray-300">Maintenance Mode</span>
+                         <input type="checkbox" checked={content.bookingModal.maintenanceMode} onChange={(e) => update('maintenanceMode', e.target.checked)} className="scale-125 accent-pestGreen" />
+                     </div>
+                 </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input label="Header Title" value={content.bookingModal.headerTitle} onChange={(v: string) => update('headerTitle', v)} />
                 <Input label="Header Subtitle" value={content.bookingModal.headerSubtitle} onChange={(v: string) => update('headerSubtitle', v)} />
@@ -372,6 +452,8 @@ const BookingModalEditor = () => {
         </div>
     );
 };
+
+const SettingsIcon = () => <div className="w-5 h-5 rounded-full border-2 border-dashed border-gray-500 animate-[spin_10s_linear_infinite]"></div>;
 
 const SeoEditor = () => {
     const { content, updateContent } = useContent();
@@ -679,7 +761,7 @@ const ClientManager = () => {
     const [portalForm, setPortalForm] = useState<Partial<ClientUser> | null>(null);
 
     const clients = useMemo(() => {
-        const clientMap = new Map();
+        const clientMap = new window.Map(); // Explicitly use global Map to avoid conflict with Lucide MapIcon
         
         // Safety check for jobCards being defined
         if (!content.jobCards) return [];
@@ -710,7 +792,7 @@ const ClientManager = () => {
                 // Update contact info if newer job has it
                 if (job.email) client.email = job.email;
                 if (job.contactNumber) client.phone = job.contactNumber;
-                if (job.clientAddressDetails?.street) client.address = `${job.clientAddressDetails.street}, ${job.clientAddressDetails.suburb}`;
+                if (job.clientAddressDetails?.street) client.address = `${job.clientAddressDetails.street}, ${job.clientAddressDetails.suburb || ''}`;
             }
         });
 
@@ -726,12 +808,7 @@ const ClientManager = () => {
                         break;
                     }
                 }
-                // If not matched by email, maybe add as standalone? 
-                // For now, only job-linked clients show up to prevent clutter, unless we want standalone clients.
-                // If the user manually added a client that has NO jobs, they won't appear above.
-                // Let's add them:
                 if (!matched) {
-                    // Only add if not exist by name
                      if (!clientMap.has(cu.fullName)) {
                         clientMap.set(cu.fullName, {
                             name: cu.fullName,
@@ -785,7 +862,7 @@ const ClientManager = () => {
                     contactNumber: editingClient.phone,
                     clientAddressDetails: {
                         ...job.clientAddressDetails,
-                        street: editingClient.address.split(',')[0] || job.clientAddressDetails.street
+                        street: editingClient.address.split(',')[0] || job.clientAddressDetails?.street || ''
                     }
                 });
             });
@@ -887,10 +964,12 @@ const ClientManager = () => {
                                         job.status === 'Cancelled' ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-gray-300'
                                     }`}>{job.status.replace(/_/g, ' ')}</span>
                                 </div>
-                                <div className="text-sm text-gray-400">{job.selectedServices.join(', ') || 'General Pest Control'}</div>
+                                <div className="text-sm text-gray-400">{(job.selectedServices || []).join(', ') || 'General Pest Control'}</div>
                                 <div className="flex justify-between items-center pt-2 border-t border-white/5 mt-1">
-                                    <span className="text-xs text-gray-500">{new Date(job.assessmentDate).toLocaleDateString()}</span>
-                                    <span className="font-bold text-pestGreen">R {job.quote?.total.toFixed(2)}</span>
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                        <MapPin size={10}/> {job.clientAddressDetails?.suburb || 'Location N/A'}
+                                    </span>
+                                    <span className="font-bold text-pestGreen">R {job.quote?.total?.toFixed(2) || '0.00'}</span>
                                 </div>
                             </div>
                         ))}
@@ -992,7 +1071,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Content</div>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('hero'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'hero' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Layout size={16}/> Hero</button>
                     <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('servicesList'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'servicesList' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Briefcase size={16}/> Services</button>
-                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('serviceAreaMap'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'serviceAreaMap' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Map size={16}/> Service Area</button>
+                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('serviceAreaMap'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'serviceAreaMap' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><MapIcon size={16}/> Service Area</button>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('about'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'about' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Info size={16}/> About</button>
                     <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('process'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'process' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Workflow size={16}/> Process</button>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('whyChooseUs'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'whyChooseUs' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><ThumbsUp size={16}/> Why Us</button>
@@ -1015,74 +1094,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     <LogOut size={16} /> Logout
                 </button>
             </div>
-        </div>
-    );
-
-    const renderContent = () => {
-        switch(activeSubTab) {
-            case 'jobs': return (
-                <div className="space-y-6 animate-in fade-in">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Clipboard/> Job Cards</h2>
-                            <HelpButton topic="job-overview" />
-                        </div>
-                        <button 
-                            onClick={handleCreateJob}
-                            className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-white hover:text-pestGreen transition-colors shadow-lg"
-                        >
-                            <PlusCircle size={20}/> New Job
-                        </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {content.jobCards.length === 0 && <p className="text-gray-500 col-span-full text-center py-10">No jobs found. Create one to get started.</p>}
-                        {content.jobCards.map(job => (
-                            <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] p-5 rounded-xl border border-white/5 cursor-pointer hover:border-pestGreen transition-all hover:scale-[1.01] shadow-lg group relative">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="font-bold text-white group-hover:text-pestGreen transition-colors">{job.refNumber}</div>
-                                    <div className={`text-xs px-2 py-1 rounded text-white font-bold uppercase tracking-wider
-                                        ${job.status === 'Completed' ? 'bg-green-500/20 text-green-400' : 
-                                          job.status === 'Assessment' ? 'bg-blue-500/20 text-blue-400' : 
-                                          job.status === 'Cancelled' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-300'}`}>
-                                        {job.status.replace(/_/g, ' ')}
-                                    </div>
-                                </div>
-                                <div className="text-sm text-gray-300 font-medium mb-1">{job.clientName}</div>
-                                <div className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={12}/> {job.clientAddressDetails.suburb || 'Unknown Location'}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-            case 'inquiries': return <BookingsViewer />;
-            case 'clients': return <ClientManager />;
-            case 'inventory': return <InventoryManager />;
-            case 'faqs': return <FaqEditor />;
-            case 'hero': return <HeroEditor />;
-            case 'about': return <AboutEditor />;
-            case 'whyChooseUs': return <WhyChooseUsEditor />;
-            case 'process': return <ProcessEditor />;
-            case 'servicesList': return <ServicesEditor />;
-            case 'safety': return <SafetyEditor />;
-            case 'serviceAreaMap': return <ServiceAreaEditor />;
-            case 'contactPage': return <ContactEditor />;
-            case 'companyDetails': return <CompanyEditor />;
-            case 'locations': return <LocationsEditor />;
-            case 'bookingSettings': return <BookingModalEditor />;
-            case 'seo': return <SeoEditor />;
-            case 'creatorSettings': return <CreatorDashboard loggedInUser={loggedInUser} />;
-            
-            default: return <div className="text-gray-500">Select a tab</div>;
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[100] bg-[#0f1110] flex text-white font-sans overflow-hidden">
-            {renderSidebar()}
-            <main className="flex-1 overflow-y-auto p-8 relative">
-                {renderContent()}
-            </main>
         </div>
     );
 };

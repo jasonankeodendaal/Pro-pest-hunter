@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Phone, Bug, User, LogIn } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -44,10 +43,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onBookClick, onAdminClic
         </button>
 
         {/* Nav Links */}
-        <nav className="flex items-center gap-4 md:gap-8">
-          <button onClick={() => navigateTo('home')} className="text-sm md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm hidden sm:block">Home</button>
-          <button onClick={() => navigateTo('about')} className="text-sm md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm hidden md:block">About</button>
-          <button onClick={() => navigateTo('services')} className="text-sm md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm hidden md:block">Services</button>
+        <nav className="flex items-center gap-2 md:gap-8">
+          <button onClick={() => navigateTo('home')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Home</button>
+          <button onClick={() => navigateTo('about')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">About</button>
+          <button onClick={() => navigateTo('services')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Services</button>
           
           <div className="flex items-center gap-2">
               {/* Client Login Button */}
