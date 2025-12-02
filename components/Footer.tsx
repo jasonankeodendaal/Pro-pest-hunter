@@ -13,7 +13,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
 
   return (
     <footer className="bg-[#1a1a1a] text-gray-400 py-8 md:py-12 border-t border-white/5">
-      <div className="container mx-auto px-4">
+      <div className="w-full max-w-[95%] 2xl:max-w-[1800px] mx-auto px-4">
         <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
             {/* Brand */}
             <div className="col-span-1">

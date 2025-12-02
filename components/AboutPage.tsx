@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
@@ -26,7 +27,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onBookClick, onAdminClick,
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-pestLight to-transparent z-10"></div>
         
-        <div className="container mx-auto max-w-[85rem] text-center relative z-20">
+        <div className="w-full max-w-[95%] 2xl:max-w-[1800px] mx-auto text-center relative z-20">
              <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
