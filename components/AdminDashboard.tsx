@@ -307,7 +307,7 @@ const ServiceAreaEditor = () => {
                 </div>
                 <div className="col-span-full">
                      <Input label="Google Maps Embed URL (Iframe src)" value={content.serviceArea.mapEmbedUrl || ''} onChange={(v: string) => update('mapEmbedUrl', v)} placeholder="https://www.google.com/maps/embed?..." />
-                     <p className="text-xs text-gray-500 mt-1">Paste the 'src' from Google Maps Share -> Embed a Map.</p>
+                     <p className="text-xs text-gray-500 mt-1">Paste the 'src' from Google Maps Share &rarr; Embed a Map.</p>
                 </div>
                 <div className="col-span-full">
                      <FileUpload label="Static Map Image (Fallback)" value={content.serviceArea.mapImage} onChange={(v: string) => update('mapImage', v)} />

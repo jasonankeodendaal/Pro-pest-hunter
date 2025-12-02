@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Phone, Bug, User, LogIn } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -37,25 +38,28 @@ export const Navigation: React.FC<NavigationProps> = ({ onBookClick, onAdminClic
         
         {/* Logo Section */}
         <button onClick={() => navigateTo('home')} className="flex items-center gap-3 text-white cursor-pointer group"> 
-            <span className={`font-black tracking-wide whitespace-nowrap drop-shadow-sm block group-hover:text-pestGreen transition-all duration-300 ${isScrolled ? 'text-lg md:text-2xl' : 'text-xl md:text-3xl'}`}>
+            <span className={`font-black tracking-wide whitespace-nowrap drop-shadow-sm block group-hover:text-pestGreen transition-all duration-300 ${isScrolled ? 'text-base md:text-2xl' : 'text-lg md:text-3xl'}`}>
                 {content.company.name}
             </span>
         </button>
 
         {/* Nav Links */}
         <nav className="flex items-center gap-2 md:gap-8">
-          <button onClick={() => navigateTo('home')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Home</button>
-          <button onClick={() => navigateTo('about')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">About</button>
-          <button onClick={() => navigateTo('services')} className="text-xs md:text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Services</button>
+          {/* Desktop Nav Links - Hidden on Mobile */}
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => navigateTo('home')} className="text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Home</button>
+            <button onClick={() => navigateTo('about')} className="text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">About</button>
+            <button onClick={() => navigateTo('services')} className="text-base font-bold text-white/90 hover:text-pestGreen transition-colors drop-shadow-sm">Services</button>
+          </div>
           
           <div className="flex items-center gap-2">
-              {/* Client Login Button */}
+              {/* Client Login Button - Now Visible on Mobile (Icon Only) */}
               <button 
                 onClick={onAdminClick}
-                className="hidden md:flex items-center gap-2 bg-white/10 hover:bg-white hover:text-pestBrown text-white border border-white/20 rounded-xl px-4 py-2.5 font-bold transition-all text-xs md:text-sm"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white hover:text-pestBrown text-white border border-white/20 rounded-xl px-3 py-2 md:px-4 md:py-2.5 font-bold transition-all text-xs md:text-sm"
                 title="Client Login"
               >
-                  <User size={16} /> Login
+                  <User size={16} /> <span className="hidden md:inline">Login</span>
               </button>
 
               <button 
