@@ -32,17 +32,17 @@ export const Navigation: React.FC<NavigationProps> = ({ onBookClick, navigateTo 
         {/* Logo - now navigates to home */}
         <button onClick={() => navigateTo('home')} className="flex items-center gap-2 text-white cursor-pointer group"> 
           {/* Logo Image Removed - Moved to Hero */}
-          <span className="font-black text-lg md:text-2xl tracking-wide whitespace-nowrap drop-shadow-sm block group-hover:text-pestGreen transition-colors">{content.company.name}</span>
+          <span className="font-black text-xl md:text-3xl tracking-wide whitespace-nowrap drop-shadow-sm block group-hover:text-pestGreen transition-colors">{content.company.name}</span>
         </button>
 
         {/* Nav Links */}
-        <nav className="flex items-center gap-4 md:gap-8 text-[10px] md:text-sm font-bold text-white/90">
-          <button onClick={() => navigateTo('home')} className="hover:text-pestGreen transition-colors drop-shadow-sm">Home</button>
+        <nav className="flex items-center gap-4 md:gap-8 text-sm md:text-base font-bold text-white/90">
+          <button onClick={() => navigateTo('home')} className="hover:text-pestGreen transition-colors drop-shadow-sm hidden sm:block">Home</button>
           <button onClick={() => navigateTo('about')} className="hover:text-pestGreen transition-colors drop-shadow-sm">About</button>
           <button onClick={() => navigateTo('services')} className="hover:text-pestGreen transition-colors drop-shadow-sm">Services</button>
           <button 
             onClick={onBookClick}
-            className="bg-pestGreen text-white px-4 py-2 md:px-6 md:py-3 rounded-xl text-[10px] md:text-sm font-bold hover:bg-white hover:text-pestGreen transition-all shadow-thick hover:shadow-none hover:translate-y-[2px]"
+            className="bg-pestGreen text-white px-5 py-2.5 md:px-7 md:py-3 rounded-xl text-xs md:text-base font-bold hover:bg-white hover:text-pestGreen transition-all shadow-thick hover:shadow-none hover:translate-y-[2px]"
           >
             Book Now
           </button>

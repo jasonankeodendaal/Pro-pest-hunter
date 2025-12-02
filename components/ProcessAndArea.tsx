@@ -18,7 +18,7 @@ export const ProcessAndArea: React.FC = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   return (
-    <Section id="process-area" className="bg-pestLight relative py-24 overflow-visible border-t border-white/50">
+    <Section id="process-area" className="bg-pestLight relative py-24 md:py-32 overflow-visible border-t border-white/50">
       <div id="process" className="absolute -top-24 left-0"></div>
       <div id="area" className="absolute top-1/2 left-0"></div>
 
@@ -26,25 +26,25 @@ export const ProcessAndArea: React.FC = () => {
            style={{ backgroundImage: 'linear-gradient(#99a, transparent 1px), linear-gradient(90deg, #99a, transparent 1px)', backgroundSize: '40px 40px' }}>
       </div>
 
-      {/* UPDATED: Forced grid-cols-2 */}
+      {/* Forced grid-cols-2 */}
       <div className="grid grid-cols-2 gap-8 lg:gap-24 relative z-10">
         
         {/* LEFT COLUMN: PROCESS */}
         <div className="flex flex-col">
-            <div className="mb-10">
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="h-1 w-10 bg-pestGreen rounded-full"></div>
-                    <span className="text-pestGreen font-bold uppercase tracking-widest text-xs">Our Workflow</span>
+            <div className="mb-12">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="h-1.5 w-12 bg-pestGreen rounded-full"></div>
+                    <span className="text-pestGreen font-bold uppercase tracking-widest text-sm">Our Workflow</span>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-pestBrown leading-[0.9] mb-4">
+                <h2 className="text-4xl md:text-6xl font-black text-pestBrown leading-[0.9] mb-6">
                     {content.process.title}
                 </h2>
-                <p className="text-gray-500 font-medium text-sm md:text-lg max-w-md leading-relaxed">
+                <p className="text-gray-500 font-medium text-base md:text-xl max-w-lg leading-relaxed">
                     {content.process.subtitle}
                 </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 perspective-1000">
+            <div className="grid grid-cols-2 gap-6 perspective-1000">
                 {content.process.steps.map((step, i) => {
                     const IconComponent = IconMap[step.iconName] || IconMap['Default'];
                     return (
@@ -55,18 +55,18 @@ export const ProcessAndArea: React.FC = () => {
                             viewport={{ once: true, amount: 0.3 }}
                             transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
                             whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                            className="bg-pestStone p-4 md:p-6 rounded-3xl shadow-thick border border-white/50 relative overflow-hidden group hover:border-pestGreen/30 transition-colors"
+                            className="bg-pestStone p-6 md:p-8 rounded-[30px] shadow-thick border border-white/50 relative overflow-hidden group hover:border-pestGreen/30 transition-colors"
                         >
-                            <div className="absolute -right-4 -bottom-6 text-[4rem] md:text-[6rem] font-black text-pestBrown/5 group-hover:text-pestGreen/10 transition-colors select-none leading-none">
+                            <div className="absolute -right-4 -bottom-6 text-[5rem] md:text-[7rem] font-black text-pestBrown/5 group-hover:text-pestGreen/10 transition-colors select-none leading-none">
                                 {step.step}
                             </div>
                             
                             <div className="relative z-10">
-                                <div className="w-10 h-10 md:w-12 md:h-12 bg-pestLight rounded-2xl flex items-center justify-center mb-4 text-pestBrown group-hover:bg-pestGreen group-hover:text-white transition-colors shadow-sm border border-white/50">
-                                    <IconComponent size={20} className="md:w-6 md:h-6" />
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-pestLight rounded-2xl flex items-center justify-center mb-5 text-pestBrown group-hover:bg-pestGreen group-hover:text-white transition-colors shadow-sm border border-white/50">
+                                    <IconComponent size={24} className="md:w-8 md:h-8" />
                                 </div>
-                                <h3 className="font-bold text-sm md:text-lg text-pestBrown mb-2">{step.title}</h3>
-                                <p className="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed">{step.description}</p>
+                                <h3 className="font-bold text-base md:text-xl text-pestBrown mb-3">{step.title}</h3>
+                                <p className="text-sm md:text-base text-gray-500 font-medium leading-relaxed">{step.description}</p>
                             </div>
                         </motion.div>
                     );
@@ -76,21 +76,21 @@ export const ProcessAndArea: React.FC = () => {
 
         {/* RIGHT COLUMN: SERVICE AREA */}
         <div className="flex flex-col h-full">
-            <div className="mb-10 lg:text-right">
-                <div className="flex items-center gap-2 mb-3 lg:justify-end">
-                    <span className="text-pestGreen font-bold uppercase tracking-widest text-xs">Coverage</span>
-                    <div className="h-1 w-10 bg-pestGreen rounded-full"></div>
+            <div className="mb-12 lg:text-right">
+                <div className="flex items-center gap-3 mb-4 lg:justify-end">
+                    <span className="text-pestGreen font-bold uppercase tracking-widest text-sm">Coverage</span>
+                    <div className="h-1.5 w-12 bg-pestGreen rounded-full"></div>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-pestBrown leading-[0.9] mb-4">
+                <h2 className="text-4xl md:text-6xl font-black text-pestBrown leading-[0.9] mb-6">
                     {content.serviceArea.title}
                 </h2>
-                <p className="text-gray-500 font-medium text-sm md:text-lg leading-relaxed lg:ml-auto lg:max-w-md">
+                <p className="text-gray-500 font-medium text-base md:text-xl leading-relaxed lg:ml-auto lg:max-w-lg">
                     {content.serviceArea.description}
                 </p>
             </div>
 
             <div 
-                className="relative flex-grow min-h-[300px] md:min-h-[400px] bg-pestStone rounded-[40px] overflow-hidden shadow-thick border-4 border-white group perspective-1000 cursor-zoom-in"
+                className="relative flex-grow min-h-[350px] md:min-h-[450px] bg-pestStone rounded-[50px] overflow-hidden shadow-thick border-4 border-white group perspective-1000 cursor-zoom-in"
                 onClick={() => setIsMapOpen(true)}
             >
                 {/* Map Content */}
@@ -104,43 +104,34 @@ export const ProcessAndArea: React.FC = () => {
                             allowFullScreen={false} 
                             loading="lazy" 
                             title="Service Area Map"
-                            className="w-full h-full"
+                            className="w-full h-full grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                         />
                     ) : (
                         content.serviceArea.mapImage ? (
                             <img src={content.serviceArea.mapImage} alt="Service Area Map" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
                         ) : (
                             <div className="relative w-full h-full flex items-center justify-center">
-                                <svg className="absolute inset-0 w-full h-full opacity-10 text-pestBrown fill-current" viewBox="0 0 400 400" preserveAspectRatio="none">
-                                    <path d="M0,200 Q100,150 200,200 T400,200 V400 H0 Z" fillOpacity="0.1"/>
-                                    <path d="M50,50 Q150,0 250,50 T450,50" stroke="currentColor" strokeWidth="1" fill="none" />
-                                    <path d="M100,300 Q200,250 300,300" stroke="currentColor" strokeWidth="1" fill="none" />
-                                    <circle cx="200" cy="200" r="100" stroke="currentColor" strokeWidth="0.5" fill="none" strokeDasharray="4 4" />
-                                </svg>
-                                <div className="text-center p-6 border-2 border-dashed border-pestBrown/20 rounded-3xl">
-                                    <MapPin className="w-12 h-12 text-pestBrown/30 mx-auto mb-2" />
-                                    <p className="text-pestBrown/40 font-bold text-sm uppercase tracking-widest">Map Display Area</p>
-                                </div>
+                                <MapPin size={64} className="text-pestBrown/30 mx-auto mb-2" />
                             </div>
                         )
                     )}
                 </div>
 
-                <div className="absolute inset-0 p-4 md:p-8 flex flex-col justify-between z-10 pointer-events-none">
+                <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-between z-10 pointer-events-none">
                     <div className="flex justify-end">
-                        <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/50 shadow-sm flex items-center gap-2">
-                            <div className="w-2 h-2 bg-pestGreen rounded-full"></div>
-                            <span className="text-pestBrown text-[10px] font-bold uppercase tracking-wider">Service Area</span>
+                        <div className="bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/50 shadow-sm flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 bg-pestGreen rounded-full"></div>
+                            <span className="text-pestBrown text-xs font-bold uppercase tracking-wider">Service Area</span>
                         </div>
                     </div>
                     
-                    <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-4 border border-white/50 pointer-events-auto shadow-lg">
-                        <div className="flex items-center gap-2 mb-3 text-pestBrown/60 text-xs uppercase font-bold tracking-wider border-b border-pestBrown/5 pb-2">
-                            <Navigation size={12} /> Locations
+                    <div className="bg-white/60 backdrop-blur-xl rounded-[30px] p-6 border border-white/50 pointer-events-auto shadow-lg">
+                        <div className="flex items-center gap-2 mb-4 text-pestBrown/60 text-xs uppercase font-bold tracking-wider border-b border-pestBrown/5 pb-3">
+                            <Navigation size={14} /> Locations Covered
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2.5">
                             {content.serviceArea.towns.map((town) => (
-                                <span key={town} className="bg-white hover:bg-pestGreen text-pestBrown hover:text-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-default shadow-sm">
+                                <span key={town} className="bg-white hover:bg-pestGreen text-pestBrown hover:text-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-default shadow-sm">
                                     {town}
                                 </span>
                             ))}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Award, DollarSign, RefreshCw, Shield, Clock, HeartHandshake, Circle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -29,24 +30,24 @@ export const WhyChooseUs: React.FC = () => {
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-pestLight to-transparent z-10"></div>
 
       {/* Centered Header */}
-      <div className="relative z-20 text-center max-w-3xl mx-auto mb-16">
+      <div className="relative z-20 text-center max-w-4xl mx-auto mb-20">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true, amount: 0.3 }}
             >
-                <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 mb-4 drop-shadow-sm leading-[0.9]">
+                <h2 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 mb-6 drop-shadow-sm leading-[0.9]">
                     {content.whyChooseUs.title}
                 </h2>
-                <div className="w-24 h-2 bg-pestGreen mx-auto rounded-full mb-6 shadow-neon"></div> {/* Added separator */}
-                <p className="text-gray-300 text-lg md:text-xl border-l-4 border-pestGreen pl-4 bg-white/5 p-2 rounded-r-lg backdrop-blur-sm mx-auto">
+                <div className="w-32 h-2.5 bg-pestGreen mx-auto rounded-full mb-8 shadow-neon"></div> 
+                <p className="text-gray-300 text-xl md:text-2xl border-l-4 border-pestGreen pl-6 bg-white/5 p-4 rounded-r-xl backdrop-blur-sm mx-auto font-light leading-relaxed">
                   {content.whyChooseUs.subtitle}
                 </p>
             </motion.div>
          </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 relative z-20 perspective-1000">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 relative z-20 perspective-1000">
         {content.whyChooseUs.items.map((item, idx) => {
             const IconComponent = IconMap[item.iconName] || IconMap['Default'];
             return (
@@ -56,20 +57,20 @@ export const WhyChooseUs: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ delay: idx * 0.05, type: "spring" }}
-                whileHover={{ y: -10, rotate: 2, scale: 1.03, z: 10, transition: { duration: 0.2, ease: "easeOut" } }} // Added z for depth
-                className="group relative bg-white/5 backdrop-blur-md rounded-[24px] p-5 md:p-8 border-2 border-white/20 shadow-glass cursor-pointer
-                           transition-all duration-300 overflow-hidden hover:shadow-3d hover:outline hover:outline-2 hover:outline-pestGreen/50" // Enhanced hover
+                whileHover={{ y: -10, rotate: 2, scale: 1.03, z: 10, transition: { duration: 0.2, ease: "easeOut" } }} 
+                className="group relative bg-white/5 backdrop-blur-md rounded-[30px] p-6 md:p-10 border-2 border-white/20 shadow-glass cursor-pointer
+                           transition-all duration-300 overflow-hidden hover:shadow-3d hover:outline hover:outline-2 hover:outline-pestGreen/50" 
               >
                 {/* Glass Reflection Shine */}
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
                 
                 <div className="relative z-10">
-                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-pestGreen to-pestDarkGreen shadow-lg flex items-center justify-center mb-4 
-                                    group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 border-2 border-white/30"> {/* Stronger border */}
-                        <IconComponent className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                    <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-pestGreen to-pestDarkGreen shadow-lg flex items-center justify-center mb-6
+                                    group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 border-2 border-white/30"> 
+                        <IconComponent className="w-7 h-7 md:w-10 md:h-10 text-white" />
                     </div>
-                    <h4 className="font-bold text-sm md:text-xl text-white leading-tight mb-2">{item.title}</h4>
-                    <p className="text-[10px] md:text-sm text-gray-400 leading-relaxed font-medium">{item.text}</p>
+                    <h4 className="font-bold text-lg md:text-2xl text-white leading-tight mb-3">{item.title}</h4>
+                    <p className="text-base md:text-lg text-gray-400 leading-relaxed font-medium">{item.text}</p>
                 </div>
                 {/* Subtle green overlay on hover */}
                 <div className="absolute inset-0 z-0 bg-pestGreen/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

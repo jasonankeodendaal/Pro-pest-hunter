@@ -39,19 +39,33 @@ interface IconErrorBoundaryState {
 }
 
 export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+    public readonly props: Readonly<IconErrorBoundaryProps>;
+
     public state: IconErrorBoundaryState = { hasError: false };
+    
+    constructor(props: IconErrorBoundaryProps) {
+        super(props);
+        this.props = props;
+    }
 
     static getDerivedStateFromError(error: any): IconErrorBoundaryState { 
+        // Update state so the next render will show the fallback UI.
         return { hasError: true }; 
     }
     
-    componentDidCatch(error: any) { 
-        console.warn("Icon render failed:", error); 
+    componentDidCatch(error: any, errorInfo: React.ErrorInfo) { 
+        // You can also log the error to an error reporting service
+        console.warn("Icon render failed:", error, errorInfo); 
     }
     
     render() {
-        if (this.state.hasError) return this.props.fallback;
-        return this.props.children;
+        const { fallback, children } = this.props;
+        if (this.state.hasError) {
+            // You can render any custom fallback UI
+            return fallback;
+        }
+
+        return children;
     }
 }
 
@@ -206,7 +220,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-    // Categories with CURATED specific icon lists (20+ items each)
     const categories = [
         { 
             name: 'Safety', 
@@ -249,21 +262,17 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
     ];
 
     const filteredIcons = useMemo(() => {
-        // 1. If a category is selected, show ONLY that category's icons
         if (activeCategory) {
             const cat = categories.find(c => c.name === activeCategory);
-            // Verify icon exists in Lucide before returning to avoid crash
             return cat ? cat.icons.filter(name => (LucideIcons as any)[name]) : [];
         }
 
-        // 2. If search term exists, filter ALL valid icons
         if (searchTerm) {
             return ValidIconNames.filter(name =>
                 name.toLowerCase().includes(searchTerm.toLowerCase())
             ).slice(0, 100);
         }
 
-        // 3. Default: Show a mix or first 100 valid icons
         return ValidIconNames.slice(0, 100); 
     }, [searchTerm, activeCategory]);
 
@@ -329,7 +338,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                                 </button>
                             </div>
 
-                            {/* Search and Filters */}
                             <div className="space-y-4 mb-6">
                                 <div className="relative">
                                     <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -366,7 +374,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
                                 {filteredIcons.length > 0 ? (
                                     filteredIcons.map(iconName => {
                                         const Icon = (LucideIcons as any)[iconName];
-                                        // Skip invalid icons silently
                                         if (!Icon) return null;
                                         
                                         const isSelected = iconName === value;

@@ -35,7 +35,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onBookClick, onAdminClick,
              >
                 Our Story & <span className="text-pestGreen">Mission</span>
             </motion.h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
+            <p className="text-xl md:text-3xl text-gray-300 max-w-4xl mx-auto font-light leading-relaxed">
                 We are more than just exterminators. We are guardians of your home and the Lowveld ecosystem.
             </p>
         </div>
@@ -49,35 +49,35 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onBookClick, onAdminClick,
       <WhyChooseUs />
 
       {/* Expanded Team/Values Section */}
-      <Section id="values" className="bg-white py-24">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <Section id="values" className="bg-white py-24 md:py-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
               <div>
-                  <h3 className="text-3xl font-bold text-pestBrown mb-6">Deeply Rooted in the Lowveld</h3>
-                  <p className="text-gray-600 text-lg mb-4 leading-relaxed">
+                  <h3 className="text-4xl font-bold text-pestBrown mb-8">Deeply Rooted in the Lowveld</h3>
+                  <p className="text-gray-600 text-xl mb-6 leading-relaxed">
                       Founded in {new Date().getFullYear() - content.company.yearsExperience}, {content.company.name} started with a single bakkie and a commitment to doing things differently. We realized that the standard "spray everything" approach was outdated and harmful.
                   </p>
-                  <p className="text-gray-600 text-lg mb-4 leading-relaxed">
+                  <p className="text-gray-600 text-xl mb-6 leading-relaxed">
                       Today, we employ advanced Integrated Pest Management (IPM) strategies that target pests at their source while minimizing environmental impact. Our team lives in the communities we serve—from White River to Barberton—so we treat every home like our neighbor's.
                   </p>
               </div>
-              <div className="bg-pestStone rounded-3xl p-8 border border-pestGreen/20 shadow-inner-3d">
-                  <h4 className="text-xl font-bold text-pestGreen mb-4">Our Core Values</h4>
-                  <ul className="space-y-4">
-                      <li className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-pestGreen rounded-full"></div>
-                          <span className="font-bold text-pestBrown">Integrity First</span>
+              <div className="bg-pestStone rounded-[40px] p-10 md:p-12 border border-pestGreen/20 shadow-inner-3d">
+                  <h4 className="text-2xl font-black text-pestGreen mb-8 uppercase tracking-wide">Our Core Values</h4>
+                  <ul className="space-y-6">
+                      <li className="flex items-center gap-4">
+                          <div className="w-3 h-3 bg-pestGreen rounded-full shadow-neon"></div>
+                          <span className="font-bold text-xl text-pestBrown">Integrity First</span>
                       </li>
-                      <li className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-pestGreen rounded-full"></div>
-                          <span className="font-bold text-pestBrown">Safety Without Compromise</span>
+                      <li className="flex items-center gap-4">
+                          <div className="w-3 h-3 bg-pestGreen rounded-full shadow-neon"></div>
+                          <span className="font-bold text-xl text-pestBrown">Safety Without Compromise</span>
                       </li>
-                      <li className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-pestGreen rounded-full"></div>
-                          <span className="font-bold text-pestBrown">Continuous Education</span>
+                      <li className="flex items-center gap-4">
+                          <div className="w-3 h-3 bg-pestGreen rounded-full shadow-neon"></div>
+                          <span className="font-bold text-xl text-pestBrown">Continuous Education</span>
                       </li>
-                      <li className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-pestGreen rounded-full"></div>
-                          <span className="font-bold text-pestBrown">Community Focused</span>
+                      <li className="flex items-center gap-4">
+                          <div className="w-3 h-3 bg-pestGreen rounded-full shadow-neon"></div>
+                          <span className="font-bold text-xl text-pestBrown">Community Focused</span>
                       </li>
                   </ul>
               </div>

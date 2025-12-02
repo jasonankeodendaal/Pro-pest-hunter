@@ -34,7 +34,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onBookClick, onAdminCl
              >
                 How We <span className="text-pestGreen">Work</span>
             </motion.h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
+            <p className="text-xl md:text-3xl text-gray-300 max-w-4xl mx-auto font-light leading-relaxed">
                 Transparency is key. From the first call to the final inspection, here is exactly what you can expect from {content.company.name}.
             </p>
         </div>
@@ -44,42 +44,42 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onBookClick, onAdminCl
       <ProcessAndArea />
 
       {/* Additional Detailed Steps */}
-      <Section id="process-details" className="bg-white py-20">
-          <div className="max-w-4xl mx-auto space-y-16">
-              <div className="flex flex-col md:flex-row gap-8 items-start border-b border-gray-100 pb-12">
-                   <div className="bg-pestGreen/10 text-pestGreen font-black text-5xl p-6 rounded-2xl">01</div>
+      <Section id="process-details" className="bg-white py-24 md:py-32">
+          <div className="max-w-5xl mx-auto space-y-20">
+              <div className="flex flex-col md:flex-row gap-8 items-start border-b border-gray-100 pb-16">
+                   <div className="bg-pestGreen/10 text-pestGreen font-black text-6xl md:text-7xl p-8 rounded-3xl min-w-[120px] text-center">01</div>
                    <div>
-                       <h3 className="text-2xl font-bold text-pestBrown mb-4">The Initial Consultation</h3>
-                       <p className="text-gray-600 text-lg leading-relaxed">
+                       <h3 className="text-3xl font-black text-pestBrown mb-6">The Initial Consultation</h3>
+                       <p className="text-gray-600 text-xl leading-relaxed">
                            When you contact us, our office team will ask specific questions to gauge the severity of your pest issue. For complex infestations (like termites or commercial audits), we schedule a site visit. For standard pests (ants, roaches), we can often provide an immediate estimate.
                        </p>
                    </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-8 items-start border-b border-gray-100 pb-12">
-                   <div className="bg-pestGreen/10 text-pestGreen font-black text-5xl p-6 rounded-2xl">02</div>
+              <div className="flex flex-col md:flex-row gap-8 items-start border-b border-gray-100 pb-16">
+                   <div className="bg-pestGreen/10 text-pestGreen font-black text-6xl md:text-7xl p-8 rounded-3xl min-w-[120px] text-center">02</div>
                    <div>
-                       <h3 className="text-2xl font-bold text-pestBrown mb-4">Custom Treatment Plan</h3>
-                       <p className="text-gray-600 text-lg leading-relaxed">
+                       <h3 className="text-3xl font-black text-pestBrown mb-6">Custom Treatment Plan</h3>
+                       <p className="text-gray-600 text-xl leading-relaxed">
                            No two homes are the same. We verify the species involved—misidentifying a pest is the #1 reason for treatment failure. We then select the correct chemical formulation and application method (gel, spray, bait station, or gas) that is safest for your specific environment.
                        </p>
                    </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-8 items-start pb-12">
-                   <div className="bg-pestGreen/10 text-pestGreen font-black text-5xl p-6 rounded-2xl">03</div>
+              <div className="flex flex-col md:flex-row gap-8 items-start pb-8">
+                   <div className="bg-pestGreen/10 text-pestGreen font-black text-6xl md:text-7xl p-8 rounded-3xl min-w-[120px] text-center">03</div>
                    <div>
-                       <h3 className="text-2xl font-bold text-pestBrown mb-4">Aftercare & Prevention</h3>
-                       <p className="text-gray-600 text-lg leading-relaxed">
+                       <h3 className="text-3xl font-black text-pestBrown mb-6">Aftercare & Prevention</h3>
+                       <p className="text-gray-600 text-xl leading-relaxed">
                            Pest control is a partnership. After treatment, our technician will provide a report detailing what was done and, crucially, what you can do to prevent re-infestation (e.g., trimming branches, sealing specific cracks). We also schedule follow-ups if necessary.
                        </p>
                    </div>
               </div>
           </div>
 
-          <div className="text-center mt-12">
-              <button onClick={onBookClick} className="bg-pestGreen text-white px-8 py-4 rounded-xl font-bold text-xl shadow-thick hover:shadow-none hover:translate-y-1 transition-all flex items-center gap-2 mx-auto">
-                  Start The Process <ArrowRight />
+          <div className="text-center mt-20">
+              <button onClick={onBookClick} className="bg-pestGreen text-white px-10 py-5 rounded-2xl font-black text-2xl shadow-thick hover:shadow-none hover:translate-y-1 transition-all flex items-center gap-3 mx-auto">
+                  Start The Process <ArrowRight size={28} />
               </button>
           </div>
       </Section>

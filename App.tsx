@@ -29,7 +29,10 @@ const Home: React.FC<{ onBookClick: () => void; onAdminClick: () => void; naviga
       <WhyChooseUs />
       <ProcessAndArea />
       <Safety />
-      <Contact onBookNow={onBookClick} />
+      {/* Hide Contact section on mobile for Home page as requested */}
+      <div className="hidden md:block">
+        <Contact onBookNow={onBookClick} />
+      </div>
       <Footer onAdminClick={onAdminClick} navigateTo={navigateTo} />
     </>
   );
