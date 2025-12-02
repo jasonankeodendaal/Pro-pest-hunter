@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -640,8 +639,7 @@ const BookingModalEditor = () => {
         </EditorLayout>
     );
 };
-
-
+// ... (rest of the file content is same but omitted for brevity as AboutEditor is the main change request)
 const ServicesEditor = () => {
     const { content, updateService } = useContent();
     const [localServices, setLocalServices] = useState(content.services || []);
@@ -1206,7 +1204,7 @@ const CreatorDashboard = () => {
         </EditorLayout>
     );
 };
-
+// ... (remaining components like EmployeeEditor, BookingManager, AdminDashboard are the same)
 const EmployeeEditor = () => {
     const { content, addEmployee, updateEmployee, deleteEmployee } = useContent();
     const [editingId, setEditingId] = useState<string | null>(null);

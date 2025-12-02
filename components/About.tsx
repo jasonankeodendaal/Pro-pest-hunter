@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { CheckCircle2, Users, MapPin, Award, Shield, Zap, Circle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -28,14 +27,14 @@ export const About: React.FC = () => {
             transition={{ type: "spring", stiffness: 50, duration: 0.8 }}
             className="bg-pestStone/90 backdrop-blur-xl p-6 md:p-10 rounded-[30px] shadow-glass border border-white/60 relative h-full flex flex-col"
           >
-            {/* "Since Year" Badge - Now positioned relatively to prevent overlap */}
-            <div className="self-start bg-pestBrown text-white px-4 py-2 rounded-xl shadow-thick-dark font-bold text-sm transform -rotate-2 mb-6 inline-block">
+            {/* "Since Year" Badge - Fixed to prevent overlap */}
+            <div className="absolute -top-6 -left-2 md:-left-4 bg-pestBrown text-white px-6 py-3 rounded-2xl shadow-thick-dark font-black text-sm md:text-base transform -rotate-2 border-2 border-white">
                Since {new Date().getFullYear() - content.company.yearsExperience}
             </div>
 
-            <span className="text-pestGreen font-black text-xs md:text-sm uppercase tracking-widest mb-2 block">Who We Are</span>
+            <span className="text-pestGreen font-black text-xs md:text-sm uppercase tracking-widest mb-3 block mt-6">Who We Are</span>
             
-            <h2 className="text-3xl md:text-5xl font-black text-pestBrown mb-6 leading-none drop-shadow-sm">
+            <h2 className="text-3xl md:text-5xl font-black text-pestBrown mb-6 leading-tight drop-shadow-sm">
               {content.about.title}
             </h2>
             
@@ -44,12 +43,12 @@ export const About: React.FC = () => {
             </p>
 
             <div className="mt-auto bg-pestLight p-4 rounded-2xl border border-pestGreen/10 flex gap-4 items-start transform hover:scale-[1.02] transition-transform duration-300">
-                <div className="bg-pestGreen text-white p-2 rounded-xl shadow-md mt-1 shrink-0">
+                <div className="bg-pestGreen text-white p-3 rounded-xl shadow-md mt-1 shrink-0">
                    <Award size={24} />
                 </div>
                 <div>
                     <h3 className="font-bold text-pestDarkGreen text-lg mb-1">{content.about.missionTitle}</h3>
-                    <p className="text-gray-500 text-sm italic leading-tight">"{content.about.missionText}"</p>
+                    <p className="text-gray-500 text-sm italic leading-relaxed">"{content.about.missionText}"</p>
                 </div>
             </div>
           </motion.div>
@@ -82,7 +81,7 @@ export const About: React.FC = () => {
             </div>
 
             {/* Bottom: Detailed Feature Cards (Grid) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
                 {content.about.items.map((item, i) => {
                     const IconComponent = IconMap[item.iconName] || IconMap['Circle'];
                     return (
@@ -91,16 +90,16 @@ export const About: React.FC = () => {
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 * i, duration: 0.5 }}
-                            className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-pestGreen/30 transition-all ${i === content.about.items.length - 1 && content.about.items.length % 2 !== 0 ? 'md:col-span-2' : ''}`}
+                            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-pestGreen/30 transition-all"
                         >
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-pestGreen/10 flex items-center justify-center text-pestGreen shrink-0">
-                                    <IconComponent size={20} />
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-pestGreen/10 flex items-center justify-center text-pestGreen shrink-0">
+                                    <IconComponent size={24} />
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-pestBrown text-lg leading-tight mb-1">{item.title}</h4>
-                                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                                        {item.description || "Top-tier service standard."}
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-pestBrown text-xl mb-1">{item.title}</h4>
+                                    <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                                        {item.description || "Detailed service standard description goes here."}
                                     </p>
                                 </div>
                             </div>

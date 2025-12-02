@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, ReactNode } from 'react';
 import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase, Hammer, Trees, Heart, User, CheckCircle, Zap } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,7 +39,10 @@ interface IconErrorBoundaryState {
 }
 
 export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
-    state: IconErrorBoundaryState = { hasError: false };
+    constructor(props: IconErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
 
     static getDerivedStateFromError(error: any): IconErrorBoundaryState { 
         return { hasError: true }; 

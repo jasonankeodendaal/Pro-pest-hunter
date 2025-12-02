@@ -1,5 +1,4 @@
 
-
 import { LucideIcon } from 'lucide-react';
 
 export interface ServiceItem {
@@ -31,8 +30,8 @@ export interface WhyChooseUsItem {
 // About Item Interface for functionality highlights
 export interface AboutItem {
   id: string;
-  title: string; // Changed from text to title for consistency, but mapping for backward compat if needed
-  description: string; // New field for detailed text
+  title: string; 
+  description: string; // Detailed description
   iconName: string;
 }
 

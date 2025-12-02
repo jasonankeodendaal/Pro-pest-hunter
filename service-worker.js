@@ -1,7 +1,6 @@
 
-
-const CACHE_NAME = 'pro-pest-v4';
-const DYNAMIC_CACHE = 'pro-pest-dynamic-v4';
+const CACHE_NAME = 'pro-pest-v6';
+const DYNAMIC_CACHE = 'pro-pest-dynamic-v6';
 const OFFLINE_URL = '/index.html';
 
 const ASSETS_TO_CACHE = [
@@ -37,7 +36,6 @@ self.addEventListener('fetch', (event) => {
 
   // Exclude API calls from caching strategies (Always Network First)
   if (url.pathname.startsWith('/api/')) {
-       // Optional: Add offline queueing logic here for POST requests if needed
        return;
   }
 
@@ -124,6 +122,7 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-bookings') {
     event.waitUntil(
       // Logic to sync localDB bookings to server when online
+      // In a real app, you'd iterate IndexedDB pending requests and fetch() them.
       console.log('[ServiceWorker] Background Sync Executed')
     );
   }

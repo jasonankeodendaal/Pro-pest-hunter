@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ContentState, ServiceItem, WhyChooseUsItem, ProcessStep, AboutItem, Employee, Location, FAQItem, Booking, JobCard, TestimonialItem, BankDetails, SocialLink } from '../types';
 
@@ -74,9 +73,9 @@ const defaultState: ContentState = {
       missionText: "To safeguard health and property through advanced Integrated Pest Management (IPM) techniques.", 
       ownerImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800", 
       items: [
-          { id: 'ab-1', title: "Owner Managed", description: "Direct oversight by our founder on major projects ensuring accountability.", iconName: "Users" }, 
-          { id: 'ab-2', title: "Eco Friendly", description: "We prioritize biodegradable and pet-safe chemical formulations.", iconName: "Leaf" }, 
-          { id: 'ab-3', title: "SABS Approved", description: "All products meet the strictest SABS and Dept of Agriculture standards.", iconName: "CheckCircle2" }
+          { id: 'ab-1', title: "Owner Managed", description: "Direct oversight by our founder on major projects ensures the highest standards are maintained at all times.", iconName: "Users" }, 
+          { id: 'ab-2', title: "Eco Friendly", description: "We prioritize biodegradable, pet-safe formulations that are tough on pests but gentle on the environment.", iconName: "Leaf" }, 
+          { id: 'ab-3', title: "SABS Approved", description: "All our products meet strict SABS standards and comply fully with the Department of Agriculture regulations.", iconName: "CheckCircle2" }
       ] 
   },
   services: [
