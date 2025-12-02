@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -316,7 +313,6 @@ const LocationsEditor = () => {
     const handleUpdate = (index: number, field: keyof Location, value: any) => {
         const newData = [...localData];
         newData[index] = { ...newData[index], [field]: value };
-        // Ensure only one HQ
         if (field === 'isHeadOffice' && value === true) {
             newData.forEach((loc, i) => {
                 if (i !== index) loc.isHeadOffice = false;
@@ -400,7 +396,6 @@ const ContactEditor = () => {
         updateContent('bookCTA', bookData);
     };
 
-    // Clean URL handler
     const handleUrlChange = (v: string) => {
         let clean = v;
         if (clean.includes('<iframe') && clean.includes('src="')) {
@@ -568,7 +563,6 @@ const ServicesEditor = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [tempService, setTempService] = useState<ServiceItem | null>(null);
 
-    // Sync with content only on initial load or if content changes externally
     useEffect(() => {
         setLocalServices(content.services || []);
     }, [content.services]);
@@ -610,7 +604,6 @@ const ServicesEditor = () => {
 
     const handleDelete = (id: string) => {
         if (confirm('Are you sure you want to delete this service?')) {
-            // Update local state immediately
             const updated = localServices.filter(s => s.id !== id);
             setLocalServices(updated);
         }
@@ -633,7 +626,6 @@ const ServicesEditor = () => {
         setTempService({ ...tempService, details: (tempService.details || []).filter((_, i) => i !== index) });
     };
 
-    // Global Save
     const handleGlobalSave = () => {
         updateService(localServices);
     };
@@ -816,10 +808,8 @@ const ServiceAreaEditor = () => {
         setLocalData(prev => ({ ...prev, towns: prev.towns.filter((_, i) => i !== index) }));
     };
 
-    // Auto-clean URL on paste
     const handleUrlChange = (val: string) => {
         let clean = val;
-        // Check if user pasted the full iframe code
         if (clean.includes('<iframe') && clean.includes('src="')) {
             const match = clean.match(/src="([^"]+)"/);
             if (match && match[1]) {
@@ -835,7 +825,6 @@ const ServiceAreaEditor = () => {
             icon={MapPin}
             description="Specify the towns and regions you cover. This helps clients know if they fall within your service zone."
             helpText="The 'Towns' list populates the interactive map tags. Paste a Google Maps Embed URL to display the map."
-            // FORCE REMOVAL OF MAP IMAGE ON SAVE
             onSave={() => updateContent('serviceArea', { ...localData, mapImage: null })}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
@@ -844,7 +833,6 @@ const ServiceAreaEditor = () => {
                     <Input label="Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
                     <TextArea label="Description" value={localData.description || ''} onChange={(v: string) => setLocalData({ ...localData, description: v })} rows={4} />
                     
-                    {/* Updated Town List Manager */}
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 mb-2 block">Covered Locations</label>
                         <div className="flex gap-2 mb-3">
@@ -882,7 +870,6 @@ const ServiceAreaEditor = () => {
                         <Info size={12} className="inline mr-1"/>
                         Tip: You must use the "Embed a map" URL from Google Maps (it starts with <code>https://www.google.com/maps/embed</code>). Normal sharing links (<code>maps.app.goo.gl</code>) will not work.
                     </div>
-                    {/* PREVIEW */}
                     <div className="mt-4 rounded-xl overflow-hidden h-48 border border-white/10 bg-black/20 relative">
                         {localData.mapEmbedUrl ? (
                                 <iframe 
@@ -1032,7 +1019,6 @@ const SeoEditor = () => {
     );
 };
 
-// Renamed and expanded
 const CreatorDashboard = () => {
     const { content, updateContent, resetSystem, clearSystem, downloadBackup, restoreBackup, connectionError, retryConnection } = useContent();
     const [localData, setLocalData] = useState(content.creatorWidget);
@@ -1047,7 +1033,6 @@ const CreatorDashboard = () => {
             helpText="Zero to Hero Setup and System Tools."
             onSave={() => updateContent('creatorWidget', localData)}
         >
-            {/* System Status & Connections - MOVED HERE */}
             <div className="mb-6 grid grid-cols-2 gap-3 md:gap-6">
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-2 flex items-center gap-2"><Wifi size={18}/> Connection Status</h3>
@@ -1080,7 +1065,6 @@ const CreatorDashboard = () => {
                 </div>
             </div>
 
-            {/* System Tools - MOVED HERE */}
              <div className="mb-6 grid grid-cols-2 gap-3 md:gap-6">
                  <div className="col-span-1 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
                     <h4 className="text-blue-400 font-bold text-sm uppercase mb-3 flex items-center gap-2"><Database size={16}/> Backup & Restore</h4>
@@ -1244,7 +1228,7 @@ const EmployeeEditor = () => {
             icon={Users}
             description="Manage staff profiles, login credentials, and system permissions."
             helpText="Add new employees and control what they can access in the system."
-            onSave={() => {}} // No global save needed, individual saves work
+            onSave={() => {}} 
         >
              <div className="flex justify-end mb-4">
                 <button onClick={handleNew} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Employee</button>
@@ -1312,52 +1296,42 @@ const BookingManager = () => {
 };
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
-    const { content, resetSystem, clearSystem, downloadBackup, restoreBackup, connectionError, retryConnection, addJobCard, deleteJobCard } = useContent();
-    const [activeTab, setActiveTab] = useState<AdminMainTab>('work'); // Default to work
+    const { content, addJobCard, deleteJobCard } = useContent();
+    const [activeTab, setActiveTab] = useState<AdminMainTab>('work'); 
     const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('jobs');
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    // REMOVED: isMobileMenuOpen state
 
-    // Identify if current user is Creator Admin
     const isCreator = loggedInUser?.id === 'creator-admin';
 
-    // --- RENDER CONTENT ---
     const renderContent = () => {
         if (selectedJobId) {
             return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
         }
 
         switch (activeSubTab) {
-            // Home Layout
             case 'hero': return <HeroEditor />;
             case 'about': return <AboutEditor />;
             case 'whyChooseUs': return <WhyChooseUsEditor />;
             case 'process': return <ProcessEditor />;
             case 'safety': return <SafetyEditor />;
-            case 'cta': return <ContactEditor />; // CTA is inside ContactEditor in my implementation above? Yes, partly.
-            
-            // Services Area
+            case 'cta': return <ContactEditor />;
             case 'servicesList': return <ServicesEditor />;
             case 'serviceAreaMap': return <ServiceAreaEditor />;
-            
-            // Company Info
             case 'companyDetails': return <CompanyEditor />;
-            case 'locations': return <LocationsEditor />; // Added Locations Editor
-            case 'contactPage': return <ContactEditor />; // Shared editor
+            case 'locations': return <LocationsEditor />;
+            case 'contactPage': return <ContactEditor />;
             case 'faqs': return <FaqEditor />;
             case 'seo': return <SeoEditor />;
             case 'employeeDirectory': return <EmployeeEditor />;
-
-            // Work
             case 'inquiries': return <BookingManager />;
             case 'jobs': 
                 return (
                     <div className="space-y-6">
                         <SectionHeader title="Job Cards" icon={Briefcase} description="Manage active jobs, quotes, and history." />
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-                            {/* Create New Card */}
                             <button 
-                                onClick={() => handleCreateJob()}
+                                onClick={handleCreateJob}
                                 className="bg-[#161817] border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 group hover:border-pestGreen/50 transition-colors cursor-pointer"
                             >
                                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-pestGreen/20 transition-colors">
@@ -1387,10 +1361,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                         </div>
                     </div>
                 );
-
-            // Creator
-            case 'creatorSettings': return <CreatorDashboard />; // Renamed
-            
+            case 'creatorSettings': return <CreatorDashboard />;
             default: return <div className="p-10 text-center text-gray-500">Select a section from the menu.</div>;
         }
     };
@@ -1417,13 +1388,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
         addJobCard(newJob);
     };
 
-    // Override renderContent for jobs case to use handleCreateJob
+    // Sub-Tabs Data Structure for Mobile Navigation
+    const subTabs = {
+        work: [
+            { id: 'jobs', label: 'Job Cards', icon: Briefcase },
+            { id: 'inquiries', label: 'Inquiries', icon: Inbox }
+        ],
+        homeLayout: [
+            { id: 'hero', label: 'Hero', icon: Image },
+            { id: 'about', label: 'About', icon: Info },
+            { id: 'whyChooseUs', label: 'Why Us', icon: ThumbsUp },
+            { id: 'process', label: 'Process', icon: Workflow },
+            { id: 'safety', label: 'Safety', icon: Shield },
+            { id: 'cta', label: 'CTA', icon: Phone }
+        ],
+        companyInfo: [
+            { id: 'companyDetails', label: 'Details', icon: Building2 },
+            { id: 'locations', label: 'Locations', icon: MapPin },
+            { id: 'contactPage', label: 'Contact', icon: Phone },
+            { id: 'employeeDirectory', label: 'Staff', icon: Users },
+            { id: 'faqs', label: 'FAQs', icon: HelpCircle },
+            { id: 'seo', label: 'SEO', icon: Search }
+        ],
+        servicesArea: [
+            { id: 'servicesList', label: 'Services', icon: Zap },
+            { id: 'serviceAreaMap', label: 'Area', icon: Map }
+        ],
+        creator: [
+            { id: 'creatorSettings', label: 'System', icon: Code2 }
+        ]
+    };
+
     const renderMainArea = () => {
          if (selectedJobId) {
             return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
         }
         
         if (activeSubTab === 'jobs') {
+             // ... Job Card Grid (reused logic)
              return (
                     <div className="space-y-6 animate-in fade-in">
                         <SectionHeader title="Job Cards" icon={Briefcase} description="Manage active jobs, quotes, and history." />
@@ -1477,114 +1479,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
         return renderContent();
     };
 
-
-    const NavItem = ({ id, label, icon: Icon, mainTab }: { id: AdminSubTab, label: string, icon: React.ElementType, mainTab: AdminMainTab }) => {
-        if (activeTab !== mainTab) return null;
-        return (
-            <button 
-                onClick={() => { setActiveSubTab(id); setSelectedJobId(null); setIsMobileMenuOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-sm mb-1 ${activeSubTab === id ? 'bg-pestGreen/10 text-pestGreen font-bold border border-pestGreen/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-                <Icon size={18} /> {label}
-            </button>
-        );
-    };
-
     return (
         <div 
             className="fixed inset-0 z-[9999] bg-[#0f1110] font-sans overflow-hidden text-white flex flex-col md:flex-row"
             style={{ zoom: "133.333%" }}
         >
-            
-            {/* FLOATING HAMBURGER (Mobile Only) */}
-            <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden fixed top-4 right-4 z-[120] bg-pestGreen text-white p-3 rounded-full shadow-3d hover:shadow-neon transition-all active:scale-95"
-            >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-
-            {/* FLOATING DROPDOWN MENU (Mobile Only) */}
-            <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        className="fixed top-16 right-4 z-[115] w-64 bg-[#161817] border border-white/10 rounded-2xl shadow-3d p-4 flex flex-col max-h-[70vh] overflow-y-auto md:hidden"
-                    >
-                         {/* Main Tabs Horizontal Scroll */}
-                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                             <button onClick={() => { setActiveTab('work'); setActiveSubTab('jobs'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'work' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Briefcase size={20}/></button>
-                             <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'homeLayout' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Layout size={20}/></button>
-                             <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'companyInfo' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Building2 size={20}/></button>
-                             <button onClick={() => { setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'servicesArea' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Zap size={20}/></button>
-                             {isCreator && (
-                                <button onClick={() => { setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null); }} className={`p-3 rounded-xl flex-shrink-0 flex items-center gap-2 border ${activeTab === 'creator' ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10'}`}><Code2 size={20}/></button>
-                             )}
+            {/* --- MOBILE STICKY HEADER (Upper Class) --- */}
+            <div className="md:hidden flex flex-col bg-[#0f1110]/95 backdrop-blur border-b border-white/10 z-[120]">
+                {/* Top Row: Logo & User */}
+                <div className="flex justify-between items-center px-4 py-3 border-b border-white/5">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-pestGreen rounded-lg flex items-center justify-center">
+                            <Bug size={18} className="text-white"/>
                         </div>
+                        <span className="font-black text-sm tracking-wide text-white">ADMIN</span>
+                    </div>
+                    <button onClick={onLogout} className="text-gray-400 hover:text-white bg-white/5 p-2 rounded-full">
+                        <LogOut size={16} />
+                    </button>
+                </div>
 
-                        {/* Sub Tabs List */}
-                        <div className="flex-1 space-y-2">
-                             {/* Re-use logic for showing sub-tabs based on activeTab */}
-                             {activeTab === 'work' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Daily Tasks</div>
-                                    <NavItem id="jobs" label="Job Cards" icon={Briefcase} mainTab="work" />
-                                    <NavItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
-                                </>
-                            )}
-                            {activeTab === 'homeLayout' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sections</div>
-                                    <NavItem id="hero" label="Hero Banner" icon={Image} mainTab="homeLayout" />
-                                    <NavItem id="about" label="About Intro" icon={Info} mainTab="homeLayout" />
-                                    <NavItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
-                                    <NavItem id="process" label="Process Steps" icon={Workflow} mainTab="homeLayout" />
-                                    <NavItem id="safety" label="Safety Badges" icon={Shield} mainTab="homeLayout" />
-                                    <NavItem id="cta" label="Call To Action" icon={Phone} mainTab="homeLayout" />
-                                </>
-                            )}
-                            {activeTab === 'companyInfo' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Details</div>
-                                    <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
-                                    <NavItem id="locations" label="Locations" icon={MapPin} mainTab="companyInfo" />
-                                    <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
-                                    <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">SEO & Help</div>
-                                    <NavItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
-                                    <NavItem id="seo" label="SEO Metadata" icon={Search} mainTab="companyInfo" />
-                                </>
-                            )}
-                            {activeTab === 'servicesArea' && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Offerings</div>
-                                    <NavItem id="servicesList" label="Service List" icon={Zap} mainTab="servicesArea" />
-                                    <NavItem id="serviceAreaMap" label="Service Area" icon={Map} mainTab="servicesArea" />
-                                </>
-                            )}
-                            {activeTab === 'creator' && isCreator && (
-                                <>
-                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tools</div>
-                                    <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
-                                </>
-                            )}
-                        </div>
-                        
-                        <div className="mt-8 pt-4 border-t border-white/10">
-                             <button onClick={onLogout} className="w-full bg-red-500/10 text-red-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2"><LogOut size={20}/> Logout</button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                {/* Second Row: Main Tabs (Horizontal Scroll) */}
+                <div className="flex overflow-x-auto gap-4 px-4 py-3 scrollbar-hide border-b border-white/5 items-center">
+                    <button onClick={() => {setActiveTab('work'); setActiveSubTab('jobs'); setSelectedJobId(null);}} className={`flex items-center gap-2 whitespace-nowrap text-sm font-bold transition-colors ${activeTab === 'work' ? 'text-pestGreen' : 'text-gray-500'}`}>
+                        <Briefcase size={16}/> Work
+                    </button>
+                    <div className="w-[1px] h-4 bg-white/10"></div>
+                    <button onClick={() => {setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null);}} className={`flex items-center gap-2 whitespace-nowrap text-sm font-bold transition-colors ${activeTab === 'homeLayout' ? 'text-pestGreen' : 'text-gray-500'}`}>
+                        <Layout size={16}/> Home Page
+                    </button>
+                    <div className="w-[1px] h-4 bg-white/10"></div>
+                    <button onClick={() => {setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null);}} className={`flex items-center gap-2 whitespace-nowrap text-sm font-bold transition-colors ${activeTab === 'companyInfo' ? 'text-pestGreen' : 'text-gray-500'}`}>
+                        <Building2 size={16}/> Company
+                    </button>
+                    <div className="w-[1px] h-4 bg-white/10"></div>
+                    <button onClick={() => {setActiveTab('servicesArea'); setActiveSubTab('servicesList'); setSelectedJobId(null);}} className={`flex items-center gap-2 whitespace-nowrap text-sm font-bold transition-colors ${activeTab === 'servicesArea' ? 'text-pestGreen' : 'text-gray-500'}`}>
+                        <Zap size={16}/> Services
+                    </button>
+                    {isCreator && (
+                        <>
+                            <div className="w-[1px] h-4 bg-white/10"></div>
+                            <button onClick={() => {setActiveTab('creator'); setActiveSubTab('creatorSettings'); setSelectedJobId(null);}} className={`flex items-center gap-2 whitespace-nowrap text-sm font-bold transition-colors ${activeTab === 'creator' ? 'text-pestGreen' : 'text-gray-500'}`}>
+                                <Code2 size={16}/> System
+                            </button>
+                        </>
+                    )}
+                </div>
 
-            {/* Sidebar Main (Desktop Only) */}
+                {/* Third Row: Sub Tabs (Pills) */}
+                <div className="flex overflow-x-auto gap-2 px-4 py-3 scrollbar-hide bg-[#161817]">
+                    {(subTabs[activeTab] || []).map(sub => (
+                        <button
+                            key={sub.id}
+                            onClick={() => { setActiveSubTab(sub.id as AdminSubTab); setSelectedJobId(null); }}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeSubTab === sub.id ? 'bg-pestGreen text-white shadow-lg' : 'bg-white/5 text-gray-400 border border-white/5'}`}
+                        >
+                            <sub.icon size={12} /> {sub.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Desktop Sidebar (unchanged) */}
             <aside className="hidden md:flex w-20 bg-[#0a0a0a] border-r border-white/5 flex-col items-center py-6 gap-6 z-20">
                 <div className="w-10 h-10 bg-pestGreen rounded-xl flex items-center justify-center shadow-neon mb-4">
                    <Bug className="text-white" size={24} />
                 </div>
-                
+                {/* ... Sidebar Icons ... */}
                 <button onClick={() => { setActiveTab('work'); setActiveSubTab('jobs'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'work' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Work"><Briefcase size={24}/></button>
                 <button onClick={() => { setActiveTab('homeLayout'); setActiveSubTab('hero'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'homeLayout' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Website Layout"><Layout size={24}/></button>
                 <button onClick={() => { setActiveTab('companyInfo'); setActiveSubTab('companyDetails'); setSelectedJobId(null); }} className={`p-3 rounded-xl transition-all ${activeTab === 'companyInfo' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`} title="Company Info"><Building2 size={24}/></button>
@@ -1598,7 +1559,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 </div>
             </aside>
 
-            {/* Sidebar Sub (Contextual - Desktop Only) */}
+            {/* Sub-Sidebar Desktop (unchanged) */}
             <aside className="hidden md:flex w-64 bg-[#161817] border-r border-white/5 flex-col py-6 px-4 z-10">
                 <div className="mb-6 px-2">
                     <h2 className="text-xl font-black uppercase tracking-tight text-white mb-1">
@@ -1610,63 +1571,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     </h2>
                     <p className="text-xs text-gray-500 font-medium">Dashboard Menu</p>
                 </div>
-
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {/* Work Menu */}
-                    {activeTab === 'work' && (
-                        <>
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Daily Tasks</div>
-                            <NavItem id="jobs" label="Job Cards" icon={Briefcase} mainTab="work" />
-                            <NavItem id="inquiries" label="Web Inquiries" icon={Inbox} mainTab="work" />
-                        </>
-                    )}
-
-                    {/* Home Layout Menu */}
-                    {activeTab === 'homeLayout' && (
-                        <>
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Sections</div>
-                            <NavItem id="hero" label="Hero Banner" icon={Image} mainTab="homeLayout" />
-                            <NavItem id="about" label="About Intro" icon={Info} mainTab="homeLayout" />
-                            <NavItem id="whyChooseUs" label="Why Choose Us" icon={ThumbsUp} mainTab="homeLayout" />
-                            <NavItem id="process" label="Process Steps" icon={Workflow} mainTab="homeLayout" />
-                            <NavItem id="safety" label="Safety Badges" icon={Shield} mainTab="homeLayout" />
-                            <NavItem id="cta" label="Call To Action" icon={Phone} mainTab="homeLayout" />
-                        </>
-                    )}
-
-                    {/* Company Info Menu */}
-                    {activeTab === 'companyInfo' && (
-                        <>
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Details</div>
-                            <NavItem id="companyDetails" label="Core Details" icon={Building2} mainTab="companyInfo" />
-                            <NavItem id="locations" label="Locations" icon={MapPin} mainTab="companyInfo" />
-                            <NavItem id="contactPage" label="Contact Page" icon={Phone} mainTab="companyInfo" />
-                            <NavItem id="employeeDirectory" label="Staff & Access" icon={Users} mainTab="companyInfo" />
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-6 px-2">SEO & Help</div>
-                            <NavItem id="faqs" label="FAQs" icon={HelpCircle} mainTab="companyInfo" />
-                            <NavItem id="seo" label="SEO Metadata" icon={Search} mainTab="companyInfo" />
-                        </>
-                    )}
-
-                    {/* Services Menu */}
-                    {activeTab === 'servicesArea' && (
-                        <>
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Offerings</div>
-                            <NavItem id="servicesList" label="Service List" icon={Zap} mainTab="servicesArea" />
-                            <NavItem id="serviceAreaMap" label="Service Area" icon={Map} mainTab="servicesArea" />
-                        </>
-                    )}
-
-                    {/* System Menu */}
-                    {activeTab === 'creator' && isCreator && (
-                        <>
-                            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 mt-2 px-2">Tools</div>
-                            <NavItem id="creatorSettings" label="System Dashboard" icon={Code2} mainTab="creator" />
-                        </>
-                    )}
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                    {(subTabs[activeTab] || []).map(sub => (
+                        <button 
+                            key={sub.id}
+                            onClick={() => { setActiveSubTab(sub.id as AdminSubTab); setSelectedJobId(null); }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-sm mb-1 ${activeSubTab === sub.id ? 'bg-pestGreen/10 text-pestGreen font-bold border border-pestGreen/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <sub.icon size={18} /> {sub.label}
+                        </button>
+                    ))}
                 </div>
             </aside>
-
 
             {/* Main Content Render */}
             <main className="flex-1 bg-[#0f1110] relative overflow-hidden flex flex-col">
@@ -1687,8 +1603,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     </div>
                 </header>
                 
-                <div className="flex-1 overflow-y-auto custom-scrollbar pt-16 md:pt-10 px-0 md:px-10 pb-10">
-                     <div className="p-2 md:p-0"> {/* Wrapper for mobile padding control */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar pt-0 md:pt-10 px-0 md:px-10 pb-10">
+                     <div className="p-2 md:p-0">
                         {renderMainArea()}
                      </div>
                 </div>

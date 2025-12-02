@@ -38,7 +38,7 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-pestGreen/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-pestBrown/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-[95%] 2xl:max-w-[1800px] mx-auto px-4 md:px-6 relative z-10">
+      <div className="w-full max-w-[95%] xl:max-w-[1440px] mx-auto px-4 md:px-6 relative z-10">
         {/* UPDATED: Forced grid-cols-2 instead of grid-cols-1 to prevent stacking */}
         <div className="grid grid-cols-2 gap-4 md:gap-20 items-center">
             

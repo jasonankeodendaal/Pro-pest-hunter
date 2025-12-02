@@ -5,15 +5,59 @@
   "id": "/",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#eef2ee",
   "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
+  "launch_handler": {
+    "client_mode": "auto"
+  },
   "icons": [
     {
       "src": "https://i.ibb.co/zHBzVwRV/image.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Service",
+      "short_name": "Book",
+      "description": "Book a pest control service",
+      "url": "/services",
+      "icons": [{ "src": "https://i.ibb.co/zHBzVwRV/image.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Contact Us",
+      "short_name": "Contact",
+      "description": "Get in touch with us",
+      "url": "/contact",
+      "icons": [{ "src": "https://i.ibb.co/zHBzVwRV/image.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/contact",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+pest",
+      "url": "/?ref=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/json": [".json"]
+      }
     }
   ],
   "screenshots": [

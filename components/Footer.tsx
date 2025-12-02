@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Lock, ArrowUpRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -13,7 +12,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
 
   return (
     <footer className="bg-[#1a1a1a] text-gray-400 py-8 md:py-12 border-t border-white/5">
-      <div className="w-full max-w-[95%] 2xl:max-w-[1800px] mx-auto px-4">
+      <div className="w-full max-w-[95%] xl:max-w-[1440px] mx-auto px-4">
         <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
             {/* Brand */}
             <div className="col-span-1">
@@ -55,12 +54,15 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, navigateTo }) => {
             {/* Links 2 */}
             <div className="col-span-1">
                 <h5 className="text-white font-bold text-[10px] md:text-sm mb-2">Action</h5>
-                <ul className="space-y-1 text-[9px] md:text-sm">
+                <ul className="space-y-2 text-[9px] md:text-sm">
                     <li><button onClick={() => navigateTo('services')} className="text-pestGreen font-bold flex items-center gap-1 text-left w-full">Book Now <ArrowUpRight size={10} /></button></li>
                     <li><button onClick={() => navigateTo('contact')} className="hover:text-pestGreen text-left w-full">Contact</button></li>
-                    <li>
-                        <button onClick={onAdminClick} className="flex items-center gap-1 hover:text-white opacity-50 hover:opacity-100 mt-2 text-left w-full">
-                            <Lock size={8} /> <span className="text-[8px]">Admin</span>
+                    <li className="pt-2">
+                        <button 
+                            onClick={onAdminClick} 
+                            className="flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-md transition-all w-fit"
+                        >
+                            <Lock size={10} /> <span className="text-[10px]">Admin Access</span>
                         </button>
                     </li>
                 </ul>

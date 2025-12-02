@@ -34,7 +34,7 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Fetch Event: Handle requests
+// Fetch Event: Handle requests with Offline Logic
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
             cache.put(event.request, networkResponse.clone());
             return networkResponse;
           }).catch(() => {
-             // If offline and image missing, just return nothing or placeholder
+             // If offline and image missing, return nothing or a placeholder if configured
           });
           return cachedResponse || fetchPromise;
         });
@@ -79,4 +79,48 @@ self.addEventListener('fetch', (event) => {
       return cachedResponse || fetch(event.request);
     })
   );
+});
+
+// --- ADVANCED PWA FEATURES ---
+
+// Push Notifications
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'Pro Pest Hunters';
+  const options = {
+    body: data.body || 'New update available.',
+    icon: 'https://i.ibb.co/zHBzVwRV/image.png',
+    badge: 'https://i.ibb.co/zHBzVwRV/image.png',
+    data: { url: data.url || '/' }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification Click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        return clientList[0].focus();
+      }
+      return clients.openWindow(event.notification.data.url || '/');
+    })
+  );
+});
+
+// Background Sync (Queuing offline requests)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-bookings') {
+    // Logic to sync offline bookings would go here
+    console.log('[ServiceWorker] Background Syncing Bookings...');
+  }
+});
+
+// Periodic Sync (Updating content in background)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'update-content') {
+    console.log('[ServiceWorker] Periodic Sync Triggered');
+    // Logic to fetch fresh content
+  }
 });

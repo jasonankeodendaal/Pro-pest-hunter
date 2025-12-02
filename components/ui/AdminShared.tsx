@@ -1,4 +1,5 @@
-import React, { useState, useMemo, ReactNode } from 'react';
+
+import React, { useState, useMemo, ReactNode, Component } from 'react';
 import { Upload, X, Trash2, ChevronRight, Video, Camera, Search, Circle, AlertTriangle, Shield, Bug, Briefcase, Hammer, Trees, Heart, User, CheckCircle, Zap } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import * as LucideIcons from 'lucide-react'; 
@@ -37,15 +38,19 @@ interface IconErrorBoundaryState {
   hasError: boolean;
 }
 
-export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
+export class IconErrorBoundary extends Component<IconErrorBoundaryProps, IconErrorBoundaryState> {
     constructor(props: IconErrorBoundaryProps) {
         super(props);
         this.state = { hasError: false };
     }
 
-    static getDerivedStateFromError(error: any) { return { hasError: true }; }
+    static getDerivedStateFromError(error: any): IconErrorBoundaryState { 
+        return { hasError: true }; 
+    }
     
-    componentDidCatch(error: any) { console.warn("Icon render failed:", error); }
+    componentDidCatch(error: any) { 
+        console.warn("Icon render failed:", error); 
+    }
     
     render() {
         if (this.state.hasError) return this.props.fallback;
