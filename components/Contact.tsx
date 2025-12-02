@@ -120,7 +120,7 @@ export const Contact: React.FC<ContactProps> = ({ onBookNow }) => {
                         </div>
                     </div>
                     
-                    {/* Desktop Map Frame */}
+                    {/* Desktop Map Frame - NO IMAGE FALLBACK */}
                     {content.contact.mapEmbedUrl && (
                         <div className="mt-auto pt-4 border-t border-white/10 hidden lg:block">
                             <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg h-48">

@@ -59,7 +59,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onBookClick, onAdminClic
                 className="flex items-center gap-2 bg-white/10 hover:bg-white hover:text-pestBrown text-white border border-white/20 rounded-xl px-3 py-2 md:px-4 md:py-2.5 font-bold transition-all text-xs md:text-sm"
                 title="Client Login"
               >
-                  <User size={16} /> <span className="hidden md:inline">Login</span>
+                  <User size={16} /> <span>Login</span>
               </button>
 
               <button 

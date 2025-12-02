@@ -93,7 +93,7 @@ export const ProcessAndArea: React.FC = () => {
                 className="relative flex-grow min-h-[350px] md:min-h-[450px] bg-pestStone rounded-[50px] overflow-hidden shadow-thick border-4 border-white group perspective-1000 cursor-zoom-in"
                 onClick={() => setIsMapOpen(true)}
             >
-                {/* Map Content */}
+                {/* Map Content - STATIC IMAGE REMOVED */}
                 <div className="absolute inset-0 bg-pestLight transition-transform duration-700 group-hover:scale-105">
                     {content.serviceArea.mapEmbedUrl ? (
                          <iframe 
@@ -107,13 +107,10 @@ export const ProcessAndArea: React.FC = () => {
                             className="w-full h-full grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                         />
                     ) : (
-                        content.serviceArea.mapImage ? (
-                            <img src={content.serviceArea.mapImage} alt="Service Area Map" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
-                        ) : (
-                            <div className="relative w-full h-full flex items-center justify-center">
-                                <MapPin size={64} className="text-pestBrown/30 mx-auto mb-2" />
-                            </div>
-                        )
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <MapPin size={64} className="text-pestBrown/30 mx-auto mb-2" />
+                            <p className="absolute bottom-10 text-xs font-bold text-pestBrown/30 uppercase">No Map Embedded</p>
+                        </div>
                     )}
                 </div>
 
@@ -176,14 +173,10 @@ export const ProcessAndArea: React.FC = () => {
                             title="Full Service Area Map"
                         />
                     ) : (
-                        content.serviceArea.mapImage ? (
-                            <img src={content.serviceArea.mapImage} alt="Full Service Area Map" className="w-full h-full object-contain" />
-                        ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-pestLight text-pestBrown/40 p-10 text-center">
-                                <MapPin size={64} className="mb-4 opacity-50" />
-                                <h3 className="text-2xl font-black uppercase opacity-50">No Map Uploaded</h3>
-                            </div>
-                        )
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-pestLight text-pestBrown/40 p-10 text-center">
+                            <MapPin size={64} className="mb-4 opacity-50" />
+                            <h3 className="text-2xl font-black uppercase opacity-50">No Map Uploaded</h3>
+                        </div>
                     )}
                 </motion.div>
             </motion.div>

@@ -95,6 +95,7 @@ export interface Employee {
   allergies?: string;
   doctorsNumbers: DoctorContact[];
   medicalIssues?: string;
+  bio?: string;
   documents: Document[];
   permissions: EmployeePermissions;
 }
@@ -110,6 +111,7 @@ export interface ClientUser {
   profileImage?: string | null;
   notes?: string;
   linkedEmails?: string[];
+  nextFollowUpDate?: string; // New: For tracking recurring business
 }
 
 export interface Location {
@@ -329,6 +331,7 @@ export interface JobCard {
   
   assessmentDate: string;
   serviceDate?: string;
+  serviceTime?: string; // New: For scheduling execution
   technicianId: string;
   
   selectedServices: string[];
@@ -491,13 +494,13 @@ export interface ContentState {
   inventory: InventoryItem[];
 }
 
-export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator';
+export type AdminMainTab = 'homeLayout' | 'servicesArea' | 'companyInfo' | 'work' | 'creator' | 'profile';
 export type AdminSubTab = 
   'systemGuide' | 'hero' | 'about' | 'whyChooseUs' | 'process' | 'safety' | 'cta' |
   'servicesList' | 'serviceAreaMap' |
   'companyDetails' | 'locations' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
   'jobs' | 'inquiries' | 'bookingSettings' | 'clients' | 'inventory' |
-  'creatorSettings' | 'deploymentGuide';
+  'creatorSettings' | 'deploymentGuide' | 'myProfile';
 
 export interface AdminDashboardProps {
   onLogout: () => void;

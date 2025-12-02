@@ -8,20 +8,13 @@ import * as LucideIcons from 'lucide-react';
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
 
 // --- ROBUST ICON FILTERING ---
-// Filters out internal Lucide exports that cause crashes (like createReactComponent, default, etc.)
 const getValidIconNames = () => {
     return Object.keys(LucideIcons).filter(key => {
-        // 1. Must start with Uppercase (React Component convention)
         if (!/^[A-Z]/.test(key)) return false;
-        
-        // 2. Exclude specific internal keywords/exports known to crash
         const blacklist = ['Icon', 'LucideProps', 'LucideIcon', 'createReactComponent', 'default'];
         if (blacklist.includes(key)) return false;
-
-        // 3. Verify it's actually a function/object (Component)
         const val = (LucideIcons as any)[key];
         if (typeof val !== 'function' && typeof val !== 'object') return false;
-
         return true;
     });
 };
@@ -29,7 +22,6 @@ const getValidIconNames = () => {
 const ValidIconNames = getValidIconNames();
 
 // --- ERROR BOUNDARY FOR ICONS ---
-// Prevents one bad icon from white-screening the entire app
 interface IconErrorBoundaryProps {
   fallback: ReactNode;
   children?: ReactNode;
@@ -50,41 +42,48 @@ export class IconErrorBoundary extends React.Component<IconErrorBoundaryProps, I
     }
 
     static getDerivedStateFromError(error: any): IconErrorBoundaryState { 
-        // Update state so the next render will show the fallback UI.
         return { hasError: true }; 
     }
     
     componentDidCatch(error: any, errorInfo: React.ErrorInfo) { 
-        // You can also log the error to an error reporting service
         console.warn("Icon render failed:", error, errorInfo); 
     }
     
     render() {
         const { fallback, children } = this.props;
         if (this.state.hasError) {
-            // You can render any custom fallback UI
             return fallback;
         }
-
         return children;
     }
 }
 
 // --- SHARED COMPONENTS ---
 
-export const Input = ({ label, value, onChange, type = "text", placeholder, disabled = false, className = "" }: any) => (
-  <div className={`space-y-1 ${className}`}>
-    {label && <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">{label}</label>}
-    <input 
-      type={type} 
-      value={value} 
-      onChange={e => onChange(e.target.value)} 
-      placeholder={placeholder}
-      disabled={disabled}
-      className={`w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none transition-colors focus:bg-[#1a1d1c] ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    />
-  </div>
-);
+export const Input = ({ label, value, onChange, type = "text", placeholder, disabled = false, className = "" }: any) => {
+  
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      // If it's a number input and value is 0, select it so next keystroke replaces it
+      if (type === 'number' && (value === 0 || value === '0')) {
+          e.target.select();
+      }
+  };
+
+  return (
+    <div className={`space-y-1 ${className}`}>
+      {label && <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">{label}</label>}
+      <input 
+        type={type} 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        onFocus={handleFocus}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none transition-colors focus:bg-[#1a1d1c] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      />
+    </div>
+  );
+};
 
 export const TextArea = ({ label, value, onChange, rows = 4, placeholder, className = "" }: any) => (
   <div className={`space-y-1 ${className}`}>

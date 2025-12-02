@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
 import { JobCardManager } from './JobCardManager';
 import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShared';
@@ -8,7 +8,7 @@ import { Employee, ClientUser, JobCard, Booking, AdminMainTab, AdminSubTab, Admi
 import { 
   Clipboard, Inbox, Users, HelpCircle, Layout, Briefcase, Map as MapIcon, Info, Workflow, ThumbsUp, Shield, PhoneCall, Building2, MapPin, MousePointerClick, Search, Database, LogOut, PlusCircle, 
   ChevronRight, Mail, Phone, Edit, Lock, Plus, CheckCircle, Video, Camera, Save, X, Trash2, ArrowRight, Download, Upload, Zap, User, FileText, Globe, Key, AlertTriangle, Monitor, RotateCcw,
-  Calendar, Package, ClipboardList
+  Calendar, Package, ClipboardList, ExternalLink, BellRing, UserCog, RefreshCcw, HeartPulse, Stethoscope
 } from 'lucide-react';
 
 // --- HELPER COMPONENTS ---
@@ -24,6 +24,29 @@ const SectionHeader = ({ title, description, icon: Icon, helpTopic }: any) => (
     </div>
     <p className="text-gray-400 max-w-2xl">{description}</p>
   </div>
+);
+
+const SaveButton = ({ onClick }: { onClick?: () => void }) => (
+    <div className="pt-6 border-t border-white/10 mt-6 flex justify-end">
+        <button 
+            onClick={() => {
+                if (onClick) onClick();
+                alert("Changes Saved Successfully!");
+            }}
+            className="bg-pestGreen hover:bg-white hover:text-pestGreen text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all"
+        >
+            <Save size={18} /> Save Changes
+        </button>
+    </div>
+);
+
+const CheckUrlButton = ({ url }: { url: string }) => (
+    <button 
+        onClick={() => url ? window.open(url, '_blank') : alert("Please enter a URL first")}
+        className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-2 rounded-lg text-xs font-bold transition-all border border-blue-500/30 flex items-center gap-2 h-fit"
+    >
+        <ExternalLink size={14} /> Check URL
+    </button>
 );
 
 // --- EDITORS ---
@@ -48,6 +71,7 @@ const HeroEditor = () => {
             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5">
                 <FileUpload label="Background Image (Fallback)" value={hero.bgImage} onChange={(v: string) => handleChange('bgImage', v)} />
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -85,6 +109,7 @@ const AboutEditor = () => {
                      ))}
                  </div>
              </div>
+             <SaveButton />
         </div>
     );
 };
@@ -190,6 +215,7 @@ const ServicesEditor = () => {
                      </div>
                  ))}
              </div>
+             <SaveButton />
         </div>
     );
 };
@@ -218,6 +244,7 @@ const FaqEditor = () => {
                 ))}
                 <button onClick={addFaq} className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:bg-pestGreen hover:text-white transition-colors flex items-center justify-center gap-2 font-bold"><Plus size={16}/> Add FAQ</button>
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -241,6 +268,7 @@ const ProcessEditor = () => {
                     </div>
                 ))}
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -263,6 +291,7 @@ const WhyChooseUsEditor = () => {
                     </div>
                 ))}
             </div>
+            <SaveButton />
          </div>
     );
 };
@@ -288,6 +317,7 @@ const SafetyEditor = () => {
              <div className="mt-6">
                 <FileUpload label="Certificates / Logos" value={content.safety.certificates} onChange={(v: string[]) => update('certificates', v)} multiple={true} />
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -306,13 +336,16 @@ const ServiceAreaEditor = () => {
                      <TextArea value={content.serviceArea.towns.join(', ')} onChange={(v: string) => update('towns', v.split(',').map(s => s.trim()))} rows={2} />
                 </div>
                 <div className="col-span-full">
-                     <Input label="Google Maps Embed URL (Iframe src)" value={content.serviceArea.mapEmbedUrl || ''} onChange={(v: string) => update('mapEmbedUrl', v)} placeholder="https://www.google.com/maps/embed?..." />
-                     <p className="text-xs text-gray-500 mt-1">Paste the 'src' from Google Maps Share &rarr; Embed a Map.</p>
-                </div>
-                <div className="col-span-full">
-                     <FileUpload label="Static Map Image (Fallback)" value={content.serviceArea.mapImage} onChange={(v: string) => update('mapImage', v)} />
+                     <div className="flex items-end gap-2">
+                        <div className="flex-1">
+                            <Input label="Google Maps Embed URL (Iframe src)" value={content.serviceArea.mapEmbedUrl || ''} onChange={(v: string) => update('mapEmbedUrl', v)} placeholder="https://www.google.com/maps/embed?..." />
+                        </div>
+                        <CheckUrlButton url={content.serviceArea.mapEmbedUrl || ''} />
+                     </div>
+                     <p className="text-xs text-gray-500 mt-1">Paste the 'src' from Google Maps Share &rarr; Embed a Map. (Static Images Removed)</p>
                 </div>
             </div>
+            <SaveButton />
          </div>
     );
 };
@@ -327,7 +360,12 @@ const ContactEditor = () => {
                 <h3 className="text-white font-bold">Contact Info & Map</h3>
                 <Input label="Page Title" value={content.contact.title} onChange={(v: string) => updateContent('contact', { title: v })} />
                 <Input label="Subtitle" value={content.contact.subtitle} onChange={(v: string) => updateContent('contact', { subtitle: v })} />
-                <Input label="Map Embed URL" value={content.contact.mapEmbedUrl || ''} onChange={(v: string) => updateContent('contact', { mapEmbedUrl: v })} />
+                <div className="flex items-end gap-2">
+                    <div className="flex-1">
+                        <Input label="Map Embed URL" value={content.contact.mapEmbedUrl || ''} onChange={(v: string) => updateContent('contact', { mapEmbedUrl: v })} />
+                    </div>
+                    <CheckUrlButton url={content.contact.mapEmbedUrl || ''} />
+                </div>
             </div>
 
             <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
@@ -336,6 +374,7 @@ const ContactEditor = () => {
                 <Input label="CTA Subtitle" value={content.bookCTA.subtitle} onChange={(v: string) => updateContent('bookCTA', { subtitle: v })} />
                 <Input label="Button Text" value={content.bookCTA.buttonText} onChange={(v: string) => updateContent('bookCTA', { buttonText: v })} />
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -373,6 +412,7 @@ const CompanyEditor = () => {
                      <Input label="Branch Code" value={content.bankDetails.branchCode} onChange={(v: string) => updateBank('branchCode', v)} />
                 </div>
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -410,6 +450,7 @@ const LocationsEditor = () => {
                      </div>
                  ))}
              </div>
+             <SaveButton />
         </div>
     );
 };
@@ -449,6 +490,7 @@ const BookingModalEditor = () => {
                 <Input label="Success Message" value={content.bookingModal.successMessage} onChange={(v: string) => update('successMessage', v)} />
                 <TextArea label="Terms Text (Footer)" value={content.bookingModal.termsText || ''} onChange={(v: string) => update('termsText', v)} rows={2} />
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -472,6 +514,7 @@ const SeoEditor = () => {
                     <TextArea value={content.seo.structuredDataJSON || ''} onChange={(v: string) => update('structuredDataJSON', v)} rows={6} className="font-mono text-xs" />
                 </div>
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -498,6 +541,7 @@ const CreatorDashboard = ({ loggedInUser }: { loggedInUser: Employee | null }) =
                         <FileUpload label="Logo" value={content.creatorWidget.logo} onChange={(v: string) => updateContent('creatorWidget', { logo: v })} />
                         <FileUpload label="Background" value={content.creatorWidget.background} onChange={(v: string) => updateContent('creatorWidget', { background: v })} />
                     </div>
+                    <SaveButton />
                 </div>
             )}
 
@@ -535,6 +579,48 @@ const CreatorDashboard = ({ loggedInUser }: { loggedInUser: Employee | null }) =
                     )}
                 </div>
             </div>
+        </div>
+    );
+};
+
+// --- PROFILE SETTINGS ---
+const ProfileSettings = ({ loggedInUser }: { loggedInUser: Employee | null }) => {
+    const { updateEmployee, content } = useContent();
+    // Get fresh user data from content instead of props to ensure updates reflect
+    const user = content.employees.find(e => e.id === loggedInUser?.id) || loggedInUser;
+    
+    const [form, setForm] = useState<Partial<Employee>>(user || {});
+
+    if (!user) return null;
+
+    const handleSave = () => {
+        updateEmployee(user.id, form);
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <SectionHeader title="My Profile & Settings" description="Manage your personal details and medical information for safety." icon={UserCog} />
+            
+            <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input label="Full Name" value={form.fullName} onChange={(v: string) => setForm({...form, fullName: v})} />
+                    <Input label="Email (Login)" value={form.email} onChange={(v: string) => setForm({...form, email: v})} />
+                    <Input label="Phone Number" value={form.tel} onChange={(v: string) => setForm({...form, tel: v})} />
+                    <Input label="PIN Code" value={form.pin} onChange={(v: string) => setForm({...form, pin: v})} />
+                </div>
+
+                <div className="border-t border-white/10 pt-6">
+                    <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-red-400">
+                        <HeartPulse size={20} /> Medical & Safety Info (Admins can view)
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                        <TextArea label="Allergies (Bee stings, Chemicals, etc)" value={form.allergies || ''} onChange={(v: string) => setForm({...form, allergies: v})} rows={2} placeholder="e.g. Allergic to Penicillin" />
+                        <TextArea label="Medical Conditions / Medications" value={form.medicalIssues || ''} onChange={(v: string) => setForm({...form, medicalIssues: v})} rows={2} placeholder="e.g. Asthmatic, carrying inhaler" />
+                        <TextArea label="Personal Bio / Notes" value={form.bio || ''} onChange={(v: string) => setForm({...form, bio: v})} rows={3} placeholder="Brief bio or notes..." />
+                    </div>
+                </div>
+            </div>
+            <SaveButton onClick={handleSave} />
         </div>
     );
 };
@@ -621,6 +707,7 @@ const InventoryManager = () => {
                      </div>
                  ))}
              </div>
+             <SaveButton />
         </div>
     );
 };
@@ -632,7 +719,7 @@ const BookingsViewer = () => {
     const [isManualOpen, setIsManualOpen] = useState(false);
     const [manualForm, setManualForm] = useState({ name: '', phone: '', email: '', service: '', address: '', date: '', time: '' });
     
-    const sortedBookings = useMemo(() => [...content.bookings].sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()), [content.bookings]);
+    const sortedBookings = useMemo(() => [...(content.bookings || [])].sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()), [content.bookings]);
 
     const handleManualSubmit = () => {
         if(!manualForm.name || !manualForm.phone) return alert("Name and Phone required");
@@ -746,6 +833,7 @@ const BookingsViewer = () => {
                     </div>
                 ))}
             </div>
+            <SaveButton />
         </div>
     );
 };
@@ -753,7 +841,7 @@ const BookingsViewer = () => {
 // --- CLIENT MANAGER ---
 
 const ClientManager = () => {
-    const { content, updateJobCard, addClientUser } = useContent();
+    const { content, updateJobCard, addClientUser, updateClientUser } = useContent();
     const [selectedClient, setSelectedClient] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingClient, setEditingClient] = useState<{name: string, email: string, phone: string, address: string} | null>(null);
@@ -780,7 +868,8 @@ const ClientManager = () => {
                     jobs: [], 
                     bookings: [], 
                     totalSpend: 0, 
-                    portalAccess: null 
+                    portalAccess: null,
+                    nextFollowUpDate: null 
                 });
             }
             const client = clientMap.get(key);
@@ -796,7 +885,7 @@ const ClientManager = () => {
             }
         });
 
-        // Map Portal Users
+        // Map Portal Users & Follow-Up Info
         if(content.clientUsers) {
             content.clientUsers.forEach(cu => {
                 // Try find by email first
@@ -804,6 +893,7 @@ const ClientManager = () => {
                 for(let [key, val] of clientMap) {
                     if (val.email && cu.email && val.email.toLowerCase() === cu.email.toLowerCase()) {
                         val.portalAccess = cu;
+                        val.nextFollowUpDate = cu.nextFollowUpDate;
                         matched = true;
                         break;
                     }
@@ -818,8 +908,14 @@ const ClientManager = () => {
                             jobs: [],
                             bookings: [],
                             totalSpend: 0,
-                            portalAccess: cu
+                            portalAccess: cu,
+                            nextFollowUpDate: cu.nextFollowUpDate
                         });
+                     } else {
+                         // Match by name if email failed but name matches exactly
+                         const c = clientMap.get(cu.fullName);
+                         c.portalAccess = cu;
+                         c.nextFollowUpDate = cu.nextFollowUpDate;
                      }
                 }
             });
@@ -851,6 +947,15 @@ const ClientManager = () => {
         alert(`Portal access granted for ${newClientUser.fullName}. Password: ${newClientUser.pin}`);
     };
 
+    const handleResetPin = () => {
+        if(!activeClientData || !activeClientData.portalAccess) return;
+        const newPin = prompt("Enter new 4-digit PIN for client:", "1234");
+        if(newPin && newPin.length >= 4) {
+            updateClientUser(activeClientData.portalAccess.id, { pin: newPin });
+            alert(`PIN Reset successfully for ${activeClientData.name}. New PIN: ${newPin}`);
+        }
+    };
+
     const handleEditSave = () => {
         if (!editingClient || !activeClientData) return;
         const activeJobs = activeClientData.jobs.filter((j: JobCard) => ['Assessment', 'Quote_Builder', 'Quote_Sent', 'Job_Scheduled', 'Job_In_Progress'].includes(j.status));
@@ -873,6 +978,12 @@ const ClientManager = () => {
         setEditingClient(null);
         setSelectedClient(null); 
         setTimeout(() => setSelectedClient(activeClientData.name), 100);
+    };
+
+    // Check if follow up is due
+    const isFollowUpDue = (dateStr?: string) => {
+        if (!dateStr) return false;
+        return new Date(dateStr) <= new Date();
     };
 
     if (selectedClient && activeClientData) {
@@ -918,14 +1029,34 @@ const ClientManager = () => {
                     </div>
                 )}
 
+                {/* Follow Up Alert in Details */}
+                {isFollowUpDue(activeClientData.nextFollowUpDate) && (
+                    <div className="bg-orange-500/20 border border-orange-500 p-4 rounded-xl flex items-center justify-between animate-pulse">
+                        <div className="flex items-center gap-3 text-orange-400">
+                            <BellRing size={24} />
+                            <div>
+                                <h4 className="font-bold">Follow-Up Due!</h4>
+                                <p className="text-xs text-orange-200">Scheduled for {new Date(activeClientData.nextFollowUpDate).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => alert("Start a new job for this client using the 'New Job' button.")} className="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-xs">Start New Job</button>
+                    </div>
+                )}
+
                 <div className="bg-[#161817] p-6 rounded-xl border border-white/10 shadow-lg">
                     <h3 className="text-white font-bold flex items-center gap-2 mb-4"><Lock size={18} className="text-pestGreen"/> Client Portal Access</h3>
                     {activeClientData.portalAccess ? (
                         <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 p-4 rounded-xl">
                             <div>
                                 <p className="text-green-400 font-bold text-sm">Access Granted</p>
-                                <p className="text-gray-400 text-xs">Login: {activeClientData.portalAccess.email}</p>
+                                <div className="text-gray-400 text-xs mt-1 space-y-1">
+                                    <p>Login: {activeClientData.portalAccess.email}</p>
+                                    <p className="font-mono bg-black/20 inline-block px-1 rounded">PIN: {activeClientData.portalAccess.pin}</p>
+                                </div>
                             </div>
+                            <button onClick={handleResetPin} className="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-2 rounded-lg font-bold border border-white/10 flex items-center gap-2">
+                                <RefreshCcw size={12}/> Reset PIN
+                            </button>
                         </div>
                     ) : (
                         !portalForm ? (
@@ -975,6 +1106,7 @@ const ClientManager = () => {
                         ))}
                     </div>
                 </div>
+                <SaveButton />
             </div>
         )
     }
@@ -995,24 +1127,222 @@ const ClientManager = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredClients.map((client, idx) => (
-                    <div key={idx} onClick={() => setSelectedClient(client.name)} className="bg-[#161817] p-5 rounded-xl border border-white/5 hover:border-pestGreen transition-all cursor-pointer group shadow-lg relative overflow-hidden">
-                        {client.portalAccess && <div className="absolute top-0 right-0 w-3 h-3 bg-pestGreen rounded-bl-lg shadow-neon"></div>}
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-bold text-lg text-white group-hover:text-pestGreen truncate">{client.name}</h3>
-                            <ChevronRight size={18} className="text-gray-600 group-hover:text-white" />
+                {filteredClients.map((client, idx) => {
+                    const due = isFollowUpDue(client.nextFollowUpDate);
+                    return (
+                        <div key={idx} onClick={() => setSelectedClient(client.name)} className={`bg-[#161817] p-5 rounded-xl border transition-all cursor-pointer group shadow-lg relative overflow-hidden ${due ? 'border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)] animate-pulse' : 'border-white/5 hover:border-pestGreen'}`}>
+                            {due && (
+                                <div className="absolute top-0 left-0 right-0 bg-orange-500 text-white text-[10px] font-bold text-center uppercase tracking-widest py-1">
+                                    Follow-Up Due
+                                </div>
+                            )}
+                            {client.portalAccess && <div className="absolute top-0 right-0 w-3 h-3 bg-pestGreen rounded-bl-lg shadow-neon"></div>}
+                            <div className={`flex justify-between items-start mb-2 ${due ? 'mt-4' : ''}`}>
+                                <h3 className="font-bold text-lg text-white group-hover:text-pestGreen truncate">{client.name}</h3>
+                                <ChevronRight size={18} className="text-gray-600 group-hover:text-white" />
+                            </div>
+                            <div className="space-y-1 text-sm text-gray-400 mb-4">
+                                <p className="flex items-center gap-2"><Mail size={12}/> {client.email || 'N/A'}</p>
+                                <p className="flex items-center gap-2"><Phone size={12}/> {client.phone || 'N/A'}</p>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 border-t border-white/5">
+                                <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded">{client.jobs.length} Jobs</span>
+                                <span className="font-bold text-white">R {client.totalSpend.toFixed(0)}</span>
+                            </div>
                         </div>
-                        <div className="space-y-1 text-sm text-gray-400 mb-4">
-                             <p className="flex items-center gap-2"><Mail size={12}/> {client.email || 'N/A'}</p>
-                             <p className="flex items-center gap-2"><Phone size={12}/> {client.phone || 'N/A'}</p>
+                    );
+                })}
+            </div>
+            <SaveButton />
+        </div>
+    );
+};
+
+// --- EMPLOYEE MANAGER ---
+const EmployeeManager = () => {
+    const { content, addEmployee, updateEmployee, deleteEmployee } = useContent();
+    const [isEditing, setIsEditing] = useState<string | null>(null); // ID or null
+    const [empForm, setEmpForm] = useState<Partial<Employee>>({
+        fullName: '', email: '', pin: '', jobTitle: '', tel: '', idNumber: '', 
+        permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: false, canExecuteJob: true, canInvoice: false, canViewReports: true, canManageEmployees: false, canEditSiteContent: false }
+    });
+
+    const handleSave = () => {
+        if (!empForm.fullName || !empForm.email) return alert("Name and Email required.");
+        
+        if (isEditing === 'new') {
+            const newEmp: Employee = {
+                id: `emp-${Date.now()}`,
+                fullName: empForm.fullName!,
+                email: empForm.email!,
+                pin: empForm.pin || '0000',
+                loginName: empForm.email!.split('@')[0],
+                jobTitle: empForm.jobTitle || 'Technician',
+                tel: empForm.tel || '',
+                idNumber: empForm.idNumber || '',
+                startDate: new Date().toISOString(),
+                profileImage: null,
+                documents: [],
+                doctorsNumbers: [],
+                permissions: empForm.permissions!
+            };
+            addEmployee(newEmp);
+        } else if (isEditing) {
+            updateEmployee(isEditing, empForm);
+        }
+        setIsEditing(null);
+    };
+
+    const startEdit = (emp?: Employee) => {
+        if (emp) {
+            setEmpForm(emp);
+            setIsEditing(emp.id);
+        } else {
+            setEmpForm({
+                fullName: '', email: '', pin: '', jobTitle: '', tel: '', idNumber: '', 
+                permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: false, canExecuteJob: true, canInvoice: false, canViewReports: true, canManageEmployees: false, canEditSiteContent: false }
+            });
+            setIsEditing('new');
+        }
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <div className="flex justify-between items-center">
+                <SectionHeader title="Employee Management" description="Manage staff access and permissions." icon={UserCog} />
+                <button onClick={() => startEdit()} className="bg-pestGreen text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2"><Plus size={16}/> Add Staff</button>
+            </div>
+
+            {isEditing && (
+                <div className="fixed inset-0 z-[150] bg-black/80 flex items-center justify-center p-4">
+                    <div className="bg-[#1e201f] w-full max-w-2xl p-6 rounded-2xl border border-white/10 space-y-4 max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-white font-bold text-xl">{isEditing === 'new' ? 'New Employee' : 'Edit Employee'}</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input label="Full Name" value={empForm.fullName} onChange={(v:string)=>setEmpForm({...empForm, fullName: v})}/>
+                            <Input label="Job Title" value={empForm.jobTitle} onChange={(v:string)=>setEmpForm({...empForm, jobTitle: v})}/>
+                            <Input label="Email (Login)" value={empForm.email} onChange={(v:string)=>setEmpForm({...empForm, email: v})}/>
+                            <Input label="PIN Code" value={empForm.pin} onChange={(v:string)=>setEmpForm({...empForm, pin: v})}/>
+                            <Input label="Phone" value={empForm.tel} onChange={(v:string)=>setEmpForm({...empForm, tel: v})}/>
+                            <Input label="ID Number" value={empForm.idNumber} onChange={(v:string)=>setEmpForm({...empForm, idNumber: v})}/>
                         </div>
-                        <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                            <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded">{client.jobs.length} Jobs</span>
-                            <span className="font-bold text-white">R {client.totalSpend.toFixed(0)}</span>
+                        
+                        {/* Medical Info Section in Manager View */}
+                        <div className="bg-red-900/10 border border-red-500/20 p-4 rounded-xl">
+                            <h4 className="text-red-400 font-bold text-sm mb-3 flex items-center gap-2">
+                                <Stethoscope size={16} /> Medical & Safety Details (Admin View)
+                            </h4>
+                            <div className="space-y-3">
+                                <TextArea label="Allergies" value={empForm.allergies || ''} onChange={(v:string) => setEmpForm({...empForm, allergies: v})} rows={2} />
+                                <TextArea label="Medical Conditions" value={empForm.medicalIssues || ''} onChange={(v:string) => setEmpForm({...empForm, medicalIssues: v})} rows={2} />
+                                <TextArea label="Notes / Bio" value={empForm.bio || ''} onChange={(v:string) => setEmpForm({...empForm, bio: v})} rows={2} />
+                            </div>
+                        </div>
+
+                        <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                            <h4 className="text-white font-bold text-sm mb-3">Permissions</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.keys(empForm.permissions || {}).map(perm => (
+                                    <label key={perm} className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={(empForm.permissions as any)[perm]} onChange={(e) => setEmpForm({...empForm, permissions: {...empForm.permissions!, [perm]: e.target.checked}})} className="accent-pestGreen"/>
+                                        <span className="text-gray-300 text-xs uppercase font-bold">{perm.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-4">
+                            <button onClick={() => setIsEditing(null)} className="flex-1 py-3 rounded-xl font-bold bg-white/5 text-gray-400 hover:text-white">Cancel</button>
+                            <button onClick={handleSave} className="flex-1 py-3 rounded-xl font-bold bg-pestGreen text-white">Save Employee</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {content.employees.map(emp => (
+                    <div key={emp.id} className="bg-[#161817] p-5 rounded-xl border border-white/5 flex flex-col gap-3 relative group">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-pestGreen font-bold border border-white/10">
+                                {emp.fullName.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 className="text-white font-bold">{emp.fullName}</h4>
+                                <p className="text-xs text-gray-500">{emp.jobTitle}</p>
+                            </div>
+                        </div>
+                        <div className="text-xs text-gray-400 space-y-1">
+                            <p>Email: {emp.email}</p>
+                            <p>PIN: ****</p>
+                        </div>
+                        <div className="flex gap-2 mt-auto pt-2 border-t border-white/5">
+                            <button onClick={() => startEdit(emp)} className="flex-1 py-1.5 bg-blue-600/20 text-blue-400 rounded text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors">Edit</button>
+                            <button onClick={() => { if(confirm("Delete employee?")) deleteEmployee(emp.id); }} className="flex-1 py-1.5 bg-red-600/20 text-red-400 rounded text-xs font-bold hover:bg-red-600 hover:text-white transition-colors">Delete</button>
                         </div>
                     </div>
                 ))}
             </div>
+        </div>
+    );
+};
+
+// --- NEW COMPONENT: JOB LIST VIEW ---
+const JobListView = ({ onSelectJob, onCreateJob }: any) => {
+    const { content } = useContent();
+    const [filter, setFilter] = useState('All');
+    const [search, setSearch] = useState('');
+
+    const filteredJobs = (content.jobCards || []).filter(j => {
+        if(filter !== 'All' && j.status !== filter) return false;
+        if(search && !j.clientName.toLowerCase().includes(search.toLowerCase()) && !j.refNumber.toLowerCase().includes(search.toLowerCase())) return false;
+        return true;
+    }).sort((a,b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime());
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+            <div className="flex justify-between items-center">
+                <SectionHeader title="Job Management" description="Active jobs and history." icon={Clipboard} helpTopic="job-overview" />
+                <button onClick={onCreateJob} className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-white hover:text-pestGreen transition-all">
+                    <PlusCircle size={20}/> New Job
+                </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 bg-[#161817] p-4 rounded-xl border border-white/5">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18}/>
+                    <input type="text" placeholder="Search Ref or Client..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full pl-10 p-2 bg-black/20 rounded-lg text-white border border-white/10 focus:border-pestGreen outline-none"/>
+                </div>
+                <select value={filter} onChange={e=>setFilter(e.target.value)} className="p-2 bg-black/20 rounded-lg text-white border border-white/10 outline-none">
+                    <option value="All">All Statuses</option>
+                    <option value="Assessment">Assessment</option>
+                    <option value="Quote_Builder">Quote Phase</option>
+                    <option value="Job_Scheduled">Scheduled</option>
+                    <option value="Job_In_Progress">In Progress</option>
+                    <option value="Invoiced">Invoiced</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+                {filteredJobs.length === 0 && <div className="text-center py-10 text-gray-500">No jobs found.</div>}
+                {filteredJobs.map(job => (
+                    <div key={job.id} onClick={() => onSelectJob(job.id)} className="bg-[#161817] p-4 rounded-xl border border-white/5 hover:border-pestGreen/50 cursor-pointer transition-all flex items-center justify-between group">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <span className="font-black text-white text-lg">{job.refNumber}</span>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${job.status === 'Completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                    {job.status.replace(/_/g, ' ')}
+                                </span>
+                            </div>
+                            <div className="text-sm text-gray-400 mt-1 flex items-center gap-4">
+                                <span className="flex items-center gap-1"><User size={12}/> {job.clientName}</span>
+                                <span className="flex items-center gap-1"><Calendar size={12}/> {new Date(job.assessmentDate).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-600 group-hover:text-pestGreen" />
+                    </div>
+                ))}
+            </div>
+            <SaveButton />
         </div>
     );
 };
@@ -1080,7 +1410,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 </div>
                 <div>
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Settings</div>
+                    <button onClick={() => { setActiveMainTab('profile'); setActiveSubTab('myProfile'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'myProfile' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><User size={16}/> My Profile</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('companyDetails'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'companyDetails' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Building2 size={16}/> Company</button>
+                    <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('employeeDirectory'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'employeeDirectory' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><UserCog size={16}/> Employees</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('locations'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'locations' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><MapPin size={16}/> Locations</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('bookingSettings'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'bookingSettings' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><MousePointerClick size={16}/> Booking Flow</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('seo'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'seo' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Search size={16}/> SEO</button>
@@ -1094,6 +1426,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                     <LogOut size={16} /> Logout
                 </button>
             </div>
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 w-full h-full bg-[#0f1110] flex overflow-hidden z-50">
+            {renderSidebar()}
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                {activeMainTab === 'work' && activeSubTab === 'jobs' && <JobListView onSelectJob={setSelectedJobId} onCreateJob={handleCreateJob} />}
+                {activeSubTab === 'inquiries' && <BookingsViewer />}
+                {activeSubTab === 'clients' && <ClientManager />}
+                {activeSubTab === 'inventory' && <InventoryManager />}
+                {activeSubTab === 'faqs' && <FaqEditor />}
+                
+                {activeSubTab === 'hero' && <HeroEditor />}
+                {activeSubTab === 'about' && <AboutEditor />}
+                {activeSubTab === 'servicesList' && <ServicesEditor />}
+                {activeSubTab === 'serviceAreaMap' && <ServiceAreaEditor />}
+                {activeSubTab === 'process' && <ProcessEditor />}
+                {activeSubTab === 'whyChooseUs' && <WhyChooseUsEditor />}
+                {activeSubTab === 'safety' && <SafetyEditor />}
+                {activeSubTab === 'contactPage' && <ContactEditor />}
+                
+                {activeSubTab === 'companyDetails' && <CompanyEditor />}
+                {activeSubTab === 'locations' && <LocationsEditor />}
+                {activeSubTab === 'employeeDirectory' && <EmployeeManager />}
+                {activeSubTab === 'bookingSettings' && <BookingModalEditor />}
+                {activeSubTab === 'seo' && <SeoEditor />}
+                
+                {activeSubTab === 'creatorSettings' && <CreatorDashboard loggedInUser={loggedInUser} />}
+                
+                {/* Profile Settings Tab */}
+                {activeSubTab === 'myProfile' && <ProfileSettings loggedInUser={loggedInUser} />}
+            </main>
         </div>
     );
 };

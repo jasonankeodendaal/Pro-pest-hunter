@@ -61,7 +61,7 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
                                 transition={{ delay: 0.2, type: "spring" }}
                                 src={content.company.logo} 
                                 alt="Company Logo" 
-                                className="h-48 w-auto md:h-56 drop-shadow-2xl object-contain" 
+                                className="h-64 w-auto md:h-72 drop-shadow-2xl object-contain" 
                             />
                         ) : (
                             <div className="w-32 h-32 md:w-40 md:h-40 bg-pestGreen rounded-full flex items-center justify-center shadow-neon">
