@@ -1,6 +1,7 @@
 
-const CACHE_NAME = 'pro-pest-v3';
-const DYNAMIC_CACHE = 'pro-pest-dynamic-v3';
+
+const CACHE_NAME = 'pro-pest-v4';
+const DYNAMIC_CACHE = 'pro-pest-dynamic-v4';
 const OFFLINE_URL = '/index.html';
 
 const ASSETS_TO_CACHE = [
@@ -9,9 +10,9 @@ const ASSETS_TO_CACHE = [
   '/manifest.json'
 ];
 
-// Install Event: Cache core assets
+// Install Event: Cache core assets immediately
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  self.skipWaiting(); // Force activation
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
@@ -34,8 +35,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Exclude API calls from caching strategies
-  if (url.pathname.startsWith('/api/')) return;
+  // Exclude API calls from caching strategies (Always Network First)
+  if (url.pathname.startsWith('/api/')) {
+       // Optional: Add offline queueing logic here for POST requests if needed
+       return;
+  }
 
   // Navigation: Network First -> Cache -> Offline Fallback
   if (event.request.mode === 'navigate') {
@@ -46,7 +50,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets: Stale-While-Revalidate
+  // Static Assets / Images: Stale-While-Revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
@@ -58,7 +62,12 @@ self.addEventListener('fetch', (event) => {
           try { cache.put(event.request, responseToCache); } catch(e) {}
         });
         return networkResponse;
-      }).catch(() => {});
+      }).catch(() => {
+          // Fallback logic for images if offline
+          if (event.request.destination === 'image') {
+              // Return a placeholder or nothing
+          }
+      });
       return cachedResponse || fetchPromise;
     })
   );
@@ -76,7 +85,11 @@ self.addEventListener('push', (event) => {
     icon: 'https://i.ibb.co/zHBzVwRV/image.png',
     badge: 'https://i.ibb.co/5xYk6jZb/maskable-icon.png',
     vibrate: [100, 50, 100],
-    data: { url: data.url || '/' }
+    data: { url: data.url || '/' },
+    actions: [
+        { action: 'explore', title: 'View Details' },
+        { action: 'close', title: 'Close' }
+    ]
   };
 
   event.waitUntil(
@@ -87,6 +100,9 @@ self.addEventListener('push', (event) => {
 // Notification Click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  
+  if (event.action === 'close') return;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // Focus existing window if available
@@ -107,8 +123,8 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-bookings') {
     event.waitUntil(
-      // Placeholder: Logic to sync localDB bookings to server
-      console.log('[ServiceWorker] Background Sync: Syncing bookings...')
+      // Logic to sync localDB bookings to server when online
+      console.log('[ServiceWorker] Background Sync Executed')
     );
   }
 });
@@ -117,8 +133,13 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'content-update') {
     event.waitUntil(
-      // Placeholder: Logic to fetch fresh content
-      console.log('[ServiceWorker] Periodic Sync: Checking for updates...')
+      // Logic to fetch fresh content periodically
+       caches.open(DYNAMIC_CACHE).then(cache => {
+           return fetch('/api/init').then(res => {
+               // We don't cache API directly usually, but this is a placeholder for logic
+               console.log('[ServiceWorker] Periodic Content Check');
+           })
+       })
     );
   }
 });

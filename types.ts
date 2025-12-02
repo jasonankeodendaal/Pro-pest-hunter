@@ -30,7 +30,9 @@ export interface WhyChooseUsItem {
 
 // About Item Interface for functionality highlights
 export interface AboutItem {
-  text: string;
+  id: string;
+  title: string; // Changed from text to title for consistency, but mapping for backward compat if needed
+  description: string; // New field for detailed text
   iconName: string;
 }
 
@@ -398,7 +400,7 @@ export type AdminSubTab =
   'systemGuide' | 'hero' | 'about' | 'whyChooseUs' | 'process' | 'safety' | 'cta' |
   'servicesList' | 'serviceAreaMap' |
   'companyDetails' | 'locations' | 'contactPage' | 'faqs' | 'seo' | 'employeeDirectory' |
-  'jobs' | 'inquiries' | 
+  'jobs' | 'inquiries' | 'bookingSettings' |
   'creatorSettings' | 'deploymentGuide';
 
 // AdminDashboardProps interface

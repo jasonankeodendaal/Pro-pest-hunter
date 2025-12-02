@@ -73,7 +73,11 @@ const defaultState: ContentState = {
       missionTitle: "Our Mission", 
       missionText: "To safeguard health and property through advanced Integrated Pest Management (IPM) techniques.", 
       ownerImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800", 
-      items: [{ text: "Owner Managed", iconName: "Users" }, { text: "Eco Friendly", iconName: "Leaf" }, { text: "SABS Approved", iconName: "CheckCircle2" }] 
+      items: [
+          { id: 'ab-1', title: "Owner Managed", description: "Direct oversight by our founder on major projects ensuring accountability.", iconName: "Users" }, 
+          { id: 'ab-2', title: "Eco Friendly", description: "We prioritize biodegradable and pet-safe chemical formulations.", iconName: "Leaf" }, 
+          { id: 'ab-3', title: "SABS Approved", description: "All products meet the strictest SABS and Dept of Agriculture standards.", iconName: "CheckCircle2" }
+      ] 
   },
   services: [
         { 
@@ -368,6 +372,16 @@ export const ContentProvider: React.FC<{ children: ReactNode }> = ({ children })
                 
                 // Fallback for missing arrays
                 if (serverData.company && !serverData.company.socials) serverData.company.socials = [];
+
+                // MIGRATION FOR ABOUT ITEMS: Ensure ID exists
+                if (serverData.about && serverData.about.items) {
+                     serverData.about.items = serverData.about.items.map((item: any, i: number) => ({
+                         ...item,
+                         id: item.id || `ab-${Date.now()}-${i}`,
+                         title: item.title || item.text, // Migrate text to title
+                         description: item.description || '' // Ensure desc exists
+                     }));
+                }
 
                 setContent(prev => ({
                     ...prev,

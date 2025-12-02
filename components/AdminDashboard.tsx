@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '../context/ContentContext';
 import { 
@@ -12,7 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps, Location } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps, Location, AboutItem } from '../types';
 import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShared'; // Import IconPicker
 import { JobCardManager } from './JobCardManager';
 
@@ -525,37 +527,120 @@ const HeroEditor = () => {
 };
 
 const AboutEditor = () => {
-    const { content, updateContent } = useContent();
+    const { content, updateAboutItems, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.about);
-    const update = (updates: any) => setLocalData(prev => ({ ...prev, ...updates }));
+    
+    // Helper to handle items update
+    const handleItemChange = (index: number, field: keyof AboutItem, value: string) => {
+        const newItems = [...(localData.items || [])];
+        if (newItems[index]) {
+            newItems[index] = { ...newItems[index], [field]: value };
+            setLocalData({ ...localData, items: newItems });
+        }
+    };
+
+    const handleDeleteItem = (index: number) => {
+        if(confirm("Delete this feature?")) {
+            const newItems = (localData.items || []).filter((_, i) => i !== index);
+            setLocalData({ ...localData, items: newItems });
+        }
+    };
+
+    const handleAddItem = () => {
+        setLocalData({
+            ...localData,
+            items: [...(localData.items || []), { id: `ab-${Date.now()}`, title: "New Feature", description: "Details...", iconName: "Award" }]
+        });
+    };
 
     return (
         <EditorLayout
             title="About Us Section"
             icon={Info}
             description="Edit the company history, mission statement, and owner profile displayed on the About page."
-            helpText="Manage the story, mission statement, and owner profile image."
-            onSave={() => updateContent('about', localData)}
+            helpText="Manage the story, mission statement, and key feature highlights (Owner Managed, etc.)."
+            onSave={() => { updateContent('about', localData); updateAboutItems(localData.items || []); }}
         >
             <div className="grid grid-cols-2 gap-3 md:gap-6">
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Main Story</h3>
-                    <Input label="Title" value={localData.title} onChange={(v: string) => update({ title: v })} />
-                    <TextArea label="Main Text" value={localData.text} onChange={(v: string) => update({ text: v })} rows={8} />
+                    <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
+                    <TextArea label="Main Text" value={localData.text} onChange={(v: string) => setLocalData({ ...localData, text: v })} rows={8} />
                 </div>
                 
                 <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
                     <h3 className="text-white font-bold mb-4">Mission & Visuals</h3>
-                    <Input label="Mission Title" value={localData.missionTitle} onChange={(v: string) => update({ missionTitle: v })} />
-                    <TextArea label="Mission Text" value={localData.missionText} onChange={(v: string) => update({ missionText: v })} rows={3} />
+                    <Input label="Mission Title" value={localData.missionTitle} onChange={(v: string) => setLocalData({ ...localData, missionTitle: v })} />
+                    <TextArea label="Mission Text" value={localData.missionText} onChange={(v: string) => setLocalData({ ...localData, missionText: v })} rows={3} />
                     <div className="mt-4 pt-4 border-t border-white/5">
-                        <FileUpload label="Owner / Team Image" value={localData.ownerImage} onChange={(v: string) => update({ ownerImage: v })} />
+                        <FileUpload label="Owner / Team Image" value={localData.ownerImage} onChange={(v: string) => setLocalData({ ...localData, ownerImage: v })} />
+                    </div>
+                </div>
+
+                {/* Rich Feature Items Editor */}
+                <div className="col-span-2 space-y-4">
+                     <div className="flex justify-between items-center">
+                        <h3 className="text-white font-bold">Key Features (Detailed Cards)</h3>
+                        <button onClick={handleAddItem} className="bg-pestGreen text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2"><Plus size={14}/> Add Feature</button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                         {(localData.items || []).map((item, idx) => (
+                            <div key={idx} className="bg-[#161817] p-4 rounded-xl border border-white/5 relative group space-y-3">
+                                <button 
+                                    onClick={() => handleDeleteItem(idx)}
+                                    className="absolute top-2 right-2 text-gray-500 hover:text-red-500 group-hover:opacity-100 transition-opacity z-10"
+                                >
+                                    <Trash2 size={14}/>
+                                </button>
+                                <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} />
+                                <TextArea label="Description" value={item.description} onChange={(v: string) => handleItemChange(idx, 'description', v)} rows={2} />
+                                <IconPicker label="Icon" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
         </EditorLayout>
     );
 };
+
+const BookingModalEditor = () => {
+    const { content, updateContent } = useContent();
+    const [localData, setLocalData] = useState(content.bookingModal);
+
+    return (
+        <EditorLayout
+            title="Booking Flow Texts"
+            icon={MousePointerClick}
+            description="Customize the labels, headers, and messages shown inside the booking popup."
+            helpText="Control the language used in your booking funnel."
+            onSave={() => updateContent('bookingModal', localData)}
+        >
+            <div className="grid grid-cols-2 gap-6">
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
+                    <h3 className="text-white font-bold">Headers & Steps</h3>
+                    <Input label="Main Header" value={localData.headerTitle} onChange={(v: string) => setLocalData({...localData, headerTitle: v})} />
+                    <Input label="Subtitle" value={localData.headerSubtitle} onChange={(v: string) => setLocalData({...localData, headerSubtitle: v})} />
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                        <Input label="Step 1 Title" value={localData.stepServiceTitle} onChange={(v: string) => setLocalData({...localData, stepServiceTitle: v})} />
+                        <Input label="Step 2 Title" value={localData.stepDateTitle} onChange={(v: string) => setLocalData({...localData, stepDateTitle: v})} />
+                        <Input label="Step 3 Title" value={localData.stepDetailsTitle} onChange={(v: string) => setLocalData({...localData, stepDetailsTitle: v})} />
+                    </div>
+                </div>
+
+                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-1">
+                    <h3 className="text-white font-bold">Completion & Terms</h3>
+                    <Input label="Success Title" value={localData.successTitle} onChange={(v: string) => setLocalData({...localData, successTitle: v})} />
+                    <TextArea label="Success Message" value={localData.successMessage} onChange={(v: string) => setLocalData({...localData, successMessage: v})} rows={2} />
+                    <TextArea label="Terms Disclaimer (Footer)" value={localData.termsText || ''} onChange={(v: string) => setLocalData({...localData, termsText: v})} rows={2} />
+                </div>
+            </div>
+        </EditorLayout>
+    );
+};
+
 
 const ServicesEditor = () => {
     const { content, updateService } = useContent();
@@ -1325,6 +1410,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             case 'seo': return <SeoEditor />;
             case 'employeeDirectory': return <EmployeeEditor />;
             case 'inquiries': return <BookingManager />;
+            case 'bookingSettings': return <BookingModalEditor />;
             case 'jobs': 
                 return (
                     <div className="space-y-6">
@@ -1408,7 +1494,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
             { id: 'contactPage', label: 'Contact', icon: Phone },
             { id: 'employeeDirectory', label: 'Staff', icon: Users },
             { id: 'faqs', label: 'FAQs', icon: HelpCircle },
-            { id: 'seo', label: 'SEO', icon: Search }
+            { id: 'seo', label: 'SEO', icon: Search },
+            { id: 'bookingSettings', label: 'Booking', icon: MousePointerClick }
         ],
         servicesArea: [
             { id: 'servicesList', label: 'Services', icon: Zap },

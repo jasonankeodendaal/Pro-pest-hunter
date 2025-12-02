@@ -1,3 +1,5 @@
+
+
 {
   "name": "Pro Pest Hunters (Pty) Ltd",
   "short_name": "Pest Hunters",
@@ -68,18 +70,46 @@
   ],
   "screenshots": [
     {
-      "src": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=1280",
-      "sizes": "1280x720",
-      "type": "image/jpeg",
+      "src": "https://i.ibb.co/QFGzCwsn/Screenshot-2025-12-02-105611.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
       "form_factor": "wide",
-      "label": "Desktop Home"
+      "label": "Home Page"
     },
     {
-      "src": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=720",
-      "sizes": "720x1280",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Mobile View"
+      "src": "https://i.ibb.co/cS73L9vQ/Screenshot-2025-12-02-105625.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "About Section"
+    },
+    {
+      "src": "https://i.ibb.co/MDWMQ3Q3/Screenshot-2025-12-02-105632.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Services"
+    },
+     {
+      "src": "https://i.ibb.co/nWm5m9q/Screenshot-2025-12-02-105639.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Process"
+    },
+     {
+      "src": "https://i.ibb.co/PzfMBpNH/Screenshot-2025-12-02-105645.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Contact"
+    },
+    {
+        "src": "https://i.ibb.co/NgVwypXm/Screenshot-2025-12-02-105701.png",
+        "sizes": "1920x1080",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Admin Dashboard"
     }
   ]
 }
