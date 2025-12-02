@@ -13,11 +13,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps, Location, AboutItem } from '../types';
+import { Employee, AdminMainTab, AdminSubTab, JobCard, ServiceItem, ProcessStep, FAQItem, WhyChooseUsItem, SocialLink, AdminDashboardProps, Location, AboutItem, Booking } from '../types';
 import { Input, TextArea, Select, FileUpload, IconPicker } from './ui/AdminShared'; 
 import { JobCardManager } from './JobCardManager';
-
-// --- HELPER COMPONENTS ---
 
 const InfoBlock = ({ title, text, code }: { title: string; text: string, code?: string }) => (
   <div className="bg-[#0f1110] border border-white/10 rounded-xl p-4 mb-6 shadow-sm">
@@ -126,45 +124,131 @@ const EditorLayout: React.FC<{
 
 // --- EDITORS ---
 
-const WhyChooseUsEditor = () => {
-    const { content, updateWhyChooseUsItems, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.whyChooseUs || { title: '', subtitle: '', items: [] });
-    const handleItemChange = (index: number, field: keyof WhyChooseUsItem, value: string) => {
-        const newItems = [...(localData.items || [])];
-        if (newItems[index]) {
-            newItems[index] = { ...newItems[index], [field]: value };
-            setLocalData({ ...localData, items: newItems });
-        }
-    };
-    const handleDeleteItem = (index: number) => {
-        if(confirm("Delete this reason card?")) {
-            const newItems = (localData.items || []).filter((_, i) => i !== index);
-            setLocalData({ ...localData, items: newItems });
-        }
-    };
-    const handleAddItem = () => {
-        setLocalData({
-            ...localData,
-            items: [...(localData.items || []), { title: "New Reason", text: "Description", iconName: "Award" }]
-        });
-    };
-    return (
-        <EditorLayout
-            title="Why Choose Us" icon={ThumbsUp} description="Manage the key reasons displayed on the homepage." helpText="Edit the 6 reasons why clients should choose you."
+const WhyChooseUsEditor = () => { 
+    const { content, updateWhyChooseUsItems, updateContent } = useContent(); 
+    const [localData, setLocalData] = useState(content.whyChooseUs || { title: '', subtitle: '', items: [] }); 
+
+    const handleItemChange = (index: number, field: keyof WhyChooseUsItem, value: string) => { 
+        const newItems = [...(localData.items || [])]; 
+        if (newItems[index]) { 
+            newItems[index] = { ...newItems[index], [field]: value }; 
+            setLocalData({ ...localData, items: newItems }); 
+        } 
+    }; 
+    const handleDeleteItem = (index: number) => { 
+        if(confirm("Delete?")) { 
+            const newItems = (localData.items || []).filter((_, i) => i !== index); 
+            setLocalData({ ...localData, items: newItems }); 
+        } 
+    }; 
+    const handleAddItem = () => { 
+        setLocalData({ ...localData, items: [...(localData.items || []), { title: "New", text: "Desc", iconName: "Award" }] }); 
+    }; 
+    
+    return ( 
+        <EditorLayout 
+            title="Why Choose Us" 
+            icon={ThumbsUp} 
+            description="Manage the reasons displayed on the homepage." 
+            helpText="Add unique selling points." 
             onSave={() => { updateContent('whyChooseUs', { title: localData.title, subtitle: localData.subtitle }); updateWhyChooseUsItems(localData.items || []); }}
+        > 
+            <div className="space-y-4"> 
+                <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} /> 
+                <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} /> 
+                <button onClick={handleAddItem} className="bg-pestGreen px-3 py-1 rounded text-white">+ Add Item</button> 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(localData.items||[]).map((item,i)=> (
+                        <div key={i} className="bg-[#161817] p-4 rounded border border-white/5 relative">
+                            <button onClick={()=>handleDeleteItem(i)} className="absolute top-2 right-2 text-red-500"><Trash2 size={16}/></button>
+                            <Input label="Title" value={item.title} onChange={(v:string)=>handleItemChange(i,'title',v)}/>
+                            <TextArea label="Desc" value={item.text} onChange={(v:string)=>handleItemChange(i,'text',v)} rows={2}/>
+                            <IconPicker label="Icon" value={item.iconName} onChange={(v:string)=>handleItemChange(i,'iconName',v)}/>
+                        </div>
+                    ))}
+                </div> 
+            </div> 
+        </EditorLayout> 
+    ); 
+};
+
+const CompanyEditor = () => { 
+    const { content, updateContent } = useContent(); 
+    const [localData, setLocalData] = useState(content.company); 
+    const [bankData, setBankData] = useState(content.bankDetails); 
+    
+    const handleSave = () => { 
+        updateContent('company', localData); 
+        updateContent('bankDetails', bankData); 
+    }; 
+
+    return ( 
+        <EditorLayout 
+            title="Company Info" 
+            icon={Building2} 
+            description="General company details, hours, and banking." 
+            helpText="These details appear in the footer, contact page, and invoices." 
+            onSave={handleSave}
+        > 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"> 
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold">General Details</h3>
+                    <Input label="Company Name" value={localData.name} onChange={(v:string)=>setLocalData({...localData, name: v})}/> 
+                    <Input label="Reg Number" value={localData.regNumber || ''} onChange={(v:string)=>setLocalData({...localData, regNumber: v})}/> 
+                    <Input label="VAT Number" value={localData.vatNumber || ''} onChange={(v:string)=>setLocalData({...localData, vatNumber: v})}/> 
+                    <Input label="Phone" value={localData.phone} onChange={(v:string)=>setLocalData({...localData, phone: v})}/> 
+                    <Input label="Email" value={localData.email} onChange={(v:string)=>setLocalData({...localData, email: v})}/> 
+                    <Input label="Address" value={localData.address} onChange={(v:string)=>setLocalData({...localData, address: v})}/> 
+                    <FileUpload label="Logo" value={localData.logo} onChange={(v:string)=>setLocalData({...localData, logo: v})} />
+                </div>
+                
+                <div className="space-y-4">
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                        <h3 className="text-white font-bold">Banking Details</h3>
+                        <Input label="Bank Name" value={bankData.bankName} onChange={(v:string)=>setBankData({...bankData, bankName: v})}/>
+                        <Input label="Account Name" value={bankData.accountName} onChange={(v:string)=>setBankData({...bankData, accountName: v})}/>
+                        <Input label="Account Number" value={bankData.accountNumber} onChange={(v:string)=>setBankData({...bankData, accountNumber: v})}/>
+                        <Input label="Branch Code" value={bankData.branchCode} onChange={(v:string)=>setBankData({...bankData, branchCode: v})}/>
+                    </div>
+
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                        <h3 className="text-white font-bold">Business Hours</h3>
+                        <Input label="Weekdays" value={localData.hours.weekdays} onChange={(v:string)=>setLocalData({...localData, hours: {...localData.hours, weekdays: v}})}/>
+                        <Input label="Saturdays" value={localData.hours.saturday} onChange={(v:string)=>setLocalData({...localData, hours: {...localData.hours, saturday: v}})}/>
+                        <Input label="Sundays" value={localData.hours.sunday} onChange={(v:string)=>setLocalData({...localData, hours: {...localData.hours, sunday: v}})}/>
+                    </div>
+                </div>
+            </div> 
+        </EditorLayout> 
+    ); 
+};
+
+const LocationsEditor = () => { 
+    const { content, updateLocations } = useContent(); 
+    const [local, setLocal] = useState(content.locations); 
+    
+    return (
+        <EditorLayout 
+            title="Locations" 
+            icon={MapPin} 
+            description="Manage office and shop locations." 
+            helpText="Add all physical branches." 
+            onSave={()=>updateLocations(local)}
         >
-             <div className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 space-y-4 mb-6">
-                <Input label="Section Title" value={localData.title || ''} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
-                <Input label="Subtitle" value={localData.subtitle || ''} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
-            </div>
-            <div className="flex justify-between items-center mb-4"><h3 className="text-white font-bold">Reason Cards</h3><button onClick={handleAddItem} className="bg-pestGreen text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2"><Plus size={14}/> Add Card</button></div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-                {(localData.items || []).map((item, idx) => (
-                    <div key={idx} className="bg-[#161817] p-3 md:p-6 rounded-2xl border border-white/5 relative group">
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteItem(idx); }} className="absolute top-4 right-4 text-gray-500 hover:text-red-500 group-hover:opacity-100 transition-opacity z-10"><Trash2 size={16}/></button>
-                        <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(idx, 'title', v)} className="mb-4" />
-                        <TextArea label="Description" value={item.text} onChange={(v: string) => handleItemChange(idx, 'text', v)} rows={3} className="mb-4" />
-                        <IconPicker label="Icon Name" value={item.iconName} onChange={(v: string) => handleItemChange(idx, 'iconName', v)} />
+            <div className="space-y-4">
+                <button onClick={() => setLocal([...local, { id: Date.now().toString(), name: 'New Branch', address: '', phone: '', email: '', isHeadOffice: false, image: '' }])} className="bg-pestGreen px-3 py-1 rounded text-white">+ Add Location</button>
+                {local.map((l,i)=>(
+                    <div key={i} className="bg-[#161817] p-4 rounded-xl border border-white/5 relative grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onClick={()=>{const n=local.filter((_,idx)=>idx!==i);setLocal(n)}} className="absolute top-2 right-2 text-red-500"><Trash2 size={16}/></button>
+                        <Input label="Name" value={l.name} onChange={(v:string)=>{const n=[...local];n[i].name=v;setLocal(n)}}/>
+                        <Input label="Address" value={l.address} onChange={(v:string)=>{const n=[...local];n[i].address=v;setLocal(n)}}/>
+                        <Input label="Phone" value={l.phone} onChange={(v:string)=>{const n=[...local];n[i].phone=v;setLocal(n)}}/>
+                        <Input label="Email" value={l.email} onChange={(v:string)=>{const n=[...local];n[i].email=v;setLocal(n)}}/>
+                        <FileUpload label="Image" value={l.image} onChange={(v:string)=>{const n=[...local];n[i].image=v;setLocal(n)}}/>
+                        <div className="flex items-center gap-2 mt-4">
+                            <input type="checkbox" checked={l.isHeadOffice} onChange={(e)=>{const n=[...local];n.forEach(x=>x.isHeadOffice=false);n[i].isHeadOffice=e.target.checked;setLocal(n)}} />
+                            <label className="text-white text-sm">Head Office</label>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -172,117 +256,33 @@ const WhyChooseUsEditor = () => {
     );
 };
 
-const CompanyEditor = () => {
-    const { content, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.company);
-    const [bankData, setBankData] = useState(content.bankDetails);
-    const [newSocial, setNewSocial] = useState<Partial<SocialLink>>({ name: '', url: '', icon: '' });
-    const update = (updates: any) => setLocalData(prev => ({ ...prev, ...updates }));
-    const updateBank = (updates: any) => setBankData(prev => ({ ...prev, ...updates }));
-    const handleSave = () => { updateContent('company', localData); updateContent('bankDetails', bankData); };
-    const handleAddSocial = () => {
-        if (!newSocial.name || !newSocial.url) return;
-        update({ socials: [...(localData.socials || []), { id: Date.now().toString(), name: newSocial.name, url: newSocial.url, icon: newSocial.icon || '' }] });
-        setNewSocial({ name: '', url: '', icon: '' });
-    };
-    const handleDeleteSocial = (id: string) => { update({ socials: (localData.socials || []).filter(s => s.id !== id) }); };
+const ContactEditor = () => { 
+    const { content, updateContent } = useContent(); 
+    const [local, setLocal] = useState(content.contact);
+    const [ctaLocal, setCtaLocal] = useState(content.bookCTA);
 
     return (
-        <EditorLayout title="Company Information" icon={Building2} description="Update core business details, hours, and socials." helpText="Manage core business details." onSave={handleSave}>
-             <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold mb-4">Core Details</h3>
-                    <Input label="Company Name" value={localData.name} onChange={(v: string) => update({ name: v })} />
-                    <Input label="Reg Number" value={localData.regNumber} onChange={(v: string) => update({ regNumber: v })} />
-                    <Input label="VAT Number" value={localData.vatNumber} onChange={(v: string) => update({ vatNumber: v })} />
-                    <Input label="Phone" value={localData.phone} onChange={(v: string) => update({ phone: v })} />
-                    <Input label="Email" value={localData.email} onChange={(v: string) => update({ email: v })} />
-                    <TextArea label="Address" value={localData.address} onChange={(v: string) => update({ address: v })} rows={3} />
+        <EditorLayout 
+            title="Contact & CTA" 
+            icon={Phone} 
+            description="Manage contact page details and global Call-To-Action banners." 
+            helpText="Update the contact form title and the Book Now banner." 
+            onSave={()=>{updateContent('contact', local); updateContent('bookCTA', ctaLocal);}}
+        >
+            <div className="space-y-8">
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold">Contact Section</h3>
+                    <Input label="Title" value={local.title} onChange={(v:string)=>setLocal({...local, title: v})}/>
+                    <Input label="Subtitle" value={local.subtitle} onChange={(v:string)=>setLocal({...local, subtitle: v})}/>
+                    <Input label="Form Title" value={local.formTitle} onChange={(v:string)=>setLocal({...local, formTitle: v})}/>
+                    <Input label="Map Embed URL" value={local.mapEmbedUrl || ''} onChange={(v:string)=>setLocal({...local, mapEmbedUrl: v})}/>
                 </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                     <h3 className="text-white font-bold mb-4">Branding & Hours</h3>
-                     <FileUpload label="Logo" value={localData.logo} onChange={(v: string) => update({ logo: v })} />
-                     <Input label="Weekdays" value={localData.hours?.weekdays} onChange={(v: string) => update({ hours: { ...localData.hours, weekdays: v } })} />
-                     <Input label="Saturday" value={localData.hours?.saturday} onChange={(v: string) => update({ hours: { ...localData.hours, saturday: v } })} />
-                </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
-                    <h3 className="text-white font-bold mb-4">Social Media</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                        {(localData.socials || []).map(s => (
-                            <div key={s.id} className="bg-white/5 p-3 rounded-lg flex items-center gap-3 relative group">
-                                <img src={s.icon} className="w-8 h-8"/>
-                                <div className="overflow-hidden"><div className="font-bold text-sm truncate">{s.name}</div><div className="text-xs text-gray-500 truncate">{s.url}</div></div>
-                                <button onClick={() => handleDeleteSocial(s.id)} className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100"><Trash2 size={14}/></button>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex gap-2">
-                         <Input placeholder="Name" value={newSocial.name} onChange={(v: string) => setNewSocial({...newSocial, name: v})} />
-                         <Input placeholder="URL" value={newSocial.url} onChange={(v: string) => setNewSocial({...newSocial, url: v})} />
-                         <FileUpload value={newSocial.icon} onChange={(v: string) => setNewSocial({...newSocial, icon: v})} />
-                         <button onClick={handleAddSocial} className="bg-pestGreen px-4 rounded text-white"><Plus/></button>
-                    </div>
-                </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 col-span-2">
-                    <h3 className="text-white font-bold mb-4">Bank Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input label="Bank" value={bankData.bankName} onChange={(v: string) => updateBank({ bankName: v })} />
-                        <Input label="Account Name" value={bankData.accountName} onChange={(v: string) => updateBank({ accountName: v })} />
-                        <Input label="Account Number" value={bankData.accountNumber} onChange={(v: string) => updateBank({ accountNumber: v })} />
-                        <Input label="Branch Code" value={bankData.branchCode} onChange={(v: string) => updateBank({ branchCode: v })} />
-                    </div>
-                </div>
-             </div>
-        </EditorLayout>
-    );
-};
-
-const LocationsEditor = () => {
-    const { content, updateLocations } = useContent();
-    const [localData, setLocalData] = useState(content.locations);
-    const handleUpdate = (index: number, field: keyof Location, value: any) => {
-        const newData = [...localData];
-        newData[index] = { ...newData[index], [field]: value };
-        if (field === 'isHeadOffice' && value === true) newData.forEach((loc, i) => { if (i !== index) loc.isHeadOffice = false; });
-        setLocalData(newData);
-    };
-    const handleAdd = () => setLocalData([...localData, { id: `loc-${Date.now()}`, name: 'New Branch', address: '', phone: '', email: '', isHeadOffice: false, image: null }]);
-    return (
-        <EditorLayout title="Physical Locations" icon={MapPin} description="Manage office addresses." helpText="Add/Remove branches." onSave={() => updateLocations(localData)}>
-             <div className="flex justify-end mb-4"><button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Plus size={16}/> Add Location</button></div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{localData.map((loc, idx) => (
-                    <div key={loc.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4 relative">
-                         <button onClick={() => setLocalData(localData.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-red-500"><Trash2 size={16}/></button>
-                         <Input label="Name" value={loc.name} onChange={(v: string) => handleUpdate(idx, 'name', v)} />
-                         <TextArea label="Address" value={loc.address} onChange={(v: string) => handleUpdate(idx, 'address', v)} rows={2} />
-                         <div className="grid grid-cols-2 gap-4"><Input label="Phone" value={loc.phone} onChange={(v: string) => handleUpdate(idx, 'phone', v)} /><Input label="Email" value={loc.email} onChange={(v: string) => handleUpdate(idx, 'email', v)} /></div>
-                         <div className="flex items-center gap-2"><input type="checkbox" checked={loc.isHeadOffice} onChange={(e) => handleUpdate(idx, 'isHeadOffice', e.target.checked)} className="accent-pestGreen"/><label className="text-white">Head Office</label></div>
-                         <FileUpload label="Image" value={loc.image} onChange={(v: string) => handleUpdate(idx, 'image', v)} />
-                    </div>
-                ))}</div>
-        </EditorLayout>
-    );
-};
-
-const ContactEditor = () => {
-    const { content, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.contact);
-    const [bookData, setBookData] = useState(content.bookCTA);
-    return (
-        <EditorLayout title="Contact & CTA" icon={Phone} description="Contact page and 'Book Now' banner." helpText="Edit map and CTA." onSave={() => { updateContent('contact', localData); updateContent('bookCTA', bookData); }}>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">Contact Page</h3>
-                    <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
-                    <Input label="Subtitle" value={localData.subtitle} onChange={(v: string) => setLocalData({ ...localData, subtitle: v })} />
-                    <TextArea label="Map Embed URL" value={localData.mapEmbedUrl} onChange={(v: string) => setLocalData({ ...localData, mapEmbedUrl: v })} rows={3} />
-                </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">CTA Banner</h3>
-                    <Input label="Title" value={bookData.title} onChange={(v: string) => setBookData({ ...bookData, title: v })} />
-                    <TextArea label="Subtitle" value={bookData.subtitle} onChange={(v: string) => setBookData({ ...bookData, subtitle: v })} rows={2} />
-                    <Input label="Button Text" value={bookData.buttonText} onChange={(v: string) => setBookData({ ...bookData, buttonText: v })} />
-                    <FileUpload label="Background" value={bookData.bgImage} onChange={(v: string) => setBookData({ ...bookData, bgImage: v })} />
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold">Book CTA Banner</h3>
+                    <Input label="Title" value={ctaLocal.title} onChange={(v:string)=>setCtaLocal({...ctaLocal, title: v})}/>
+                    <Input label="Subtitle" value={ctaLocal.subtitle} onChange={(v:string)=>setCtaLocal({...ctaLocal, subtitle: v})}/>
+                    <Input label="Button Text" value={ctaLocal.buttonText} onChange={(v:string)=>setCtaLocal({...ctaLocal, buttonText: v})}/>
+                    <FileUpload label="Background Image" value={ctaLocal.bgImage} onChange={(v:string)=>setCtaLocal({...ctaLocal, bgImage: v})}/>
                 </div>
             </div>
         </EditorLayout>
@@ -292,58 +292,220 @@ const ContactEditor = () => {
 const HeroEditor = () => {
     const { content, updateContent } = useContent();
     const [localData, setLocalData] = useState(content.hero);
-    const update = (updates: any) => setLocalData(prev => ({ ...prev, ...updates }));
     return (
-        <EditorLayout title="Hero Section" icon={Layout} description="Headlines and background media." helpText="First thing visitors see." onSave={() => updateContent('hero', localData)}>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">Text Content</h3>
-                    <TextArea label="Headline" value={localData.headline} onChange={(v: string) => update({ headline: v })} rows={2} />
-                    <TextArea label="Subheadline" value={localData.subheadline} onChange={(v: string) => update({ subheadline: v })} rows={2} />
-                    <Input label="Button Text" value={localData.buttonText} onChange={(v: string) => update({ buttonText: v })} />
+        <EditorLayout title="Hero" icon={Layout} description="Main homepage banner configuration." helpText="Control the first impression." onSave={()=>updateContent('hero', localData)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    <Input label="Headline" value={localData.headline} onChange={(v:string)=>setLocalData({...localData, headline: v})}/>
+                    <Input label="Subheadline" value={localData.subheadline} onChange={(v:string)=>setLocalData({...localData, subheadline: v})}/>
+                    <Input label="Button Text" value={localData.buttonText} onChange={(v:string)=>setLocalData({...localData, buttonText: v})}/>
+                    <FileUpload label="Background Image (Static)" value={localData.bgImage} onChange={(v:string)=>setLocalData({...localData, bgImage: v})}/>
                 </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">Media</h3>
-                    <Select label="Type" value={localData.mediaType || 'video'} options={[{label:'Video', value:'video'}, {label:'Image', value:'static'}, {label:'Carousel', value:'imageCarousel'}]} onChange={(v: string) => update({ mediaType: v })} />
-                    {localData.mediaType === 'video' && <FileUpload label="Video (MP4)" value={localData.mediaVideo} onChange={(v: string) => update({ mediaVideo: v })} />}
-                    {localData.mediaType === 'static' && <FileUpload label="Image" value={localData.bgImage} onChange={(v: string) => update({ bgImage: v })} />}
-                    {localData.mediaType === 'imageCarousel' && <FileUpload label="Images" value={localData.mediaImages} onChange={(v: string[]) => update({ mediaImages: v })} multiple />}
+                <div className="space-y-4">
+                    {/* UPDATED: VIDEO UPLOAD instead of Input URL */}
+                    <FileUpload 
+                        label="Video Upload (MP4/WebM)" 
+                        value={localData.mediaVideo || ''} 
+                        onChange={(v:string)=>setLocalData({...localData, mediaVideo: v})} 
+                        accept="video/mp4,video/webm,video/ogg"
+                    />
+                    <div className="flex items-center gap-2">
+                         <label className="text-white text-sm">Overlay Opacity %</label>
+                         <input type="number" value={localData.overlayOpacity} onChange={(e)=>setLocalData({...localData, overlayOpacity: parseInt(e.target.value)})} className="bg-black text-white border border-white/20 p-1 rounded w-20"/>
+                    </div>
                 </div>
             </div>
         </EditorLayout>
     );
 };
 
-const AboutEditor = () => {
-    const { content, updateAboutItems, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.about);
-    const handleItemChange = (index: number, field: keyof AboutItem, value: string) => {
-        const newItems = [...(localData.items || [])];
-        if (newItems[index]) { newItems[index] = { ...newItems[index], [field]: value }; setLocalData({ ...localData, items: newItems }); }
+const AboutEditor = () => { 
+    const { content, updateContent, updateAboutItems } = useContent(); 
+    const [local, setLocal] = useState(content.about);
+
+    const handleItemChange = (i: number, f: keyof AboutItem, v: string) => {
+        const items = [...local.items];
+        items[i] = { ...items[i], [f]: v };
+        setLocal({ ...local, items });
     };
-    const handleAddItem = () => setLocalData({ ...localData, items: [...(localData.items || []), { id: `ab-${Date.now()}`, title: "Feature", description: "Desc", iconName: "Award" }] });
+
     return (
-        <EditorLayout title="About Us" icon={Info} description="Company story and mission." helpText="Edit company history." onSave={() => { updateContent('about', localData); updateAboutItems(localData.items || []); }}>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <Input label="Title" value={localData.title} onChange={(v: string) => setLocalData({ ...localData, title: v })} />
-                    <TextArea label="Story Text" value={localData.text} onChange={(v: string) => setLocalData({ ...localData, text: v })} rows={6} />
-                </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <Input label="Mission Title" value={localData.missionTitle} onChange={(v: string) => setLocalData({ ...localData, missionTitle: v })} />
-                    <TextArea label="Mission Text" value={localData.missionText} onChange={(v: string) => setLocalData({ ...localData, missionText: v })} rows={3} />
-                    <FileUpload label="Owner Image" value={localData.ownerImage} onChange={(v: string) => setLocalData({ ...localData, ownerImage: v })} />
-                </div>
-                <div className="col-span-2 space-y-4">
-                     <div className="flex justify-between"><h3 className="text-white font-bold">Features</h3><button onClick={handleAddItem} className="bg-pestGreen px-2 py-1 rounded text-white"><Plus/></button></div>
-                     <div className="grid grid-cols-3 gap-4">{localData.items.map((item, i) => (
-                         <div key={i} className="bg-[#161817] p-4 rounded border border-white/5 relative">
-                             <button onClick={() => setLocalData({...localData, items: localData.items.filter((_, idx) => idx !== i)})} className="absolute top-2 right-2 text-red-500"><Trash2 size={14}/></button>
-                             <Input label="Title" value={item.title} onChange={(v: string) => handleItemChange(i, 'title', v)} />
-                             <TextArea label="Desc" value={item.description} onChange={(v: string) => handleItemChange(i, 'description', v)} rows={2} />
-                             <IconPicker label="Icon" value={item.iconName} onChange={(v: string) => handleItemChange(i, 'iconName', v)} />
+        <EditorLayout title="About" icon={Info} description="Company story and core values." helpText="Edit the about section." onSave={()=>{updateContent('about', local);}}>
+            <div className="space-y-6">
+                 <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <Input label="Title" value={local.title} onChange={(v:string)=>setLocal({...local, title: v})}/>
+                    <TextArea label="Story Text" value={local.text} onChange={(v:string)=>setLocal({...local, text: v})}/>
+                    <Input label="Mission Title" value={local.missionTitle} onChange={(v:string)=>setLocal({...local, missionTitle: v})}/>
+                    <TextArea label="Mission Text" value={local.missionText} onChange={(v:string)=>setLocal({...local, missionText: v})}/>
+                    <FileUpload label="Owner Image" value={local.ownerImage} onChange={(v:string)=>setLocal({...local, ownerImage: v})}/>
+                 </div>
+                 
+                 <div className="space-y-4">
+                     <h3 className="text-white font-bold">Key Highlights</h3>
+                     {local.items.map((item, i) => (
+                         <div key={item.id} className="bg-[#161817] p-4 rounded border border-white/5 relative">
+                             <Input label="Title" value={item.title} onChange={(v:string)=>handleItemChange(i, 'title', v)}/>
+                             <TextArea label="Description" value={item.description} onChange={(v:string)=>handleItemChange(i, 'description', v)} rows={2}/>
+                             <IconPicker label="Icon" value={item.iconName} onChange={(v:string)=>handleItemChange(i, 'iconName', v)}/>
                          </div>
-                     ))}</div>
+                     ))}
+                 </div>
+            </div>
+        </EditorLayout>
+    ); 
+};
+
+const ServicesEditor = () => { 
+    const { content, updateService } = useContent(); 
+    const [local, setLocal] = useState(content.services);
+    
+    const updateItem = (i: number, f: keyof ServiceItem, v: any) => {
+        const n = [...local];
+        n[i] = { ...n[i], [f]: v };
+        setLocal(n);
+    };
+
+    return (
+        <EditorLayout title="Services" icon={Briefcase} description="Manage service offerings." helpText="Edit services list." onSave={()=>updateService(local)}>
+            <div className="space-y-4">
+                 <button onClick={() => setLocal([...local, { id: Date.now().toString(), title: 'New Service', description: '', fullDescription: '', details: [], iconName: 'Bug', visible: true, featured: false }])} className="bg-pestGreen px-3 py-1 rounded text-white">+ Add Service</button>
+                 {local.map((s, i) => (
+                     <div key={s.id} className="bg-[#161817] p-6 rounded-xl border border-white/5 relative grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <button onClick={()=>{const n=local.filter((_,idx)=>idx!==i);setLocal(n)}} className="absolute top-2 right-2 text-red-500"><Trash2 size={16}/></button>
+                         <div className="space-y-4">
+                            <Input label="Title" value={s.title} onChange={(v:string)=>updateItem(i, 'title', v)}/>
+                            <Input label="Price Text" value={s.price || ''} onChange={(v:string)=>updateItem(i, 'price', v)}/>
+                            <TextArea label="Short Desc" value={s.description} onChange={(v:string)=>updateItem(i, 'description', v)} rows={2}/>
+                            <IconPicker label="Icon" value={s.iconName} onChange={(v:string)=>updateItem(i, 'iconName', v)}/>
+                            <div className="flex gap-4 pt-2">
+                                <label className="flex items-center gap-2 text-white"><input type="checkbox" checked={s.visible} onChange={(e)=>updateItem(i, 'visible', e.target.checked)}/> Visible</label>
+                                <label className="flex items-center gap-2 text-white"><input type="checkbox" checked={s.featured} onChange={(e)=>updateItem(i, 'featured', e.target.checked)}/> Featured</label>
+                            </div>
+                         </div>
+                         <div className="space-y-4">
+                            <TextArea label="Full Description" value={s.fullDescription} onChange={(v:string)=>updateItem(i, 'fullDescription', v)} rows={4}/>
+                            <FileUpload label="Detail Image" value={s.image} onChange={(v:string)=>updateItem(i, 'image', v)}/>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Bullet Points (One per line)</label>
+                                <textarea 
+                                    className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white outline-none" 
+                                    rows={4} 
+                                    value={s.details.join('\n')} 
+                                    onChange={(e) => updateItem(i, 'details', e.target.value.split('\n'))}
+                                />
+                            </div>
+                         </div>
+                     </div>
+                 ))}
+            </div>
+        </EditorLayout>
+    ); 
+};
+
+// --- RESTORED MISSING EDITORS ---
+
+const FaqEditor = () => {
+    const { content, updateFaqs } = useContent();
+    const [local, setLocal] = useState(content.faqs);
+
+    const updateItem = (i: number, f: keyof FAQItem, v: string) => {
+        const n = [...local];
+        n[i] = { ...n[i], [f]: v };
+        setLocal(n);
+    };
+
+    return (
+        <EditorLayout title="FAQs" icon={HelpCircle} description="Manage Frequently Asked Questions." helpText="Add helpful Q&A." onSave={()=>updateFaqs(local)}>
+            <div className="space-y-4">
+                <button onClick={() => setLocal([...local, { id: Date.now().toString(), question: 'New Question?', answer: 'Answer here.' }])} className="bg-pestGreen px-3 py-1 rounded text-white">+ Add FAQ</button>
+                {local.map((faq, i) => (
+                    <div key={faq.id} className="bg-[#161817] p-4 rounded-xl border border-white/5 relative space-y-2">
+                         <button onClick={()=>{const n=local.filter((_,idx)=>idx!==i);setLocal(n)}} className="absolute top-2 right-2 text-red-500"><Trash2 size={16}/></button>
+                         <Input label="Question" value={faq.question} onChange={(v:string)=>updateItem(i, 'question', v)}/>
+                         <TextArea label="Answer" value={faq.answer} onChange={(v:string)=>updateItem(i, 'answer', v)} rows={2}/>
+                    </div>
+                ))}
+            </div>
+        </EditorLayout>
+    );
+};
+
+const ProcessEditor = () => {
+    const { content, updateProcessSteps, updateContent } = useContent();
+    const [local, setLocal] = useState(content.process);
+
+    const updateStep = (i: number, f: keyof ProcessStep, v: any) => {
+        const n = [...local.steps];
+        n[i] = { ...n[i], [f]: v };
+        setLocal({...local, steps: n});
+    };
+
+    return (
+        <EditorLayout title="Process" icon={Workflow} description="Define the 4-step process." helpText="Keep steps concise." onSave={()=>{ updateContent('process', local); updateProcessSteps(local.steps); }}>
+            <div className="space-y-6">
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <Input label="Section Title" value={local.title} onChange={(v:string)=>setLocal({...local, title: v})}/>
+                    <Input label="Subtitle" value={local.subtitle} onChange={(v:string)=>setLocal({...local, subtitle: v})}/>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {local.steps.map((step, i) => (
+                        <div key={step.step} className="bg-[#161817] p-4 rounded-xl border border-white/5 relative space-y-3">
+                             <span className="absolute top-2 right-2 text-pestGreen font-bold text-lg">#{step.step}</span>
+                             <Input label="Step Title" value={step.title} onChange={(v:string)=>updateStep(i, 'title', v)}/>
+                             <TextArea label="Description" value={step.description} onChange={(v:string)=>updateStep(i, 'description', v)} rows={3}/>
+                             <IconPicker label="Icon" value={step.iconName} onChange={(v:string)=>updateStep(i, 'iconName', v)}/>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </EditorLayout>
+    );
+};
+
+const SafetyEditor = () => {
+    const { content, updateContent } = useContent();
+    const [local, setLocal] = useState(content.safety);
+
+    return (
+        <EditorLayout title="Safety" icon={Shield} description="Compliance and safety badges." helpText="Upload certs." onSave={()=>updateContent('safety', local)}>
+            <div className="space-y-6">
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <Input label="Title" value={local.title} onChange={(v:string)=>setLocal({...local, title: v})}/>
+                    <TextArea label="Description" value={local.description} onChange={(v:string)=>setLocal({...local, description: v})} rows={3}/>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                    {['badge1', 'badge2', 'badge3'].map((b, i) => (
+                        <div key={b} className="bg-[#161817] p-4 rounded border border-white/5">
+                            <Input label={`Badge ${i+1}`} value={(local as any)[b]} onChange={(v:string)=>setLocal({...local, [b]: v})}/>
+                            <IconPicker label="Icon" value={(local as any)[`${b}IconName`]} onChange={(v:string)=>setLocal({...local, [`${b}IconName`]: v})}/>
+                        </div>
+                    ))}
+                </div>
+                <div>
+                    <h4 className="text-white font-bold mb-2">Certificates</h4>
+                    <FileUpload label="Upload Certificates" value={local.certificates} onChange={(v:string[])=>setLocal({...local, certificates: v})} multiple={true}/>
+                </div>
+            </div>
+        </EditorLayout>
+    );
+};
+
+const ServiceAreaEditor = () => {
+    const { content, updateContent } = useContent();
+    const [local, setLocal] = useState(content.serviceArea);
+
+    return (
+        <EditorLayout title="Service Area" icon={Map} description="Map and covered towns." helpText="Towns comma separated." onSave={()=>updateContent('serviceArea', local)}>
+            <div className="space-y-6">
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <Input label="Title" value={local.title} onChange={(v:string)=>setLocal({...local, title: v})}/>
+                    <TextArea label="Description" value={local.description} onChange={(v:string)=>setLocal({...local, description: v})} rows={2}/>
+                    <Input label="Towns (Comma Separated)" value={local.towns.join(', ')} onChange={(v:string)=>setLocal({...local, towns: v.split(',').map(t=>t.trim()).filter(Boolean)})}/>
+                </div>
+                <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                    <h3 className="text-white font-bold">Map Visuals</h3>
+                    <Input label="Google Maps Embed URL" value={local.mapEmbedUrl || ''} onChange={(v:string)=>setLocal({...local, mapEmbedUrl: v})}/>
+                    <FileUpload label="Static Map Image" value={local.mapImage} onChange={(v:string)=>setLocal({...local, mapImage: v})}/>
                 </div>
             </div>
         </EditorLayout>
@@ -352,110 +514,20 @@ const AboutEditor = () => {
 
 const BookingModalEditor = () => {
     const { content, updateContent } = useContent();
-    const [localData, setLocalData] = useState(content.bookingModal);
+    const [local, setLocal] = useState(content.bookingModal);
+
     return (
-        <EditorLayout title="Booking Flow" icon={MousePointerClick} description="Popup texts." helpText="Edit booking labels." onSave={() => updateContent('bookingModal', localData)}>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <Input label="Header Title" value={localData.headerTitle} onChange={(v: string) => setLocalData({...localData, headerTitle: v})} />
-                    <Input label="Header Subtitle" value={localData.headerSubtitle} onChange={(v: string) => setLocalData({...localData, headerSubtitle: v})} />
-                </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <Input label="Success Title" value={localData.successTitle} onChange={(v: string) => setLocalData({...localData, successTitle: v})} />
-                    <TextArea label="Success Msg" value={localData.successMessage} onChange={(v: string) => setLocalData({...localData, successMessage: v})} rows={2} />
-                </div>
+        <EditorLayout title="Booking Flow" icon={MousePointerClick} description="Customize the booking popup." helpText="Edit labels and success messages." onSave={()=>updateContent('bookingModal', local)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Header Title" value={local.headerTitle} onChange={(v:string)=>setLocal({...local, headerTitle: v})}/>
+                <Input label="Header Subtitle" value={local.headerSubtitle} onChange={(v:string)=>setLocal({...local, headerSubtitle: v})}/>
+                <Input label="Step 1 Title" value={local.stepServiceTitle} onChange={(v:string)=>setLocal({...local, stepServiceTitle: v})}/>
+                <Input label="Step 2 Title" value={local.stepDateTitle} onChange={(v:string)=>setLocal({...local, stepDateTitle: v})}/>
+                <Input label="Step 3 Title" value={local.stepDetailsTitle} onChange={(v:string)=>setLocal({...local, stepDetailsTitle: v})}/>
+                <Input label="Success Title" value={local.successTitle} onChange={(v:string)=>setLocal({...local, successTitle: v})}/>
+                <Input label="Success Message" value={local.successMessage} onChange={(v:string)=>setLocal({...local, successMessage: v})}/>
+                <Input label="Terms Text" value={local.termsText || ''} onChange={(v:string)=>setLocal({...local, termsText: v})}/>
             </div>
-        </EditorLayout>
-    );
-};
-
-const ServicesEditor = () => {
-    const { content, updateService } = useContent();
-    const [localServices, setLocalServices] = useState(content.services);
-    const handleUpdate = (id: string, field: keyof ServiceItem, value: any) => setLocalServices(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
-    const handleAdd = () => setLocalServices([...localServices, { id: `srv-${Date.now()}`, title: 'New Service', description: 'Short desc', fullDescription: 'Full desc', details: [], iconName: 'Bug', visible: true, featured: false, price: '' }]);
-    const handleDelete = (id: string) => confirm('Delete?') && setLocalServices(localServices.filter(s => s.id !== id));
-    return (
-        <EditorLayout title="Services" icon={Briefcase} description="Manage services." helpText="Add/Edit services." onSave={() => updateService(localServices)}>
-            <div className="flex justify-end mb-4"><button onClick={handleAdd} className="bg-pestGreen text-white px-4 py-2 rounded-lg font-bold flex gap-2"><Plus/> Add Service</button></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{localServices.map(s => (
-                <div key={s.id} className="bg-[#161817] p-6 rounded-2xl border border-white/5 relative space-y-3">
-                    <button onClick={() => handleDelete(s.id)} className="absolute top-4 right-4 text-red-500"><Trash2/></button>
-                    <Input label="Title" value={s.title} onChange={(v: string) => handleUpdate(s.id, 'title', v)} />
-                    <TextArea label="Short Desc" value={s.description} onChange={(v: string) => handleUpdate(s.id, 'description', v)} rows={2} />
-                    <TextArea label="Full Desc" value={s.fullDescription} onChange={(v: string) => handleUpdate(s.id, 'fullDescription', v)} rows={4} />
-                    <Input label="Price" value={s.price} onChange={(v: string) => handleUpdate(s.id, 'price', v)} />
-                    <IconPicker label="Icon" value={s.iconName} onChange={(v: string) => handleUpdate(s.id, 'iconName', v)} />
-                    <FileUpload label="Image" value={s.image} onChange={(v: string) => handleUpdate(s.id, 'image', v)} />
-                    <div className="flex gap-4"><label className="flex gap-2 text-white"><input type="checkbox" checked={s.visible} onChange={e => handleUpdate(s.id, 'visible', e.target.checked)}/> Visible</label><label className="flex gap-2 text-white"><input type="checkbox" checked={s.featured} onChange={e => handleUpdate(s.id, 'featured', e.target.checked)}/> Featured</label></div>
-                </div>
-            ))}</div>
-        </EditorLayout>
-    );
-};
-
-const ProcessEditor = () => {
-    const { content, updateProcessSteps } = useContent();
-    const [steps, setSteps] = useState(content.process.steps);
-    return (
-        <EditorLayout title="Process" icon={Workflow} description="Edit workflow steps." helpText="Edit 4 steps." onSave={() => updateProcessSteps(steps)}>
-            <div className="grid grid-cols-2 gap-4">{steps.map((step, i) => (
-                <div key={i} className="bg-[#161817] p-4 rounded border border-white/5 space-y-2">
-                    <h4 className="text-white font-bold">Step {step.step}</h4>
-                    <Input label="Title" value={step.title} onChange={(v: string) => { const ns = [...steps]; ns[i].title = v; setSteps(ns); }} />
-                    <TextArea label="Desc" value={step.description} onChange={(v: string) => { const ns = [...steps]; ns[i].description = v; setSteps(ns); }} rows={2} />
-                    <IconPicker label="Icon" value={step.iconName} onChange={(v: string) => { const ns = [...steps]; ns[i].iconName = v; setSteps(ns); }} />
-                </div>
-            ))}</div>
-        </EditorLayout>
-    );
-};
-
-const ServiceAreaEditor = () => {
-    const { content, updateContent } = useContent();
-    const [local, setLocal] = useState(content.serviceArea);
-    return (
-        <EditorLayout title="Service Area" icon={Map} description="Map and towns." helpText="Coverage area." onSave={() => updateContent('serviceArea', local)}>
-            <Input label="Title" value={local.title} onChange={(v: string) => setLocal({...local, title: v})} />
-            <TextArea label="Description" value={local.description} onChange={(v: string) => setLocal({...local, description: v})} rows={2} />
-            <TextArea label="Towns (comma separated)" value={local.towns.join(', ')} onChange={(v: string) => setLocal({...local, towns: v.split(',').map(s=>s.trim())})} rows={2} />
-            <FileUpload label="Map Image" value={local.mapImage} onChange={(v: string) => setLocal({...local, mapImage: v})} />
-        </EditorLayout>
-    );
-};
-
-const SafetyEditor = () => {
-    const { content, updateContent } = useContent();
-    const [local, setLocal] = useState(content.safety);
-    return (
-        <EditorLayout title="Safety" icon={Shield} description="Compliance info." helpText="Safety badges." onSave={() => updateContent('safety', local)}>
-            <Input label="Title" value={local.title} onChange={(v: string) => setLocal({...local, title: v})} />
-            <TextArea label="Desc" value={local.description} onChange={(v: string) => setLocal({...local, description: v})} rows={2} />
-            <div className="grid grid-cols-3 gap-4">
-                {[1,2,3].map(i => (
-                    <div key={i} className="bg-[#161817] p-4 rounded border border-white/5">
-                        <Input label={`Badge ${i} Text`} value={(local as any)[`badge${i}`]} onChange={(v: string) => setLocal({...local, [`badge${i}`]: v})} />
-                        <IconPicker label="Icon" value={(local as any)[`badge${i}IconName`]} onChange={(v: string) => setLocal({...local, [`badge${i}IconName`]: v})} />
-                    </div>
-                ))}
-            </div>
-        </EditorLayout>
-    );
-};
-
-const FaqEditor = () => {
-    const { content, updateFaqs } = useContent();
-    const [faqs, setFaqs] = useState(content.faqs);
-    return (
-        <EditorLayout title="FAQs" icon={HelpCircle} description="Common questions." helpText="Manage FAQs." onSave={() => updateFaqs(faqs)}>
-            <button onClick={() => setFaqs([...faqs, { id: Date.now().toString(), question: 'Q?', answer: 'A.' }])} className="bg-pestGreen text-white px-4 py-2 rounded mb-4">Add FAQ</button>
-            <div className="space-y-4">{faqs.map((f, i) => (
-                <div key={f.id} className="bg-[#161817] p-4 rounded border border-white/5 relative space-y-2">
-                    <button onClick={() => setFaqs(faqs.filter(x => x.id !== f.id))} className="absolute top-2 right-2 text-red-500"><Trash2/></button>
-                    <Input label="Question" value={f.question} onChange={(v: string) => { const n = [...faqs]; n[i].question = v; setFaqs(n); }} />
-                    <TextArea label="Answer" value={f.answer} onChange={(v: string) => { const n = [...faqs]; n[i].answer = v; setFaqs(n); }} rows={2} />
-                </div>
-            ))}</div>
         </EditorLayout>
     );
 };
@@ -463,12 +535,19 @@ const FaqEditor = () => {
 const SeoEditor = () => {
     const { content, updateContent } = useContent();
     const [local, setLocal] = useState(content.seo);
+
     return (
-        <EditorLayout title="SEO" icon={Search} description="Search Engine settings." helpText="Meta tags." onSave={() => updateContent('seo', local)}>
-            <Input label="Meta Title" value={local.metaTitle} onChange={(v: string) => setLocal({...local, metaTitle: v})} />
-            <TextArea label="Meta Description" value={local.metaDescription} onChange={(v: string) => setLocal({...local, metaDescription: v})} rows={3} />
-            <Input label="Keywords" value={local.keywords} onChange={(v: string) => setLocal({...local, keywords: v})} />
-            <FileUpload label="OG Image" value={local.ogImage} onChange={(v: string) => setLocal({...local, ogImage: v})} />
+        <EditorLayout title="SEO & Meta" icon={Search} description="Search Engine Optimization settings." helpText="Meta tags for Google." onSave={()=>updateContent('seo', local)}>
+            <div className="space-y-4">
+                <Input label="Meta Title" value={local.metaTitle} onChange={(v:string)=>setLocal({...local, metaTitle: v})}/>
+                <TextArea label="Meta Description" value={local.metaDescription} onChange={(v:string)=>setLocal({...local, metaDescription: v})} rows={3}/>
+                <TextArea label="Keywords" value={local.keywords} onChange={(v:string)=>setLocal({...local, keywords: v})} rows={2}/>
+                <FileUpload label="Social Share Image (OG:Image)" value={local.ogImage} onChange={(v:string)=>setLocal({...local, ogImage: v})}/>
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                    <h4 className="text-gray-500 text-xs font-bold uppercase mb-2">Advanced</h4>
+                    <TextArea label="Structured Data (JSON-LD)" value={local.structuredDataJSON || ''} onChange={(v:string)=>setLocal({...local, structuredDataJSON: v})} rows={6}/>
+                </div>
+            </div>
         </EditorLayout>
     );
 };
@@ -476,110 +555,295 @@ const SeoEditor = () => {
 const EmployeeEditor = () => {
     const { content, addEmployee, updateEmployee, deleteEmployee } = useContent();
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState<Partial<Employee>>({});
+    const [editForm, setEditForm] = useState<Partial<Employee>>({});
 
-    const startEdit = (e?: Employee) => {
-        setEditingId(e ? e.id : 'new');
-        setFormData(e || { 
-            id: `emp-${Date.now()}`, fullName: '', email: '', loginName: '', pin: '1234', 
-            jobTitle: 'Technician', permissions: { isAdmin: false, canDoAssessment: true, canCreateQuotes: false, canExecuteJob: true, canInvoice: false, canViewReports: false, canManageEmployees: false, canEditSiteContent: false },
-            doctorsNumbers: [], documents: [], profileImage: null 
-        });
+    const startEdit = (emp: Employee) => {
+        setEditingId(emp.id);
+        setEditForm(emp);
     };
 
-    const save = () => {
-        if (editingId === 'new') addEmployee(formData as Employee);
-        else if (editingId) updateEmployee(editingId, formData);
-        setEditingId(null);
+    const handleSave = () => {
+        if (editingId && editForm.fullName) {
+            updateEmployee(editingId, editForm);
+            setEditingId(null);
+        } else if (!editingId && editForm.fullName) {
+            // Add new
+            const newEmp = {
+                ...editForm,
+                id: `emp-${Date.now()}`,
+                permissions: editForm.permissions || { isAdmin: false, canDoAssessment: true, canCreateQuotes: true, canExecuteJob: true, canInvoice: false, canViewReports: false, canManageEmployees: false, canEditSiteContent: false },
+                documents: [], doctorsNumbers: []
+            } as Employee;
+            addEmployee(newEmp);
+            setEditForm({});
+        }
     };
-
-    if (editingId) return (
-        <div className="bg-[#1e201f] p-6 rounded-2xl border border-white/10 space-y-4">
-            <h3 className="text-white font-bold">{editingId === 'new' ? 'Add Employee' : 'Edit Employee'}</h3>
-            <div className="grid grid-cols-2 gap-4">
-                <Input label="Full Name" value={formData.fullName} onChange={(v: string) => setFormData({...formData, fullName: v})} />
-                <Input label="Job Title" value={formData.jobTitle} onChange={(v: string) => setFormData({...formData, jobTitle: v})} />
-                <Input label="Email" value={formData.email} onChange={(v: string) => setFormData({...formData, email: v})} />
-                <Input label="Login Name" value={formData.loginName} onChange={(v: string) => setFormData({...formData, loginName: v})} />
-                <Input label="PIN" value={formData.pin} onChange={(v: string) => setFormData({...formData, pin: v})} />
-            </div>
-            <div className="bg-[#0f1110] p-4 rounded border border-white/5">
-                <h4 className="text-white font-bold mb-2">Permissions</h4>
-                <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(formData.permissions || {}).map(perm => (
-                        <label key={perm} className="flex items-center gap-2 text-gray-400">
-                            <input type="checkbox" checked={(formData.permissions as any)[perm]} onChange={e => setFormData({...formData, permissions: {...formData.permissions, [perm]: e.target.checked} as any})} />
-                            {perm}
-                        </label>
-                    ))}
-                </div>
-            </div>
-            <div className="flex gap-2">
-                <button onClick={save} className="bg-pestGreen text-white px-4 py-2 rounded">Save</button>
-                <button onClick={() => setEditingId(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
-            </div>
-        </div>
-    );
 
     return (
-        <div className="space-y-4">
-            <button onClick={() => startEdit()} className="bg-pestGreen text-white px-4 py-2 rounded flex gap-2"><Plus/> Add Employee</button>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {content.employees.map(e => (
-                    <div key={e.id} className="bg-[#161817] p-4 rounded border border-white/5 flex justify-between items-center">
-                        <div>
-                            <div className="font-bold text-white">{e.fullName}</div>
-                            <div className="text-xs text-gray-500">{e.jobTitle}</div>
+        <EditorLayout title="Employees" icon={Users} description="Manage team members and access." helpText="Set permissions carefully." onSave={()=>{}}>
+            <div className="space-y-8">
+                {/* List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {content.employees.map(emp => (
+                        <div key={emp.id} className="bg-[#161817] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gray-700 rounded-full overflow-hidden">
+                                {emp.profileImage ? <img src={emp.profileImage} className="w-full h-full object-cover"/> : <User className="w-full h-full p-2"/>}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-bold text-white">{emp.fullName}</h4>
+                                <p className="text-xs text-pestGreen">{emp.jobTitle}</p>
+                            </div>
+                            <button onClick={()=>startEdit(emp)} className="text-gray-400 hover:text-white p-2"><Edit size={16}/></button>
+                            <button onClick={()=>{if(confirm('Delete?')) deleteEmployee(emp.id)}} className="text-red-500 p-2"><Trash2 size={16}/></button>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => startEdit(e)} className="text-blue-400"><Edit size={16}/></button>
-                            <button onClick={() => deleteEmployee(e.id)} className="text-red-500"><Trash2 size={16}/></button>
+                    ))}
+                    <button onClick={()=>{setEditingId(''); setEditForm({})}} className="bg-pestGreen/20 text-pestGreen border border-pestGreen/50 rounded-xl flex flex-col items-center justify-center p-4 hover:bg-pestGreen/30 transition-colors">
+                        <Plus size={24}/>
+                        <span className="text-xs font-bold mt-2">Add Employee</span>
+                    </button>
+                </div>
+
+                {/* Edit Form */}
+                {(editingId !== null || Object.keys(editForm).length > 0) && (
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/10 space-y-4 animate-in slide-in-from-bottom-10">
+                        <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
+                             <h3 className="font-bold text-white">{editingId ? 'Edit Employee' : 'New Employee'}</h3>
+                             <button onClick={()=>{setEditingId(null); setEditForm({})}}><X size={20} className="text-gray-500"/></button>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input label="Full Name" value={editForm.fullName || ''} onChange={(v:string)=>setEditForm({...editForm, fullName: v})}/>
+                            <Input label="Job Title" value={editForm.jobTitle || ''} onChange={(v:string)=>setEditForm({...editForm, jobTitle: v})}/>
+                            <Input label="Email" value={editForm.email || ''} onChange={(v:string)=>setEditForm({...editForm, email: v})}/>
+                            <Input label="Phone" value={editForm.tel || ''} onChange={(v:string)=>setEditForm({...editForm, tel: v})}/>
+                            <Input label="Login Name" value={editForm.loginName || ''} onChange={(v:string)=>setEditForm({...editForm, loginName: v})}/>
+                            <Input label="PIN Code" value={editForm.pin || ''} onChange={(v:string)=>setEditForm({...editForm, pin: v})}/>
+                            <FileUpload label="Profile Image" value={editForm.profileImage} onChange={(v:string)=>setEditForm({...editForm, profileImage: v})}/>
+                        </div>
+
+                        <div className="bg-black/20 p-4 rounded-lg">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Permissions</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {['isAdmin', 'canDoAssessment', 'canCreateQuotes', 'canExecuteJob', 'canInvoice', 'canManageEmployees', 'canEditSiteContent'].map(perm => (
+                                    <label key={perm} className="flex items-center gap-2 text-sm text-gray-300">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={(editForm.permissions as any)?.[perm] || false} 
+                                            onChange={(e) => setEditForm({
+                                                ...editForm, 
+                                                permissions: { ...(editForm.permissions || {} as any), [perm]: e.target.checked }
+                                            })}
+                                        />
+                                        {perm.replace(/([A-Z])/g, ' $1').trim()}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button onClick={handleSave} className="w-full bg-pestGreen text-white py-3 rounded-xl font-bold">
+                            {editingId ? 'Update Employee' : 'Create Employee'}
+                        </button>
                     </div>
-                ))}
+                )}
             </div>
-        </div>
+        </EditorLayout>
     );
 };
 
 const CreatorDashboard = () => {
-    const { content, updateContent, resetSystem, clearSystem, downloadBackup, restoreBackup } = useContent();
+    const { content, updateContent, resetSystem, clearSystem, downloadBackup, restoreBackup, dbType } = useContent();
     const [local, setLocal] = useState(content.creatorWidget);
+
     return (
-        <EditorLayout title="Creator & System" icon={Database} description="Widget & Backup." helpText="System tools." onSave={() => updateContent('creatorWidget', local)}>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">Widget</h3>
-                    <Input label="Slogan" value={local.slogan} onChange={(v: string) => setLocal({...local, slogan: v})} />
-                    <Input label="CTA" value={local.ctaText} onChange={(v: string) => setLocal({...local, ctaText: v})} />
-                    <FileUpload label="Logo" value={local.logo} onChange={(v: string) => setLocal({...local, logo: v})} />
+        <EditorLayout title="System & Widget" icon={Database} description="Backend tools and Creator Widget config." helpText="Advanced settings." onSave={()=>updateContent('creatorWidget', local)}>
+            <div className="space-y-8">
+                {/* System Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5">
+                        <h4 className="text-gray-500 text-xs font-bold uppercase mb-1">Database Engine</h4>
+                        <p className="text-2xl font-black text-white">{dbType.toUpperCase()}</p>
+                    </div>
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5">
+                        <h4 className="text-gray-500 text-xs font-bold uppercase mb-1">Total Jobs</h4>
+                        <p className="text-2xl font-black text-pestGreen">{content.jobCards.length}</p>
+                    </div>
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5">
+                        <h4 className="text-gray-500 text-xs font-bold uppercase mb-1">Total Employees</h4>
+                        <p className="text-2xl font-black text-blue-400">{content.employees.length}</p>
+                    </div>
                 </div>
-                <div className="bg-[#161817] p-6 rounded-2xl border border-white/5 space-y-4">
-                    <h3 className="text-white font-bold">System Actions</h3>
-                    <button onClick={downloadBackup} className="w-full bg-blue-600 text-white p-3 rounded flex justify-center gap-2"><Download/> Backup Data</button>
-                    <label className="w-full bg-purple-600 text-white p-3 rounded flex justify-center gap-2 cursor-pointer">
-                        <Upload/> Restore Data <input type="file" className="hidden" onChange={e => e.target.files?.[0] && restoreBackup(e.target.files[0])} />
-                    </label>
-                    <button onClick={() => confirm("Reset to defaults?") && resetSystem()} className="w-full bg-yellow-600 text-white p-3 rounded flex justify-center gap-2"><RotateCcw/> Reset to Defaults</button>
-                    <button onClick={() => confirm("NUKE ALL DATA?") && clearSystem()} className="w-full bg-red-600 text-white p-3 rounded flex justify-center gap-2"><Trash2/> Clear All Data</button>
+
+                {/* Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                        <h3 className="text-white font-bold flex items-center gap-2"><HardDrive size={18}/> Data Management</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={downloadBackup} className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-4 py-3 rounded-lg font-bold transition-all border border-blue-500/30 flex items-center justify-center gap-2">
+                                <Download size={16}/> Backup
+                            </button>
+                            <label className="bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white px-4 py-3 rounded-lg font-bold transition-all border border-green-500/30 flex items-center justify-center gap-2 cursor-pointer">
+                                <Upload size={16}/> Restore
+                                <input type="file" className="hidden" onChange={(e) => { if(e.target.files?.[0]) restoreBackup(e.target.files[0]); }} />
+                            </label>
+                        </div>
+                        <div className="pt-4 border-t border-white/10 space-y-2">
+                             <button onClick={()=>{if(confirm('Reset to defaults?')) resetSystem()}} className="w-full bg-yellow-600/20 hover:bg-yellow-600 text-yellow-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-all border border-yellow-500/30 flex items-center justify-center gap-2">
+                                <RotateCcw size={16}/> Reset to Seed Data
+                            </button>
+                             <button onClick={()=>{if(confirm('NUKE ALL DATA?')) clearSystem()}} className="w-full bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-all border border-red-500/30 flex items-center justify-center gap-2">
+                                <AlertTriangle size={16}/> Nuke System (Clear All)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#161817] p-6 rounded-xl border border-white/5 space-y-4">
+                         <h3 className="text-white font-bold flex items-center gap-2"><Code2 size={18}/> Creator Widget</h3>
+                         <Input label="Slogan" value={local.slogan} onChange={(v:string)=>setLocal({...local, slogan: v})}/>
+                         <Input label="CTA Text" value={local.ctaText} onChange={(v:string)=>setLocal({...local, ctaText: v})}/>
+                         <FileUpload label="Logo" value={local.logo} onChange={(v:string)=>setLocal({...local, logo: v})}/>
+                         <FileUpload label="Background" value={local.background} onChange={(v:string)=>setLocal({...local, background: v})}/>
+                    </div>
                 </div>
             </div>
         </EditorLayout>
     );
 };
 
-// --- MAIN DASHBOARD ---
+// --- BOOKINGS VIEWER ---
+
+const BookingsViewer = () => {
+    const { content, updateBooking, addJobCard, addBooking } = useContent();
+    const bookings = content.bookings;
+    
+    const handleConvertToJob = (booking: Booking, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("Create a Job Card from this booking?")) return;
+        
+        const newJob: JobCard = {
+            id: `job-${Date.now()}`,
+            refNumber: `JOB-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
+            bookingId: booking.id,
+            clientName: booking.clientName,
+            clientAddressDetails: { street: booking.clientAddress, suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '' },
+            contactNumber: booking.clientPhone,
+            contactNumberAlt: '',
+            email: booking.clientEmail,
+            propertyType: 'Residential',
+            assessmentDate: new Date().toISOString(),
+            technicianId: '',
+            selectedServices: [booking.serviceId],
+            checkpoints: [],
+            isFirstTimeService: true,
+            treatmentRecommendation: '',
+            quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' },
+            status: 'Assessment',
+            history: [{ date: new Date().toISOString(), action: 'Created from Booking', user: 'System' }]
+        };
+        addJobCard(newJob);
+        updateBooking(booking.id, { status: 'Converted' });
+    };
+
+    const archiveBooking = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if(confirm("Archive this booking?")) updateBooking(id, { status: 'Archived' });
+    };
+
+    const handleCreateManualBooking = () => {
+        const name = prompt("Client Name:");
+        if(!name) return;
+        const phone = prompt("Client Phone:");
+        if(!phone) return;
+        
+        const newBooking: Booking = {
+             id: Date.now().toString(),
+             serviceId: 'manual', serviceName: 'Manual Phone Booking',
+             date: new Date().toISOString().split('T')[0], 
+             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+             clientName: name, clientPhone: phone || '', clientEmail: '', clientAddress: '',
+             submittedAt: new Date().toISOString(), status: 'New'
+        };
+        addBooking(newBooking);
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in">
+             <SectionHeader 
+                title="Bookings & Inquiries" 
+                icon={Inbox} 
+                description="Manage bookings submitted from the website home page or add manual entries." 
+                action={
+                    <button onClick={handleCreateManualBooking} className="bg-pestGreen text-white hover:bg-white hover:text-pestGreen px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition-all border border-white/5">
+                        <PlusCircle size={16}/> Manual Booking
+                    </button>
+                }
+             />
+             
+             <div className="grid grid-cols-1 gap-4">
+                 {bookings.length === 0 && <p className="text-gray-500 text-center py-10">No bookings yet.</p>}
+                 {bookings.map((b) => (
+                     <div key={b.id} className={`bg-[#161817] p-6 rounded-2xl border ${b.status === 'New' ? 'border-pestGreen' : 'border-white/5'} flex flex-col md:flex-row justify-between gap-4 shadow-lg hover:border-pestGreen/50 transition-colors`}>
+                         <div className="space-y-2">
+                             <div className="flex items-center gap-3">
+                                 <h3 className="text-white font-bold text-lg">{b.serviceName}</h3>
+                                 <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${b.status === 'New' ? 'bg-pestGreen text-white' : 'bg-white/10 text-gray-400'}`}>{b.status}</span>
+                             </div>
+                             <div className="text-gray-300 text-sm space-y-1">
+                                 <p className="flex items-center gap-2"><User size={14} className="text-pestGreen"/> {b.clientName}</p>
+                                 <p className="flex items-center gap-2"><Phone size={14} className="text-pestGreen"/> {b.clientPhone}</p>
+                                 <p className="flex items-center gap-2"><Calendar size={14} className="text-pestGreen"/> {b.date} at {b.time}</p>
+                             </div>
+                         </div>
+                         <div className="flex flex-col gap-3 justify-center min-w-[160px]">
+                             {b.status !== 'Converted' && b.status !== 'Archived' && (
+                                 <button type="button" onClick={(e) => handleConvertToJob(b, e)} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 w-full justify-center shadow-md transition-transform hover:scale-105">
+                                     <Briefcase size={16}/> Convert to Job
+                                 </button>
+                             )}
+                             {b.status !== 'Archived' && (
+                                 <button type="button" onClick={(e) => archiveBooking(b.id, e)} className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-4 py-2 rounded-xl font-bold text-sm w-full justify-center border border-white/5 transition-colors">
+                                     Archive
+                                 </button>
+                             )}
+                         </div>
+                     </div>
+                 ))}
+             </div>
+        </div>
+    );
+};
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, loggedInUser }) => {
     const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>('work');
     const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('jobs');
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-    const { content } = useContent();
+    const { content, addJobCard } = useContent();
 
     // Render Job Manager if job selected
     if (selectedJobId) {
         return <JobCardManager jobId={selectedJobId} currentUser={loggedInUser} onClose={() => setSelectedJobId(null)} />;
     }
+
+    const handleCreateJob = () => {
+        const newJob: JobCard = {
+            id: `job-${Date.now()}`,
+            refNumber: `JOB-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+            clientName: 'New Client',
+            clientAddressDetails: { street: '', suburb: '', city: 'Nelspruit', province: 'MP', postalCode: '' },
+            contactNumber: '',
+            email: '',
+            propertyType: 'Residential',
+            assessmentDate: new Date().toISOString(),
+            technicianId: '',
+            selectedServices: [],
+            checkpoints: [],
+            isFirstTimeService: true,
+            treatmentRecommendation: '',
+            quote: { lineItems: [], subtotal: 0, vatRate: 0.15, total: 0, notes: '' },
+            status: 'Assessment',
+            history: [{ date: new Date().toISOString(), action: 'Job Created Manually', user: loggedInUser?.fullName || 'Admin' }]
+        };
+        addJobCard(newJob);
+        setSelectedJobId(newJob.id);
+    };
 
     const renderSidebar = () => (
         <div className="w-64 bg-[#161817] flex flex-col h-full border-r border-white/5">
@@ -591,21 +855,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
                 <div>
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Work</div>
                     <button onClick={() => { setActiveMainTab('work'); setActiveSubTab('jobs'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'jobs' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Clipboard size={16}/> Jobs</button>
+                    <button onClick={() => { setActiveMainTab('work'); setActiveSubTab('inquiries'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'inquiries' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Inbox size={16}/> Bookings</button>
                     <button onClick={() => { setActiveMainTab('work'); setActiveSubTab('faqs'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'faqs' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><HelpCircle size={16}/> FAQs</button>
                 </div>
                 <div>
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Content</div>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('hero'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'hero' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Layout size={16}/> Hero</button>
                     <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('servicesList'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'servicesList' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Briefcase size={16}/> Services</button>
+                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('serviceAreaMap'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'serviceAreaMap' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Map size={16}/> Service Area</button>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('about'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'about' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Info size={16}/> About</button>
                     <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('process'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'process' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Workflow size={16}/> Process</button>
                     <button onClick={() => { setActiveMainTab('homeLayout'); setActiveSubTab('whyChooseUs'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'whyChooseUs' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><ThumbsUp size={16}/> Why Us</button>
+                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('safety'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'safety' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Shield size={16}/> Safety</button>
+                    <button onClick={() => { setActiveMainTab('servicesArea'); setActiveSubTab('contactPage'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'contactPage' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><PhoneCall size={16}/> Contact & CTA</button>
                 </div>
                 <div>
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Settings</div>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('companyDetails'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'companyDetails' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Building2 size={16}/> Company</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('locations'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'locations' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><MapPin size={16}/> Locations</button>
                     <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('employeeDirectory'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'employeeDirectory' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Users size={16}/> Employees</button>
+                    <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('bookingSettings'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'bookingSettings' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><MousePointerClick size={16}/> Booking Flow</button>
+                    <button onClick={() => { setActiveMainTab('companyInfo'); setActiveSubTab('seo'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'seo' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Search size={16}/> SEO</button>
                     <button onClick={() => { setActiveMainTab('creator'); setActiveSubTab('creatorSettings'); }} className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 ${activeSubTab === 'creatorSettings' ? 'bg-pestGreen text-white' : 'text-gray-400 hover:text-white'}`}><Database size={16}/> System</button>
                 </div>
             </nav>
@@ -619,41 +889,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, logged
 
     const renderContent = () => {
         switch(activeSubTab) {
-            // Work
             case 'jobs': return (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Clipboard/> Job Cards</h2>
+                    <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                        <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Clipboard/> Job Cards</h2>
+                        <button 
+                            onClick={handleCreateJob}
+                            className="bg-pestGreen text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-white hover:text-pestGreen transition-colors shadow-lg"
+                        >
+                            <PlusCircle size={20}/> New Job
+                        </button>
+                    </div>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {content.jobCards.length === 0 && <p className="text-gray-500 col-span-full text-center py-10">No jobs found. Create one to get started.</p>}
                         {content.jobCards.map(job => (
-                            <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] p-4 rounded-xl border border-white/5 cursor-pointer hover:border-pestGreen transition-colors">
+                            <div key={job.id} onClick={() => setSelectedJobId(job.id)} className="bg-[#161817] p-5 rounded-xl border border-white/5 cursor-pointer hover:border-pestGreen transition-all hover:scale-[1.01] shadow-lg group relative">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="font-bold text-white">{job.refNumber}</div>
-                                    <div className="text-xs bg-white/10 px-2 py-1 rounded text-white">{job.status}</div>
+                                    <div className="font-bold text-white group-hover:text-pestGreen transition-colors">{job.refNumber}</div>
+                                    <div className={`text-xs px-2 py-1 rounded text-white font-bold uppercase tracking-wider
+                                        ${job.status === 'Completed' ? 'bg-green-500/20 text-green-400' : 
+                                          job.status === 'Assessment' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-300'}`}>
+                                        {job.status.replace(/_/g, ' ')}
+                                    </div>
                                 </div>
-                                <div className="text-sm text-gray-400">{job.clientName}</div>
-                                <div className="text-xs text-gray-500 mt-2">{job.clientAddressDetails.suburb}</div>
+                                <div className="text-sm text-gray-300 font-medium mb-1">{job.clientName}</div>
+                                <div className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={12}/> {job.clientAddressDetails.suburb || 'Unknown Location'}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             );
+            case 'inquiries': return <BookingsViewer />;
             case 'faqs': return <FaqEditor />;
-            
-            // Content
             case 'hero': return <HeroEditor />;
             case 'about': return <AboutEditor />;
             case 'whyChooseUs': return <WhyChooseUsEditor />;
             case 'process': return <ProcessEditor />;
             case 'servicesList': return <ServicesEditor />;
             case 'safety': return <SafetyEditor />;
-            
-            // Settings
+            case 'serviceAreaMap': return <ServiceAreaEditor />;
+            case 'contactPage': return <ContactEditor />;
             case 'companyDetails': return <CompanyEditor />;
             case 'locations': return <LocationsEditor />;
-            case 'contactPage': return <ContactEditor />;
             case 'bookingSettings': return <BookingModalEditor />;
             case 'seo': return <SeoEditor />;
-            case 'serviceAreaMap': return <ServiceAreaEditor />;
             case 'employeeDirectory': return <EmployeeEditor />;
             case 'creatorSettings': return <CreatorDashboard />;
             

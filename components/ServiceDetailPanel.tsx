@@ -3,7 +3,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ServiceItem } from '../types';
 import * as Icons from 'lucide-react';
-import { ArrowRight, X, Award } from 'lucide-react';
+import { ArrowRight, ChevronRight, Award } from 'lucide-react';
 
 const IconMap = Icons as unknown as Record<string, React.ElementType>;
 
@@ -30,74 +30,80 @@ export const ServiceDetailPanel: React.FC<ServiceDetailPanelProps> = ({
           animate={{ x: '0%', opacity: 1 }}
           exit={{ x: '100%', opacity: 0 }} // Slides out to right
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed inset-y-0 right-0 w-full md:w-1/2 xl:w-1/3 bg-pestBrown z-40 shadow-2xl overflow-y-auto 
-                     flex flex-col border-l border-pestGreen/50"
+          className="fixed inset-y-0 right-0 w-full md:w-[60%] xl:w-[40%] bg-pestBrown z-[60] shadow-2xl overflow-y-auto 
+                     flex flex-col border-l-4 border-pestGreen"
         >
+          {/* Close Arrow Button - Positioned on the LEFT edge vertically centered */}
+          <button 
+              onClick={onClose} 
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 z-50 bg-white/10 hover:bg-pestGreen text-white p-4 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 border border-white/20 group"
+              title="Close Details"
+          >
+              <ChevronRight size={32} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+
           {/* Header Image if available */}
-          <div className="relative w-full h-56 md:h-72 bg-black/20 flex-shrink-0">
+          <div className="relative w-full h-64 md:h-80 bg-black/20 flex-shrink-0">
              {service.image ? (
                  <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
              ) : (
                  <div className="w-full h-full flex items-center justify-center bg-pestDarkGreen/50">
-                     <IconComponent size={64} className="text-white/20" />
+                     <IconComponent size={80} className="text-white/20" />
                  </div>
              )}
-             <button 
-              onClick={onClose} 
-              className="absolute top-6 right-6 bg-black/40 backdrop-blur hover:bg-black/60 text-white transition-colors p-3 rounded-full z-50"
-              aria-label="Close service details"
-            >
-              <X size={24} />
-            </button>
+             <div className="absolute inset-0 bg-gradient-to-t from-pestBrown to-transparent"></div>
           </div>
 
-          <div className="p-8 md:p-12 flex-1 flex flex-col">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-3">{service.title}</h2>
-            
+          <div className="p-8 md:p-16 flex-1 flex flex-col -mt-20 relative z-10">
             {service.featured && (
-              <div className="mb-8">
+              <div className="mb-4">
                   <span className="bg-yellow-500 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-md inline-flex items-center gap-1.5">
-                    <Award size={16} className="fill-white" /> Featured Service
+                    <Award size={16} className="fill-white" /> Featured
                   </span>
               </div>
             )}
 
-            <div className="flex items-start gap-5 mb-8">
-                <div className="w-16 h-16 rounded-2xl bg-pestGreen flex items-center justify-center text-white shadow-lg flex-shrink-0 mt-1">
-                    <IconComponent size={32} />
+            <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-none">{service.title}</h2>
+            
+            <div className="flex items-start gap-6 mb-10">
+                <div className="w-20 h-20 rounded-2xl bg-pestGreen flex items-center justify-center text-white shadow-lg flex-shrink-0 mt-1 border-2 border-white/20">
+                    <IconComponent size={40} />
                 </div>
-                <p className="text-white/80 text-lg md:text-xl italic font-medium leading-relaxed">{service.description}</p>
+                <p className="text-white/90 text-xl md:text-2xl italic font-medium leading-relaxed">{service.description}</p>
             </div>
 
             {/* Full Description */}
-            <p className="text-lg md:text-xl text-gray-200 leading-relaxed mb-8">
+            <p className="text-lg md:text-xl text-gray-300 leading-relaxed mb-10">
                 {service.fullDescription}
             </p>
 
             {/* Bulleted Details */}
             {service.details && service.details.length > 0 && (
-                <ul className="space-y-4 mb-8 flex-grow bg-white/5 p-6 rounded-2xl border border-white/10">
-                {service.details.map((detail, index) => (
-                    <li key={index} className="flex items-start">
-                        <span className="mr-3 text-pestGreen shrink-0 text-xl">&bull;</span> 
-                        <span className="text-base md:text-lg text-gray-300">{detail}</span>
-                    </li>
-                ))}
-                </ul>
+                <div className="mb-10 flex-grow">
+                    <h3 className="text-pestGreen font-bold uppercase tracking-widest text-sm mb-4">What's Included</h3>
+                    <ul className="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10">
+                    {service.details.map((detail, index) => (
+                        <li key={index} className="flex items-start">
+                            <span className="mr-3 text-pestGreen shrink-0 text-xl font-bold">&bull;</span> 
+                            <span className="text-lg md:text-xl text-gray-300 font-medium">{detail}</span>
+                        </li>
+                    ))}
+                    </ul>
+                </div>
             )}
 
-            <div className="mt-auto space-y-6 pt-6 border-t border-white/10">
+            <div className="mt-auto space-y-6 pt-8 border-t border-white/10">
                 {service.price && (
                 <div className="flex items-center justify-between bg-pestGreen/10 text-white p-6 rounded-2xl border border-pestGreen/20">
-                    <span className="text-base uppercase font-bold text-pestGreen">Starting From:</span>
-                    <span className="text-3xl font-black text-white">{service.price}</span>
+                    <span className="text-lg uppercase font-bold text-pestGreen">Estimated Cost:</span>
+                    <span className="text-4xl font-black text-white">{service.price}</span>
                 </div>
                 )}
                 <button 
                     onClick={onBookClick}
-                    className="w-full bg-pestGreen text-white px-8 py-5 rounded-2xl font-black text-2xl flex items-center justify-center gap-4 shadow-3d hover:shadow-none hover:translate-y-1 transition-all"
+                    className="w-full bg-pestGreen text-white px-8 py-6 rounded-2xl font-black text-2xl flex items-center justify-center gap-4 shadow-3d hover:shadow-neon hover:translate-y-[-2px] transition-all"
                 >
-                    Book Now <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                    Book This Service <ArrowRight size={28} className="group-hover:translate-x-1 transition-transform" />
                 </button>
             </div>
           </div>

@@ -16,7 +16,6 @@ const COMMON_PESTS = ['German Cockroach', 'American Cockroach', 'Ants (Sugar)', 
 const COMMON_ROOT_CAUSES = ['Hygiene Issue', 'Structural Gaps', 'Imported Goods', 'Moisture Problem', 'Overgrown Vegetation', 'Waste Management', 'Neighboring Property'];
 const COMMON_RECOMMENDATIONS = ['Seal Cracks', 'Improve Sanitation', 'Cut Back Trees', 'Install Door Sweeps', 'Remove Clutter', 'Clean Drains', 'Proofing Required'];
 const COMMON_PPE = ['Gloves', 'Respirator Mask', 'Safety Goggles', 'Coveralls', 'Safety Boots', 'Ear Protection'];
-const SAFETY_CHECKLIST_ITEMS = ["Pets Removed", "Food Covered/Removed", "Windows Closed", "Smoke Detectors Covered", "Aquariums Covered", "Children Away from Area"];
 
 export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUser, onClose }) => {
     const { content, updateJobCard, deleteJobCard } = useContent();
@@ -27,9 +26,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
     // Local state for the active tab in the manager
     const [activeTab, setActiveTab] = useState<'overview' | 'assessment' | 'quote' | 'execution' | 'invoice'>('overview');
-    
-    // Help System State
-    const [showHelp, setShowHelp] = useState(false);
     
     // Local state for adding new items
     const [newCheckpoint, setNewCheckpoint] = useState<Partial<Checkpoint>>({ 
@@ -61,7 +57,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 setShowScanner(false);
                                 scanner.clear();
                             } else if (activeTab === 'execution') {
-                                // Find checkpoint matching code OR area name (fallback)
                                 const cpIndex = job?.checkpoints.findIndex(c => c.code === decodedText || c.area === decodedText);
                                 if (cpIndex !== undefined && cpIndex > -1 && job) {
                                     const newCps = [...job.checkpoints];
@@ -76,9 +71,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 }
                             }
                         },
-                        (errorMessage: string) => {
-                            // ignore console spam
-                        }
+                        (errorMessage: string) => { /* ignore */ }
                     );
                 } else {
                     setScannerError("Scanner library not loaded. Check internet connection.");
@@ -100,6 +93,21 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     const handleSaveJob = (updates: Partial<JobCard>) => {
         updateJobCard(jobId, updates);
     };
+
+    const handleInvoiceNoteChange = (v: string) => {
+        const currentInvoice = job.invoice || {
+            invoiceNumber: job.refNumber,
+            generatedDate: new Date().toISOString(),
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            lineItems: job.quote.lineItems,
+            subtotal: job.quote.subtotal,
+            vat: job.quote.subtotal * job.quote.vatRate,
+            total: job.quote.total,
+            status: 'Draft',
+            notes: ''
+        };
+        handleSaveJob({ invoice: { ...currentInvoice, notes: v } });
+    }
 
     const handleDeleteJobCard = () => {
         if (window.confirm("Are you sure you want to delete this Job Card completely? This cannot be undone.")) {
@@ -123,7 +131,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
         if (!newCheckpoint.area || !newCheckpoint.pestType) return;
         const checkpoint: Checkpoint = {
             id: Date.now().toString(),
-            code: `CHK-${Date.now()}-${Math.floor(Math.random() * 1000)}`, // Unique QR Code Data
+            code: `CHK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             area: newCheckpoint.area!,
             pestType: newCheckpoint.pestType!,
             severity: newCheckpoint.severity as any,
@@ -142,7 +150,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     };
 
     const generatePrintDocument = (type: 'QUOTE' | 'INVOICE') => {
-        // ... (Print Logic remains same)
         const win = window.open('', '', 'width=900,height=1200');
         if (!win) return;
         const company = content.company;
@@ -170,12 +177,10 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                 .status-high { background: #ef4444; }
                 .status-med { background: #f59e0b; }
                 .status-low { background: #10b981; }
-                @media print {
-                    .no-print { display: none; }
-                }
+                .notes-box { margin-top: 20px; padding: 10px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; }
             </style>
         `;
-        // ... (rest of print logic unchanged for brevity as requested change is layout)
+        
         const findingsHtml = job.checkpoints.map(cp => `
             <div class="finding-card">
                 <strong>${cp.area}</strong> 
@@ -210,8 +215,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                             <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
                             <p>${company.address}</p>
                             <p>${company.email} | ${company.phone}</p>
-                            ${company.regNumber ? `<p>Reg: ${company.regNumber}</p>` : ''}
-                            ${company.vatNumber ? `<p>VAT: ${company.vatNumber}</p>` : ''}
                         </div>
                     </div>
 
@@ -245,33 +248,37 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                     </div>
                     <div style="clear:both;"></div>
 
+                    ${type === 'QUOTE' && job.quote.notes ? `
+                        <div class="notes-box">
+                            <strong>Special Notes:</strong><br/>
+                            ${job.quote.notes.replace(/\n/g, '<br/>')}
+                        </div>
+                    ` : ''}
+
+                    ${type === 'INVOICE' && (job.invoice?.notes) ? `
+                        <div class="notes-box">
+                            <strong>Invoice Notes:</strong><br/>
+                            ${job.invoice.notes.replace(/\n/g, '<br/>')}
+                        </div>
+                    ` : ''}
+
                     ${type === 'QUOTE' ? `
                     <div class="bank-details">
-                        <h4>Banking Details for Deposit</h4>
+                        <h4>Banking Details</h4>
                         <p><strong>Bank:</strong> ${bank.bankName}</p>
                         <p><strong>Account Name:</strong> ${bank.accountName}</p>
                         <p><strong>Account No:</strong> ${bank.accountNumber}</p>
                         <p><strong>Branch Code:</strong> ${bank.branchCode}</p>
-                        <p><strong>Reference:</strong> ${job.refNumber}</p>
                     </div>
                     ` : ''}
 
-                    <div class="section-title">Site Assessment Report</div>
-                    <p style="margin-bottom:15px;">The following findings were noted during our inspection of the property.</p>
+                    <div class="section-title">Site Findings</div>
                     <div class="findings-grid">
                         ${findingsHtml}
                     </div>
 
-                    ${type === 'INVOICE' && job.status === 'Completed' ? `
-                        <div class="section-title">Execution Report</div>
-                        <p><strong>Technician:</strong> ${content.employees.find(e => e.id === job.technicianId)?.fullName || 'N/A'}</p>
-                        <p><strong>Date Completed:</strong> ${new Date().toLocaleDateString()}</p>
-                        <p><strong>Chemicals Used:</strong> ${job.checkpoints.map(c => c.chemicalUsed).filter(Boolean).join(', ') || 'Standard Application'}</p>
-                    ` : ''}
-
                     <div class="footer">
-                        <p>Terms & Conditions Apply. ${company.name} is a registered service provider.</p>
-                        <p>Thank you for your business!</p>
+                        <p>Terms & Conditions Apply. Thank you for your business!</p>
                     </div>
                 </body>
             </html>
@@ -280,7 +287,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     };
 
     const printQRCodes = () => {
-         // ... (QR Print logic remains same)
         const win = window.open('', '', 'width=800,height=600');
         if (!win) return;
         const qrHtml = job.checkpoints.map(cp => `
@@ -314,7 +320,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
 
     const TabButton = ({ id, label, icon: Icon }: any) => (
         <button 
-            onClick={() => { setActiveTab(id); setShowHelp(false); }} 
+            onClick={() => setActiveTab(id)} 
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === id ? 'bg-pestGreen text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
             <Icon size={16} /> {label}
@@ -334,11 +340,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
     );
 
     return (
-        <div className="fixed inset-0 z-[100] bg-[#0f1110] flex flex-col md:flex-row overflow-hidden animate-in fade-in duration-300 font-sans w-screen">
+        <div className="fixed inset-0 z-[100] bg-[#0f1110] flex flex-col md:flex-row overflow-hidden animate-in fade-in duration-300 font-sans w-screen h-screen">
             
-            {/* Sidebar Navigation (Desktop) */}
-            <aside className="hidden md:flex w-full md:w-64 bg-[#161817] border-r border-white/5 flex-col flex-shrink-0">
-                <div className="p-6 border-b border-white/5">
+            {/* Sidebar Navigation */}
+            <aside className="hidden md:flex w-full md:w-64 bg-[#161817] border-r border-white/5 flex-col flex-shrink-0 h-full">
+                <div className="p-6 border-b border-white/5 flex-shrink-0">
                     <div className="flex justify-between items-start mb-4">
                         <h2 className="text-white font-black text-xl">{job.refNumber}</h2>
                         <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><X size={20}/></button>
@@ -358,7 +364,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                 </div>
                 
                 {isAdmin && (
-                    <div className="p-4 border-t border-white/5">
+                    <div className="p-4 border-t border-white/5 flex-shrink-0">
                         <button onClick={handleDeleteJobCard} className="w-full flex items-center justify-center gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-400 py-3 rounded-xl font-bold text-sm transition-colors">
                             <Trash2 size={16} /> Delete Job Card
                         </button>
@@ -367,7 +373,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             </aside>
 
              {/* Mobile Header with Close */}
-             <div className="md:hidden flex items-center justify-between p-4 bg-[#161817] border-b border-white/5">
+             <div className="md:hidden flex items-center justify-between p-4 bg-[#161817] border-b border-white/5 flex-shrink-0">
                 <div className="flex items-center gap-2">
                     <h2 className="text-white font-black text-sm">{job.refNumber}</h2>
                     <StatusBadge status={job.status} />
@@ -376,7 +382,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
             </div>
 
             {/* Mobile Tab Nav Horizontal */}
-            <div className="md:hidden flex overflow-x-auto gap-2 p-2 bg-[#0f1110] border-b border-white/5 scrollbar-hide">
+            <div className="md:hidden flex overflow-x-auto gap-2 p-2 bg-[#0f1110] border-b border-white/5 scrollbar-hide flex-shrink-0">
                  <button onClick={() => setActiveTab('overview')} className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold ${activeTab === 'overview' ? 'bg-pestGreen text-white' : 'bg-white/5 text-gray-400'}`}>Overview</button>
                  <button onClick={() => setActiveTab('assessment')} className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold ${activeTab === 'assessment' ? 'bg-pestGreen text-white' : 'bg-white/5 text-gray-400'}`}>Assessment</button>
                  <button onClick={() => setActiveTab('quote')} className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold ${activeTab === 'quote' ? 'bg-pestGreen text-white' : 'bg-white/5 text-gray-400'}`}>Quote</button>
@@ -386,22 +392,24 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                  <button onClick={() => setActiveTab('invoice')} className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold ${activeTab === 'invoice' ? 'bg-pestGreen text-white' : 'bg-white/5 text-gray-400'}`}>Invoice</button>
             </div>
 
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto bg-[#0f1110] relative">
+            {/* Main Content Area - FULL WIDTH FIX */}
+            <main className="flex-1 overflow-y-auto bg-[#0f1110] relative w-full h-full">
                 
-                <div className="max-w-5xl mx-auto p-4 md:p-12 pb-24">
+                {/* Ensure full width and remove max-w constraints */}
+                <div className="w-full min-h-full p-4 md:p-8 pb-24">
                     
                     {/* OVERVIEW TAB */}
                     {activeTab === 'overview' && (
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                             <h1 className="text-3xl font-black text-white flex items-center gap-3">
-                                Job Overview
+                                JobOverview
                                 {job.status === 'Assessment' && <button onClick={() => advanceStatus('Quote_Builder')} className="ml-auto bg-pestGreen text-white px-4 py-2 rounded-lg text-sm">Next: Quote</button>}
                             </h1>
                             
-                            <div className="grid grid-cols-2 gap-3 md:gap-6">
-                                {/* Client Info - Use col-span-1 to enforce side-by-side on mobile grid */}
-                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-1">
+                            {/* UPDATED GRID for Full Width - Stretches across screen */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 w-full">
+                                {/* Client Info */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 space-y-4">
                                     <h3 className="text-pestGreen font-bold uppercase text-xs tracking-wider flex items-center gap-2"><User size={14}/> Client Details</h3>
                                     <Input label="Client Name" value={job.clientName} onChange={(v: string) => handleSaveJob({ clientName: v })} />
                                     <div className="grid grid-cols-2 gap-3">
@@ -412,8 +420,8 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <Input label="Business Name" value={job.clientCompanyName || ''} onChange={(v: string) => handleSaveJob({ clientCompanyName: v })} />
                                 </div>
 
-                                {/* Location Info - Use col-span-1 to enforce side-by-side on mobile grid */}
-                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-1">
+                                {/* Location Info */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 space-y-4">
                                     <h3 className="text-pestGreen font-bold uppercase text-xs tracking-wider flex items-center gap-2"><MapPin size={14}/> Site Location</h3>
                                     <Input label="Street" value={job.clientAddressDetails.street} onChange={(v: string) => handleSaveJob({ clientAddressDetails: { ...job.clientAddressDetails, street: v } })} />
                                     <div className="grid grid-cols-2 gap-3">
@@ -424,25 +432,23 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     <Input label="Gate Code" value={job.siteAccessCodes || ''} onChange={(v: string) => handleSaveJob({ siteAccessCodes: v })} />
                                 </div>
                                 
-                                {/* Scheduling - FULL WIDTH (2 COL) */}
-                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-2">
+                                {/* Scheduling */}
+                                <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 space-y-4">
                                     <h3 className="text-pestGreen font-bold uppercase text-xs tracking-wider flex items-center gap-2"><Calendar size={14}/> Schedule & Tech</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-                                        <Input label="Assessment Date" type="date" value={job.assessmentDate.split('T')[0]} onChange={(v: string) => handleSaveJob({ assessmentDate: new Date(v).toISOString() })} />
-                                        <Input label="Service Date" type="date" value={job.serviceDate ? job.serviceDate.split('T')[0] : ''} onChange={(v: string) => handleSaveJob({ serviceDate: new Date(v).toISOString() })} />
-                                        <div className="space-y-1 col-span-2 md:col-span-1">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Assigned Tech</label>
-                                            <select 
-                                                value={job.technicianId} 
-                                                onChange={(e) => handleSaveJob({ technicianId: e.target.value })}
-                                                className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none"
-                                            >
-                                                <option value="">Select Technician...</option>
-                                                {content.employees.filter(e => e.permissions.canExecuteJob).map(emp => (
-                                                    <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                    <Input label="Assessment Date" type="date" value={job.assessmentDate.split('T')[0]} onChange={(v: string) => handleSaveJob({ assessmentDate: new Date(v).toISOString() })} />
+                                    <Input label="Service Date" type="date" value={job.serviceDate ? job.serviceDate.split('T')[0] : ''} onChange={(v: string) => handleSaveJob({ serviceDate: new Date(v).toISOString() })} />
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Assigned Tech (Optional)</label>
+                                        <select 
+                                            value={job.technicianId} 
+                                            onChange={(e) => handleSaveJob({ technicianId: e.target.value })}
+                                            className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none"
+                                        >
+                                            <option value="">Select Technician...</option>
+                                            {content.employees.filter(e => e.permissions.canExecuteJob).map(emp => (
+                                                <option key={emp.id} value={emp.id}>{emp.fullName}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -465,12 +471,11 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                      <button onClick={() => setShowScanner(false)} className="absolute top-4 right-4 text-white p-2 bg-white/10 rounded-full"><X size={32}/></button>
                                      <div id="reader" className="w-full max-w-sm bg-white rounded-lg overflow-hidden border-4 border-pestGreen"></div>
                                      <p className="text-white mt-4 font-bold text-lg animate-pulse">Scanning...</p>
-                                     {scannerError && <p className="text-red-500 mt-2">{scannerError}</p>}
                                  </div>
                              )}
 
                              {/* Add Checkpoint Form */}
-                             <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl">
+                             <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 shadow-2xl w-full">
                                  <div className="flex items-center justify-between mb-6">
                                      <h3 className="text-white font-bold text-lg">Add New Finding</h3>
                                      <div className="flex gap-2">
@@ -494,79 +499,51 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     </div>
                                  </div>
 
-                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
                                      <div className="col-span-1"><Input label="Area Name" value={newCheckpoint.area} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, area: v }))} placeholder="e.g. Kitchen Cupboard" /></div>
                                      <div className="col-span-1"><Input label="Pest Found" value={newCheckpoint.pestType} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, pestType: v }))} placeholder="e.g. German Cockroach" /></div>
-                                     <div className="col-span-2 md:col-span-1"><Select label="Infestation Level" value={newCheckpoint.infestationLevel} options={[{label:'Trace',value:'Trace'},{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'},{label:'Severe',value:'Severe'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, infestationLevel: v as any }))} /></div>
+                                     <div className="col-span-1"><Select label="Infestation Level" value={newCheckpoint.infestationLevel} options={[{label:'Trace',value:'Trace'},{label:'Low',value:'Low'},{label:'Medium',value:'Medium'},{label:'High',value:'High'},{label:'Severe',value:'Severe'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, infestationLevel: v as any }))} /></div>
+                                     <div className="col-span-1"><Select label="Action Priority" value={newCheckpoint.actionPriority} options={[{label:'Routine',value:'Routine'},{label:'Urgent',value:'Urgent'},{label:'Critical',value:'Critical'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, actionPriority: v as any }))} /></div>
                                  </div>
 
-                                 <div className="grid grid-cols-2 gap-4 mb-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                      <div className="col-span-1">
                                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 mb-1 block">Root Cause</label>
-                                         <select 
-                                             value={newCheckpoint.rootCause || ''}
-                                             onChange={(e) => setNewCheckpoint(prev => ({ ...prev, rootCause: e.target.value }))}
-                                             className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2"
-                                         >
+                                         <select value={newCheckpoint.rootCause || ''} onChange={(e) => setNewCheckpoint(prev => ({ ...prev, rootCause: e.target.value }))} className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2">
                                              <option value="">Select Root Cause...</option>
                                              {COMMON_ROOT_CAUSES.map(rc => <option key={rc} value={rc}>{rc}</option>)}
                                          </select>
                                      </div>
                                      <div className="col-span-1">
                                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 mb-1 block">Recommendation</label>
-                                         <select 
-                                             value={newCheckpoint.recommendation || ''}
-                                             onChange={(e) => setNewCheckpoint(prev => ({ ...prev, recommendation: e.target.value }))}
-                                             className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2"
-                                         >
+                                         <select value={newCheckpoint.recommendation || ''} onChange={(e) => setNewCheckpoint(prev => ({ ...prev, recommendation: e.target.value }))} className="w-full p-3 bg-[#0f1110] border border-white/10 rounded-xl text-white focus:border-pestGreen outline-none mb-2">
                                              <option value="">Select Recommendation...</option>
                                              {COMMON_RECOMMENDATIONS.map(rc => <option key={rc} value={rc}>{rc}</option>)}
                                          </select>
                                      </div>
                                  </div>
                                  
-                                 <div className="grid grid-cols-2 gap-4 mb-4">
-                                     <div className="col-span-1"><Select label="Action Priority" value={newCheckpoint.actionPriority} options={[{label:'Routine',value:'Routine'},{label:'Urgent',value:'Urgent'},{label:'Critical',value:'Critical'}]} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, actionPriority: v as any }))} /></div>
-                                     <div className="col-span-1"><Input label="Equipment Needed" value={job.equipmentNeeded ? job.equipmentNeeded.join(', ') : ''} onChange={(v: string) => handleSaveJob({ equipmentNeeded: v.split(',').map(s=>s.trim()) })} placeholder="e.g. Ladder, Thermal Camera..." /></div>
-                                 </div>
-
                                  <div className="mb-4">
                                     <TextArea label="Detailed Notes" value={newCheckpoint.notes} onChange={(v: string) => setNewCheckpoint(prev => ({ ...prev, notes: v }))} rows={2} placeholder="Describe infestation..." />
                                  </div>
 
                                  <div className="mb-6">
-                                     <FileUpload 
-                                        label="Photos" 
-                                        value={newCheckpoint.photos} 
-                                        onChange={(v: string[]) => setNewCheckpoint(prev => ({ ...prev, photos: v }))} 
-                                        multiple={true}
-                                        capture="environment"
-                                     />
+                                     <FileUpload label="Photos" value={newCheckpoint.photos} onChange={(v: string[]) => setNewCheckpoint(prev => ({ ...prev, photos: v }))} multiple={true} capture="environment" />
                                  </div>
                                  <button onClick={addCheckpoint} className="w-full bg-pestGreen hover:bg-white hover:text-pestGreen text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
                                      <Plus size={20}/> Add Finding
                                  </button>
                              </div>
 
-                             {/* List Checkpoints - GRID 2 COL ON MOBILE */}
-                             <div className="grid grid-cols-2 gap-3 md:gap-4">
+                             {/* List Checkpoints - Optimized Grid */}
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
                                  {job.checkpoints.map((cp, idx) => (
-                                     <div key={cp.id} className="bg-[#161817] border-l-4 border-l-pestGreen border-y border-r border-white/5 rounded-r-xl p-4 relative flex flex-col gap-2 col-span-1">
-                                         <button 
-                                            onClick={() => { 
-                                                const updated = job.checkpoints.filter(c => c.id !== cp.id);
-                                                handleSaveJob({ checkpoints: updated });
-                                            }} 
-                                            className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-                                         >
-                                            <Trash2 size={16}/>
-                                         </button>
-                                         
+                                     <div key={cp.id} className="bg-[#161817] border-l-4 border-l-pestGreen border-y border-r border-white/5 rounded-r-xl p-4 relative flex flex-col gap-2">
+                                         <button onClick={() => { const updated = job.checkpoints.filter(c => c.id !== cp.id); handleSaveJob({ checkpoints: updated }); }} className="absolute top-2 right-2 text-gray-600 hover:text-red-500"><Trash2 size={16}/></button>
                                          <div className="flex gap-2 items-start">
                                             <div className="flex-shrink-0 w-12 h-12 bg-white p-1 rounded-lg">
                                                 <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${cp.code}`} alt="QR" className="w-full h-full" />
                                             </div>
-
                                             <div className="flex-1 overflow-hidden">
                                                 <h4 className="text-sm font-bold text-white truncate">{cp.area}</h4>
                                                 <div className="flex gap-1 mt-1 flex-wrap">
@@ -574,11 +551,9 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                                 </div>
                                             </div>
                                          </div>
-                                            
                                         <div className="text-[10px] text-gray-400 space-y-1">
                                             {cp.rootCause && <p><strong>Cause:</strong> {cp.rootCause}</p>}
                                         </div>
-
                                         <p className="text-gray-300 text-xs bg-white/5 p-2 rounded border border-white/5 line-clamp-2">{cp.notes}</p>
                                      </div>
                                  ))}
@@ -586,7 +561,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                         </div>
                     )}
 
-                    {/* QUOTE TAB - 2 COL ON MOBILE */}
+                    {/* QUOTE TAB */}
                     {activeTab === 'quote' && (
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                              <div className="flex justify-between items-center">
@@ -598,9 +573,9 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 )}
                              </div>
 
-                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
                                  {/* Builder Panel */}
-                                 <div className="col-span-2 space-y-6">
+                                 <div className="lg:col-span-2 space-y-6">
                                      <div className="bg-[#161817] border border-white/5 rounded-2xl p-4">
                                         <h3 className="text-white font-bold mb-4">Add Line Item</h3>
                                         <div className="grid grid-cols-4 gap-3 items-end">
@@ -631,7 +606,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         </button>
                                      </div>
 
-                                     {/* Simple List for Mobile instead of Table */}
                                      <div className="space-y-2">
                                          {job.quote.lineItems.map((item) => (
                                              <div key={item.id} className="bg-[#161817] p-3 rounded-xl border border-white/5 flex justify-between items-center">
@@ -651,10 +625,15 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                              </div>
                                          ))}
                                      </div>
+
+                                     {/* NEW NOTES FIELD */}
+                                     <div className="bg-[#161817] border border-white/5 rounded-2xl p-4">
+                                         <TextArea label="Quote Notes / Terms" value={job.quote.notes} onChange={(v: string) => handleSaveJob({ quote: { ...job.quote, notes: v } })} rows={3} placeholder="Valid for 7 days..." />
+                                     </div>
                                  </div>
 
                                  {/* Totals Panel */}
-                                 <div className="col-span-2 md:col-span-1 space-y-6">
+                                 <div className="lg:col-span-1 space-y-6">
                                      <div className="bg-[#161817] border border-white/5 rounded-2xl p-6">
                                          <h3 className="text-white font-bold mb-4">Total</h3>
                                          <div className="pt-4 border-t border-white/10 flex justify-between text-xl font-black text-white">
@@ -675,7 +654,7 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                 {job.status === 'Job_In_Progress' && <button onClick={() => advanceStatus('Job_Review')} className="bg-white text-pestBrown hover:bg-pestGreen hover:text-white px-4 py-2 rounded-xl font-bold transition-colors flex items-center gap-2 text-sm">Finish <ArrowRight size={14}/></button>}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 md:gap-6">
+                            <div className="grid grid-cols-2 gap-3 md:gap-6 w-full">
                                 <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-2 md:col-span-1">
                                     <h3 className="text-white font-bold border-b border-white/10 pb-2 flex items-center gap-2"><Cloud size={18}/> Log</h3>
                                     <Input label="Weather" value={job.weatherNotes || ''} onChange={(v: string) => handleSaveJob({ weatherNotes: v })} placeholder="e.g. Sunny" />
@@ -684,22 +663,13 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                         <Input label="Wind" value={job.windSpeed || ''} onChange={(v: string) => handleSaveJob({ windSpeed: v })} />
                                     </div>
                                 </div>
-
                                 <div className="bg-[#161817] border border-white/5 rounded-2xl p-4 space-y-4 col-span-2 md:col-span-1">
                                     <h3 className="text-white font-bold border-b border-white/10 pb-2 flex items-center gap-2"><Shield size={18}/> PPE</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {COMMON_PPE.map(ppe => {
                                             const isActive = (job.ppeUsed || []).includes(ppe);
                                             return (
-                                                <button 
-                                                    key={ppe}
-                                                    onClick={() => {
-                                                        const current = job.ppeUsed || [];
-                                                        const updated = isActive ? current.filter(p => p !== ppe) : [...current, ppe];
-                                                        handleSaveJob({ ppeUsed: updated });
-                                                    }}
-                                                    className={`text-xs px-2 py-1 rounded-lg border transition-all ${isActive ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white'}`}
-                                                >
+                                                <button key={ppe} onClick={() => { const current = job.ppeUsed || []; const updated = isActive ? current.filter(p => p !== ppe) : [...current, ppe]; handleSaveJob({ ppeUsed: updated }); }} className={`text-xs px-2 py-1 rounded-lg border transition-all ${isActive ? 'bg-pestGreen text-white border-pestGreen' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white'}`}>
                                                     {ppe}
                                                 </button>
                                             )
@@ -707,7 +677,6 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                                     </div>
                                 </div>
                             </div>
-                            
                             <SaveBar onSave={() => alert('Execution Details Saved!')} />
                         </div>
                     )}
@@ -716,18 +685,17 @@ export const JobCardManager: React.FC<JobCardManagerProps> = ({ jobId, currentUs
                     {activeTab === 'invoice' && (
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                             <h1 className="text-3xl font-black text-white flex items-center gap-3"><FileCheck size={32} className="text-pestGreen"/> Finalize</h1>
+                            
+                            <div className="bg-[#161817] border border-white/5 rounded-2xl p-6 mb-6">
+                                <h3 className="text-white font-bold mb-4">Invoice Notes</h3>
+                                <TextArea label="Special Instructions / Terms" value={job.invoice?.notes || ''} onChange={handleInvoiceNoteChange} rows={3} placeholder="Banking details check..." />
+                            </div>
+
                             <div className="bg-[#161817] border border-white/5 rounded-2xl p-8 text-center space-y-6">
                                 <h2 className="text-2xl font-bold text-white">Job Ready</h2>
                                 <div className="flex justify-center gap-4 flex-wrap">
-                                     <button onClick={() => generatePrintDocument('INVOICE')} className="bg-white text-pestBrown hover:bg-gray-100 px-6 py-3 rounded-xl font-bold flex items-center gap-2">
-                                         <Printer size={18}/> Print
-                                     </button>
-                                     <button 
-                                        onClick={() => advanceStatus('Completed')}
-                                        className="bg-pestGreen text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-neon transition-all"
-                                     >
-                                         <Lock size={18}/> Close
-                                     </button>
+                                     <button onClick={() => generatePrintDocument('INVOICE')} className="bg-white text-pestBrown hover:bg-gray-100 px-6 py-3 rounded-xl font-bold flex items-center gap-2"><Printer size={18}/> Print</button>
+                                     <button onClick={() => advanceStatus('Completed')} className="bg-pestGreen text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-neon transition-all"><Lock size={18}/> Close</button>
                                 </div>
                             </div>
                         </div>
